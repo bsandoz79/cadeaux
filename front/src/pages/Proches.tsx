@@ -5,6 +5,8 @@ import { aujourdhui, bilanAnnee, dateLisible } from '../calculs/bilan';
 import { Champ, Depliable, EnTete } from '../components/commun';
 import { useEnvoi } from '../components/formulaire';
 import { useDonnees } from '../donnees/contexte';
+import { usePreparerAnniversaire } from '../donnees/usePreparerAnniversaire';
+import { FormulaireCadeau } from '../components/FormulaireCadeau';
 import styles from './pages.module.css';
 
 function FormulairePersonne({ personne, onFini }: { personne?: Personne; onFini: () => void }) {
@@ -35,6 +37,8 @@ function FormulairePersonne({ personne, onFini }: { personne?: Personne; onFini:
 export function Proches() {
   const d = useDonnees();
   const [edition, setEdition] = useState<number | null>(null);
+  const [ajout, setAjout] = useState<number | null>(null);
+  const { preparer, enCours } = usePreparerAnniversaire();
   const annee = Number(aujourdhui().slice(0, 4));
   const parPersonne = new Map(bilanAnnee(annee, d).parPersonne.map((l) => [l.cle, l]));
 
@@ -65,9 +69,19 @@ export function Proches() {
                         {p.note ? ` · ${p.note}` : ''}
                       </div>
                       <div className="actions">
+                        {p.dateNaissance ? (
+                          <button type="button" className="btn btn--petit btn--contour" disabled={enCours === p.id} onClick={() => preparer(p)}>Cadeau d’anniversaire</button>
+                        ) : (
+                          <button type="button" className="btn btn--petit btn--contour" onClick={() => setAjout(p.id)}>Ajouter un cadeau</button>
+                        )}
                         <button type="button" className="btn btn--lien btn--petit" onClick={() => setEdition(p.id)}>Modifier</button>
                         <button type="button" className="btn btn--lien btn--petit btn--danger" onClick={() => supprimer(p)}>Retirer</button>
                       </div>
+                      {ajout === p.id && (
+                        <div className="carte" style={{ marginTop: '.8rem' }}>
+                          <FormulaireCadeau cadeau={{ personneId: p.id, statut: 'prevu' }} avecOccasion onFini={() => setAjout(null)} />
+                        </div>
+                      )}
                     </div>
                     <div style={{ textAlign: 'right' }}>
                       <strong className="chiffre">{euros(l?.total ?? 0)}</strong>

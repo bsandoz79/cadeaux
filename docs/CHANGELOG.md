@@ -2,6 +2,9 @@
 
 ## [Non publié]
 
+### Ajouté (proches)
+- Proches : « Cadeau d'anniversaire » pour chaque proche qui a une date de naissance (occasion de son prochain anniversaire créée ou retrouvée, formulaire ouvert pour lui) ; « Ajouter un cadeau » pour les autres.
+
 ### Sécurité
 - Changement de mot de passe depuis « Mon compte » appliqué seulement après un clic sur le lien envoyé à l'adresse du compte (1 heure) ; toutes les connexions sont ensuite fermées.
 

@@ -34,12 +34,13 @@ export function produitsRecents(vus, maintenant, heures = 48) {
   return vus.filter((v) => maintenant - v.vuLe <= heures * 3_600_000).sort((a, b) => b.vuLe - a.vuLe);
 }
 
-/** Liens pour envoyer la cagnotte : WhatsApp et SMS, message déjà écrit. */
+/** Liens pour envoyer la cagnotte : WhatsApp, Snapchat et SMS, message déjà écrit. */
 export function liensPartage(url, beneficiaire, titre) {
   const texte = `On se cotise pour ${beneficiaire} (${titre}) ? Mets ta part ici : ${url}`;
   return {
     texte,
     whatsapp: `https://wa.me/?text=${encodeURIComponent(texte)}`,
+    snapchat: `https://www.snapchat.com/share?link=${encodeURIComponent(url)}`,
     sms: `sms:?&body=${encodeURIComponent(texte)}`,
   };
 }

@@ -2,6 +2,9 @@
 
 ## [Non publié]
 
+### Modifié (partage)
+- Partage d'une cagnotte en logos seuls (WhatsApp, Snapchat, SMS, Partager, Copier), nommés pour les lecteurs d'écran ; Snapchat ajouté (lien de partage officiel `snapchat.com/share?link=`), sur le site et dans l'extension.
+
 ### Ajouté (appli)
 - Le site s'installe comme une appli sur le téléphone (manifeste, icônes, plein écran) : bouton « Installer l'appli » dans Mon compte sur Android et Chrome, explication pour iPhone. L'écran s'ouvre même sans réseau (dernière version connue), les données restent sur le serveur.
 

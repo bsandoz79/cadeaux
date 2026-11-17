@@ -1,4 +1,5 @@
 import type { Participation } from '../api/types';
+import { euros } from './argent';
 
 /**
  * Parts égales au centime près : 150 € pour 7 donne six parts de 21,43 € et une de 21,42 €.
@@ -41,4 +42,13 @@ export function etatCagnotte(objectif: number, participations: Participation[]):
     pourcentage: objectif > 0 ? Math.min(100, Math.round((total / objectif) * 100)) : 0,
     nombre: participations.length,
   };
+}
+
+/** Montants proposés en un geste : la part égale s'il y en a une, 10, 20, 30 €, ce qui manque, puis « Autre ». */
+export function montantsProposes(conseil: number | null, reste: number): { centimes: number; libelle: string }[] {
+  const liste: { centimes: number; libelle: string }[] = [];
+  if (conseil) liste.push({ centimes: conseil, libelle: `Ma part : ${euros(conseil)}` });
+  for (const c of [1000, 2000, 3000]) if (c !== conseil) liste.push({ centimes: c, libelle: euros(c) });
+  if (reste > 0 && !liste.some((m) => m.centimes === reste)) liste.push({ centimes: reste, libelle: `Tout le reste : ${euros(reste)}` });
+  return liste;
 }

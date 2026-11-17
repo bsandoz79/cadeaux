@@ -1,0 +1,14 @@
+node_modules
+dist
+*.tsbuildinfo
+.env.local
+.env.*.local
+
+# API : dépendances, configuration du serveur (secrets) et fichiers créés en ligne
+api/vendor
+api/config.local.php
+api/var
+api/.phpunit.cache
+
+# Notes de travail locales, non publiées
+CLAUDE.md

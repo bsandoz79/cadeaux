@@ -1,0 +1,17 @@
+.jauge { height: 12px; border-radius: 999px; background: var(--c-bord); overflow: hidden; }
+.jaugeRemplie { height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--c-accent), var(--c-or)); transition: width .4s ease; }
+
+.entete { display: grid; gap: .4rem; margin-bottom: 1.5rem; }
+.enteteLigne { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end; justify-content: space-between; }
+.sousTitre { color: var(--c-texte-doux); margin-top: .3rem; }
+.retour { font-size: .92rem; font-weight: 600; text-decoration: none; }
+.retour:hover { text-decoration: underline; }
+
+.chiffre { display: grid; gap: .15rem; padding: 1rem 1.1rem; border-radius: var(--rayon); background: var(--c-surface); border: 1px solid var(--c-bord); }
+.chiffre span { font-size: .85rem; color: var(--c-texte-doux); font-weight: 600; }
+.chiffre strong { font-size: 1.45rem; font-family: var(--police-titre); }
+.accent { background: var(--c-accent); border-color: var(--c-accent); }
+.accent span, .accent strong { color: #fff; }
+.vert strong { color: var(--c-vert); }
+.or strong { color: var(--c-alerte); }
+@media (prefers-color-scheme: dark) { .accent span, .accent strong { color: #1a1012; } }

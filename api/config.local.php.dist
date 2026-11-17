@@ -1,0 +1,8 @@
+<?php
+
+// Copier en config.local.php (jamais versionné). Sur o2switch, le déploiement l'écrit avec les secrets GitHub.
+return [
+    'dsn' => 'mysql:host=localhost;dbname=NOM_DE_LA_BASE;charset=utf8mb4',
+    'utilisateur' => 'UTILISATEUR',
+    'motDePasse' => 'MOT_DE_PASSE',
+];

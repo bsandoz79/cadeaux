@@ -1,0 +1,13 @@
+# API : tout passe par index.php. Le code, les dépendances et la configuration ne sont jamais servis.
+Options -Indexes
+RewriteEngine On
+
+RewriteRule ^(src|vendor|tests|var)(/|$) - [F,L]
+RewriteRule ^(config\.local\.php|composer\.(json|lock)|phpunit\.xml)$ - [F,L]
+
+# Apache en CGI retire l'en-tête Authorization : on le transmet à PHP.
+RewriteCond %{HTTP:Authorization} .
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ index.php [L]

@@ -1,0 +1,47 @@
+/* Variables de design : couleurs, tailles et rayons. Version sombre selon le réglage de l'appareil. */
+:root {
+  color-scheme: light dark;
+  --c-fond: #faf6f0;
+  --c-surface: #ffffff;
+  --c-texte: #24161a;
+  --c-texte-doux: #6a5a5d;
+  --c-bord: #ece3d9;
+  --c-bord-fort: #d6c8ba;
+  --c-accent: #9e1f2b;        /* rouge ruban : contraste AA avec le blanc */
+  --c-accent-fonce: #7c1621;
+  --c-accent-doux: #f8e6e4;
+  --c-or: #c7922b;
+  --c-or-doux: #fbf0d9;
+  --c-vert: #1d6b4a;
+  --c-vert-doux: #e2f2e9;
+  --c-alerte: #8a5300;
+  --c-erreur: #b3261e;
+  --police: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --police-titre: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  --rayon: 12px;
+  --rayon-grand: 18px;
+  --rayon-petit: 8px;
+  --ombre: 0 1px 2px rgb(60 30 20 / .06), 0 4px 16px rgb(60 30 20 / .06);
+  --largeur: 960px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --c-fond: #181214;
+    --c-surface: #231b1e;
+    --c-texte: #f5ece8;
+    --c-texte-doux: #bca9a6;
+    --c-bord: #3a2e31;
+    --c-bord-fort: #57464a;
+    --c-accent: #e0646d;
+    --c-accent-fonce: #f08a91;
+    --c-accent-doux: #3b2024;
+    --c-or: #e2b35a;
+    --c-or-doux: #3a2e17;
+    --c-vert: #6fcf9f;
+    --c-vert-doux: #17322a;
+    --c-alerte: #f0b35a;
+    --c-erreur: #ff8a80;
+    --ombre: 0 1px 2px rgb(0 0 0 / .3), 0 4px 16px rgb(0 0 0 / .25);
+  }
+}

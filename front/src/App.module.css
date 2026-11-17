@@ -1,0 +1,30 @@
+.app { min-height: 100dvh; display: flex; flex-direction: column; }
+.evitement { position: absolute; left: -999px; top: .5rem; z-index: 10; padding: .5rem 1rem; background: var(--c-surface); border-radius: var(--rayon-petit); }
+.evitement:focus { left: .5rem; }
+
+.entete { background: var(--c-surface); border-bottom: 1px solid var(--c-bord); position: sticky; top: 0; z-index: 5; }
+.barre { max-width: var(--largeur); margin: 0 auto; padding: .7rem 1rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.logo { display: inline-flex; align-items: center; gap: .55rem; text-decoration: none; color: var(--c-texte); font-family: var(--police-titre); font-weight: 700; font-size: 1.3rem; }
+.compte { font-weight: 600; text-decoration: none; padding: .35rem .8rem; border: 1px solid var(--c-bord-fort); border-radius: 999px; color: var(--c-texte); max-width: 45vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.compte[aria-current='page'], .compte:hover { border-color: var(--c-accent); color: var(--c-accent); }
+
+.menu { max-width: var(--largeur); margin: 0 auto; padding: 0 .5rem; overflow-x: auto; scrollbar-width: none; }
+.menu ul { display: flex; gap: .2rem; }
+.menu a { display: block; padding: .55rem .8rem .7rem; text-decoration: none; color: var(--c-texte-doux); font-weight: 600; border-bottom: 3px solid transparent; white-space: nowrap; }
+.menu a:hover { color: var(--c-texte); }
+.menu a[aria-current='page'] { color: var(--c-accent); border-bottom-color: var(--c-accent); }
+
+.contenu { flex: 1; width: 100%; max-width: var(--largeur); margin: 0 auto; padding: 1.75rem 1rem 3rem; outline: none; }
+.chargement { color: var(--c-texte-doux); }
+
+.pied { border-top: 1px solid var(--c-bord); padding: 1.25rem 1rem; text-align: center; color: var(--c-texte-doux); font-size: .85rem; }
+
+/* Téléphone : le menu devient une barre fixe en bas de l'écran, à portée de pouce. */
+@media (max-width: 640px) {
+  .menu { position: fixed; left: 0; right: 0; bottom: 0; max-width: none; padding: 0 0 env(safe-area-inset-bottom); background: var(--c-surface); border-top: 1px solid var(--c-bord); box-shadow: 0 -4px 16px rgb(0 0 0 / .06); }
+  .menu ul { justify-content: space-between; gap: 0; }
+  .menu li { flex: 1; }
+  .menu a { padding: .75rem .1rem; text-align: center; font-size: .74rem; border-bottom: 0; border-top: 3px solid transparent; }
+  .menu a[aria-current='page'] { border-top-color: var(--c-accent); }
+  .app:has(.menu) .pied { padding-bottom: 5rem; }
+}

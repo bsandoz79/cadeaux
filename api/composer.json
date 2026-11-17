@@ -1,0 +1,25 @@
+{
+    "name": "bsandoz/cadeaux-api",
+    "description": "API de cadeaux.bsandoz.fr : comptes, proches, occasions, cadeaux et cagnottes.",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.2",
+        "ext-pdo": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^12.0"
+    },
+    "autoload": {
+        "psr-4": { "Cadeaux\\": "src/" }
+    },
+    "autoload-dev": {
+        "psr-4": { "Cadeaux\\Tests\\": "tests/" }
+    },
+    "scripts": {
+        "test": "phpunit"
+    },
+    "config": {
+        "sort-packages": true
+    }
+}

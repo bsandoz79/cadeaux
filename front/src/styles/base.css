@@ -1,0 +1,56 @@
+@import './tokens.css';
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; font-family: var(--police); font-size: 1rem; line-height: 1.5; color: var(--c-texte); background: var(--c-fond); overflow-x: clip; }
+h1, h2, h3, p, ul, ol, dl, dd { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+h1, h2 { font-family: var(--police-titre); font-weight: 700; letter-spacing: -.01em; line-height: 1.2; }
+h1 { font-size: clamp(1.6rem, 4vw, 2.2rem); }
+h2 { font-size: 1.3rem; }
+h3 { font-size: 1rem; }
+a { color: var(--c-accent); text-underline-offset: 2px; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--c-or); outline-offset: 2px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.chiffre { font-variant-numeric: tabular-nums; }
+
+/* Boutons */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: .45rem; min-height: 46px; padding: 0 1.15rem; border-radius: 999px;
+  border: 1px solid var(--c-accent); background: var(--c-accent); color: #fff; font-weight: 650; text-decoration: none; cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, transform .1s ease; white-space: nowrap; }
+.btn:hover { background: var(--c-accent-fonce); border-color: var(--c-accent-fonce); }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: .55; cursor: not-allowed; }
+.btn--contour { background: transparent; color: var(--c-texte); border-color: var(--c-bord-fort); }
+.btn--contour:hover { background: var(--c-surface); border-color: var(--c-texte); }
+.btn--petit { min-height: 36px; padding: 0 .85rem; font-size: .9rem; }
+.btn--lien { background: none; border: 0; color: var(--c-accent); min-height: 36px; padding: 0 .25rem; text-decoration: underline; font-weight: 600; }
+.btn--lien:hover { background: none; color: var(--c-accent-fonce); }
+.btn--danger { color: var(--c-erreur); }
+@media (prefers-color-scheme: dark) { .btn { color: #1a1012; } .btn--contour, .btn--lien { color: var(--c-texte); } .btn--lien { color: var(--c-accent); } }
+
+/* Champs */
+.champ { display: grid; gap: .3rem; }
+.champ > span { font-weight: 600; font-size: .92rem; }
+.champ small { color: var(--c-texte-doux); font-size: .85rem; }
+.champ input, .champ select, .champ textarea { width: 100%; min-height: 46px; padding: .55rem .8rem; border: 1px solid var(--c-bord-fort); border-radius: var(--rayon-petit); background: var(--c-surface); }
+.champ textarea { min-height: 90px; resize: vertical; }
+.champ input:focus, .champ select:focus, .champ textarea:focus { outline: 3px solid color-mix(in srgb, var(--c-or) 60%, transparent); border-color: var(--c-or); }
+.champ [aria-invalid='true'] { border-color: var(--c-erreur); }
+.erreur { color: var(--c-erreur); font-size: .88rem; font-weight: 600; }
+.formulaire { display: grid; gap: 1rem; }
+.rangee { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+.actions { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
+
+/* Carte */
+.carte { background: var(--c-surface); border: 1px solid var(--c-bord); border-radius: var(--rayon-grand); padding: 1.25rem; box-shadow: var(--ombre); }
+.vide { padding: 1.5rem; text-align: center; color: var(--c-texte-doux); border: 1px dashed var(--c-bord-fort); border-radius: var(--rayon-grand); }
+
+/* Pastilles de statut */
+.pastille { display: inline-flex; align-items: center; padding: .1rem .55rem; border-radius: 999px; font-size: .78rem; font-weight: 700; background: var(--c-bord); color: var(--c-texte); }
+.pastille--idee { background: var(--c-or-doux); color: var(--c-alerte); }
+.pastille--prevu { background: var(--c-accent-doux); color: var(--c-accent-fonce); }
+.pastille--achete, .pastille--offert { background: var(--c-vert-doux); color: var(--c-vert); }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }

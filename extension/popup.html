@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Cadeaux</title>
+    <link rel="stylesheet" href="popup.css" />
+    <script type="module" src="popup.js"></script>
+  </head>
+  <body>
+    <header>
+      <img src="icones/32.png" alt="" width="22" height="22" />
+      <strong>Cadeaux</strong>
+      <button type="button" id="deconnexion" class="lien" hidden>Se déconnecter</button>
+    </header>
+
+    <!-- Connexion -->
+    <form id="connexion" hidden>
+      <p>Connectez-vous avec votre compte <a href="https://cadeaux.bsandoz.fr" target="_blank" rel="noopener">cadeaux.bsandoz.fr</a>.</p>
+      <label>Adresse e-mail <input name="email" type="email" autocomplete="email" required /></label>
+      <label>Mot de passe <input name="motDePasse" type="password" autocomplete="current-password" required /></label>
+      <p class="erreur" role="alert"></p>
+      <button class="btn">Me connecter</button>
+      <p class="discret">Pas encore de compte ? <a href="https://cadeaux.bsandoz.fr" target="_blank" rel="noopener">Créez-le sur le site</a>.</p>
+    </form>
+
+    <!-- Ajout du produit -->
+    <form id="ajout" hidden>
+      <div class="produit">
+        <img id="image" alt="" hidden />
+        <label>Le cadeau <textarea name="titre" rows="3" maxlength="200" required></textarea></label>
+      </div>
+      <label>Prix (€) <input name="prix" inputmode="decimal" autocomplete="off" placeholder="Non trouvé, à remplir" /></label>
+      <label>Pour qui
+        <select name="personneId"><option value="">Personne en particulier</option></select>
+      </label>
+      <label>Pour quelle occasion
+        <select name="occasionId"><option value="">Plus tard (idée)</option></select>
+      </label>
+      <p class="erreur" role="alert"></p>
+      <button class="btn">Ajouter à mes idées</button>
+    </form>
+
+    <div id="fait" hidden>
+      <p class="ok">C’est noté !</p>
+      <p><a href="https://cadeaux.bsandoz.fr/idees" target="_blank" rel="noopener">Voir mes idées</a></p>
+    </div>
+
+    <p id="chargement" class="discret">Chargement…</p>
+  </body>
+</html>

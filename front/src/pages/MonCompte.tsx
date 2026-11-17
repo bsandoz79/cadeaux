@@ -1,0 +1,42 @@
+import { api, jeton } from '../api/client';
+import { EnTete } from '../components/commun';
+import { useDonnees } from '../donnees/contexte';
+import { aller } from '../navigation';
+import styles from './pages.module.css';
+
+/** Compte : déconnexion, extension Chrome, suppression du compte. */
+export function MonCompte() {
+  const d = useDonnees();
+  const deconnecter = async () => { await d.deconnecter(); aller('/'); };
+  const supprimer = async () => {
+    if (!window.confirm('Supprimer votre compte et toutes vos données (proches, occasions, cadeaux, cagnottes) ? C’est définitif.')) return;
+    await api('DELETE', '/moi');
+    jeton.ecrire(null);
+    window.location.assign('/');
+  };
+
+  return (
+    <div className={styles.pile}>
+      <EnTete titre="Mon compte" sousTitre={`${d.compte?.nom} · ${d.compte?.email}`}>
+        <button type="button" className="btn btn--contour" onClick={deconnecter}>Me déconnecter</button>
+      </EnTete>
+
+      <section className="carte formulaire" aria-labelledby="titre-extension">
+        <h2 id="titre-extension">Extension Chrome</h2>
+        <p>Sur la page d’un produit (Amazon, Fnac, Decathlon…), un clic sur l’extension ajoute le produit à vos idées, avec son prix et sa photo.</p>
+        <ol style={{ listStyle: 'decimal', paddingLeft: '1.2rem', display: 'grid', gap: '.3rem' }}>
+          <li><a href="/extension-cadeaux.zip" download>Téléchargez l’extension</a> et décompressez le fichier.</li>
+          <li>Dans Chrome, ouvrez la page <code>chrome://extensions</code>, activez le « Mode développeur » (en haut à droite), puis cliquez sur « Charger l’extension non empaquetée » et choisissez le dossier décompressé.</li>
+          <li>Cliquez sur l’icône du cadeau, puis connectez-vous avec la même adresse et le même mot de passe qu’ici.</li>
+          <li>Sur un produit, cliquez sur l’icône, vérifiez le prix, choisissez pour qui, et ajoutez.</li>
+        </ol>
+      </section>
+
+      <section className="carte formulaire" aria-labelledby="titre-supprimer">
+        <h2 id="titre-supprimer">Supprimer mon compte</h2>
+        <p className={styles.discret}>Toutes vos données sont effacées, et les liens de vos cagnottes ne marchent plus.</p>
+        <div><button type="button" className="btn btn--contour btn--danger" onClick={supprimer}>Supprimer mon compte</button></div>
+      </section>
+    </div>
+  );
+}

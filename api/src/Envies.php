@@ -76,7 +76,7 @@ final class Envies
         $nom->execute([$proprietaire]);
 
         $requete = $this->pdo->prepare(
-            'SELECT e.*, r.id AS reservation_id, r.nom AS reserve_par FROM envies e
+            'SELECT e.*, r.id AS reservation_id, r.nom AS reserve_par, r.cagnotte_code FROM envies e
              LEFT JOIN reservations r ON r.envie_id = e.id
              WHERE e.compte_id = ? ORDER BY e.priorite DESC, e.id DESC',
         );
@@ -94,7 +94,12 @@ final class Envies
                 'prix' => $e['prix'] === null ? null : (int) $e['prix'],
                 'note' => $e['note'],
                 'priorite' => (bool) $e['priorite'],
-                'reservation' => $estProprietaire || $e['reservation_id'] === null ? null : ['id' => (int) $e['reservation_id'], 'nom' => $e['reserve_par']],
+                'reservation' => $estProprietaire || $e['reservation_id'] === null ? null : [
+                    'id' => (int) $e['reservation_id'],
+                    'nom' => $e['reserve_par'],
+                    // Cagnotte lancée pour cette envie : les autres proches peuvent y participer.
+                    'cagnotte' => $e['cagnotte_code'],
+                ],
             ], $requete->fetchAll(\PDO::FETCH_ASSOC)),
         ];
     }
@@ -104,7 +109,7 @@ final class Envies
      *
      * @return array{reservation: array{id: int, nom: string}, cle: string}
      */
-    public function reserver(string $code, int $envieId, array $donnees, string $ip, ?int $compteConnecte): array
+    public function reserver(string $code, int $envieId, array $donnees, string $ip, ?int $compteConnecte, ?string $cagnotteCode = null): array
     {
         $liste = $this->parCode($code);
         $this->envieDeLaListe($liste, $envieId);
@@ -120,8 +125,8 @@ final class Envies
         }
         $cle = bin2hex(random_bytes(32));
         try {
-            $this->pdo->prepare('INSERT INTO reservations (envie_id, nom, cle, cree_le) VALUES (?, ?, ?, ?)')
-                ->execute([$envieId, $nom, hash('sha256', $cle), $this->horloge->texte()]);
+            $this->pdo->prepare('INSERT INTO reservations (envie_id, nom, cle, cree_le, cagnotte_code) VALUES (?, ?, ?, ?, ?)')
+                ->execute([$envieId, $nom, hash('sha256', $cle), $this->horloge->texte(), $cagnotteCode]);
         } catch (\PDOException $e) {
             if ($e->getCode() === '23000') {
                 throw new ErreurHttp(409, 'Quelqu’un s’en occupe déjà.');
@@ -131,6 +136,25 @@ final class Envies
         $this->limiteur->noter('reservation:' . $ip);
 
         return ['reservation' => ['id' => (int) $this->pdo->lastInsertId(), 'nom' => $nom], 'cle' => $cle];
+    }
+
+    /**
+     * Envie de la liste (pour lancer une cagnotte) : titre, prix, lien, et prénom du propriétaire.
+     *
+     * @return array{titre: string, prix: ?int, lien: ?string, proprietaire: string}
+     */
+    public function envieAPartager(string $code, int $envieId, int $compteConnecte): array
+    {
+        $liste = $this->parCode($code);
+        $this->envieDeLaListe($liste, $envieId);
+        if ($compteConnecte === (int) $liste['compte_id']) {
+            throw new ErreurHttp(403, 'C’est votre liste : ce sont les autres qui se cotisent.');
+        }
+        $requete = $this->pdo->prepare('SELECT e.titre, e.prix, e.lien, c.nom FROM envies e JOIN comptes c ON c.id = e.compte_id WHERE e.id = ?');
+        $requete->execute([$envieId]);
+        $e = $requete->fetch(\PDO::FETCH_ASSOC);
+
+        return ['titre' => (string) $e['titre'], 'prix' => $e['prix'] === null ? null : (int) $e['prix'], 'lien' => $e['lien'], 'proprietaire' => (string) $e['nom']];
     }
 
     public function annulerReservation(string $code, int $envieId, ?string $cle): void

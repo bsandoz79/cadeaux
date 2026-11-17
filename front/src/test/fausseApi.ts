@@ -78,7 +78,7 @@ export function installerFausseApi(etat: EtatFaux) {
     if ((m = /^\/l\/([a-f0-9]{16})$/.exec(chemin))) {
       const l = etat.listes[m[1]];
       if (!l) return json(404, { message: 'Introuvable.' });
-      const proprio = Boolean(entetes.Authorization);
+      const proprio = Boolean(entetes.Authorization) && l.proprietaire === etat.compte.nom;
       return json(200, { proprietaire: l.proprietaire, message: l.message, estProprietaire: proprio, envies: l.envies.map((e) => ({ ...e, reservation: proprio ? null : e.reservation ?? null })) });
     }
     if ((m = /^\/l\/([a-f0-9]{16})\/envies\/(\d+)\/reservation$/.exec(chemin)) && methode === 'POST') {
@@ -87,6 +87,15 @@ export function installerFausseApi(etat: EtatFaux) {
       if (e.reservation) return json(409, { message: 'Quelqu’un s’en occupe déjà.' });
       e.reservation = { id: suivant++, nom: corps.nom };
       return json(201, { reservation: e.reservation, cle: 'c'.repeat(64) });
+    }
+    if ((m = /^\/l\/([a-f0-9]{16})\/envies\/(\d+)\/cagnotte$/.exec(chemin)) && methode === 'POST') {
+      const l = etat.listes[m[1]];
+      const e = l?.envies.find((x) => x.id === Number(m![2]));
+      if (!e) return json(404, { message: 'Introuvable.' });
+      const cagnotte = { id: suivant++, ...DEFAUTS.cagnottes, code: 'fedcbafedcbafedc', titre: e.titre, beneficiaire: l.proprietaire, objectif: corps?.objectif ?? e.prix };
+      etat.cagnottes.unshift(cagnotte);
+      e.reservation = { id: suivant++, nom: `${etat.compte.nom} et d’autres`, cagnotte: cagnotte.code };
+      return json(201, { cagnotte, reservation: e.reservation, cle: 'd'.repeat(64) });
     }
     return json(404, { message: `Route inconnue du faux serveur : ${methode} ${chemin}` });
   });

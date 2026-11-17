@@ -2,6 +2,10 @@
 
 ## [Non publié]
 
+### Ajouté (cagnottes)
+- « On se cotise » sur une liste d'envies : un proche connecté lance une cagnotte pour l'envie (prix repris, ou demandé), l'envie est réservée au nom du groupe, les autres voient « Cagnotte lancée par Léa · Participer » ; le propriétaire ne voit toujours rien. Sans compte, invitation à se connecter puis retour sur la liste.
+- Envoi du lien d'une cagnotte par WhatsApp, SMS, menu de partage ou copie, sur la page de la cagnotte et après « On se cotise ».
+
 ### Ajouté (rappels)
 - Rappels par e-mail, au plus un par jour : anniversaire d'un proche dans 7 jours (âge, budget, ce qui est prévu), cagnotte incomplète 2 jours avant sa date limite. Désactivables dans « Mon compte ». Envoyés par la tâche quotidienne `api/bin/menage.php`.
 

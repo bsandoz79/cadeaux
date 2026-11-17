@@ -66,6 +66,40 @@ final class EnviesTest extends ApiTestCase
         self::assertNotSame($code, $this->appel('POST', '/liste', [], $jeton)->donnees['code']);
     }
 
+    public function testOnSeCotiseLanceUneCagnotteEtReserveLEnvie(): void
+    {
+        [$proprio, $code, $id] = $this->listePartagee();
+        $lea = $this->inscrire('lea@example.com', 'Léa');
+        self::assertSame(401, $this->appel('POST', "/l/$code/envies/$id/cagnotte")->statut);
+        self::assertSame(403, $this->appel('POST', "/l/$code/envies/$id/cagnotte", [], $proprio)->statut);
+
+        $r = $this->appel('POST', "/l/$code/envies/$id/cagnotte", [], $lea);
+        self::assertSame(201, $r->statut);
+        self::assertSame(['Casque audio', 'Baptiste', 8990, 'https://example.com/casque'], [$r->donnees['cagnotte']['titre'], $r->donnees['cagnotte']['beneficiaire'], $r->donnees['cagnotte']['objectif'], $r->donnees['cagnotte']['lien']]);
+
+        // Les autres proches voient la cagnotte ; le propriétaire ne voit rien.
+        $vue = $this->appel('GET', "/l/$code")->donnees['envies'][0]['reservation'];
+        self::assertSame(['Léa et d’autres', $r->donnees['cagnotte']['code']], [$vue['nom'], $vue['cagnotte']]);
+        self::assertNull($this->appel('GET', "/l/$code", [], $proprio)->donnees['envies'][0]['reservation']);
+        self::assertCount(1, $this->appel('GET', '/cagnottes', [], $lea)->donnees);
+
+        // Déjà prise : pas de deuxième cagnotte.
+        $tom = $this->inscrire('tom@example.com', 'Tom');
+        self::assertSame(409, $this->appel('POST', "/l/$code/envies/$id/cagnotte", [], $tom)->statut);
+        self::assertSame([], $this->appel('GET', '/cagnottes', [], $tom)->donnees);
+    }
+
+    public function testOnSeCotiseSansPrixDemandeLeMontant(): void
+    {
+        [$proprio, $code] = $this->listePartagee();
+        $sansPrix = $this->appel('POST', '/envies', ['titre' => 'Week-end'], $proprio)->donnees['id'];
+        $lea = $this->inscrire('lea@example.com', 'Léa');
+        $r = $this->appel('POST', "/l/$code/envies/$sansPrix/cagnotte", [], $lea);
+        self::assertSame(422, $r->statut);
+        self::assertArrayHasKey('objectif', $r->donnees['champs']);
+        self::assertSame(201, $this->appel('POST', "/l/$code/envies/$sansPrix/cagnotte", ['objectif' => 30000], $lea)->statut);
+    }
+
     public function testUneEnvieDUneAutreListeEstIntrouvable(): void
     {
         [, $code] = $this->listePartagee();

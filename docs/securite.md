@@ -18,7 +18,8 @@
 | Fichiers du serveur | `.htaccess` de l'API : code, dépendances, tests et configuration inaccessibles ; listes de dossiers coupées | `api/.htaccess` |
 | Tâche planifiée | `bin/menage.php` refuse de s'exécuter hors ligne de commande, dossier `bin` inaccessible par le web ; e-mails sans en-tête injectable | `bin/menage.php`, `CourrierPhp.php` |
 | Secrets | `config.local.php` jamais versionné, écrit au déploiement depuis les secrets GitHub | `.github/workflows/deploy.yml` |
-| En-têtes | `nosniff`, `Referrer-Policy`, `Cache-Control: no-store` sur l'API, HTTPS imposé | `front/public/.htaccess`, `Http/Reponse.php` |
+| En-têtes | `nosniff`, `Referrer-Policy`, `X-Frame-Options: DENY`, `Permissions-Policy`, `Cache-Control: no-store` sur l'API, HTTPS imposé | `front/public/.htaccess`, `Http/Reponse.php` |
+| CSP | Site : seul le code du site s'exécute (`script-src 'self'`, aucun script en ligne), styles du site seulement (attributs `style` permis pour les barres), images en https, appels réseau vers le site seulement, pas d'affichage dans un cadre. API : `default-src 'none'`. Vérifié dans Chrome sur 11 pages : aucune violation. | `front/public/.htaccess`, `Http/Reponse.php` |
 
 ## Extension Chrome : permissions
 
@@ -38,4 +39,3 @@ L'encadré d'Amazon vit dans un Shadow DOM fermé : la page ne peut pas le lire,
 - `npm audit` : faille « haute » dans `picomatch` (ReDoS, GHSA-fc5q-39xc-vjpf), utilisé seulement par les outils de construction et de test (Vite, Vitest), jamais envoyé aux visiteurs. La correction proposée ferait revenir Vitest à une ancienne version : risque accepté, à revérifier à chaque mise à jour des outils.
 
 ## Points à traiter
-- Politique de sécurité du contenu (en-tête CSP) sur le site.

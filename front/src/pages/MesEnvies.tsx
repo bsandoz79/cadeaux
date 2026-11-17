@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useChargement } from '../donnees/useChargement';
 import { api } from '../api/client';
 import type { Envie, LienListe } from '../api/types';
 import { euros, saisieDepuis } from '../calculs/argent';
@@ -73,10 +74,8 @@ function CarteEnvie({ envie }: { envie: Envie }) {
 /** Ma liste d'envies : ce qui me ferait plaisir, et le lien à donner à mes proches. */
 export function MesEnvies() {
   const d = useDonnees();
-  const [lien, setLien] = useState<LienListe | null>(null);
+  const { donnees: lien, recharger: charger, modifier: setLien } = useChargement(() => api<LienListe>('GET', '/liste'), []);
   const [copie, setCopie] = useState(false);
-  const charger = useCallback(async () => { setLien(await api<LienListe>('GET', '/liste')); }, []);
-  useEffect(() => { void charger(); }, [charger]);
 
   const adresse = lien?.code ? `${window.location.origin}/l/${lien.code}` : null;
   const partager = useEnvoi(async (f) => {

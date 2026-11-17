@@ -5,6 +5,20 @@ import { ContexteDonnees, type Collections, type Donnees, type NomCollection } f
 
 const VIDE: Collections = { personnes: [], occasions: [], cadeaux: [], budgets: [], envies: [], cagnottes: [] };
 
+/** Le compte connecté et toutes ses données, lus en parallèle. */
+async function chargerTout(): Promise<{ moi: Compte; collections: Collections }> {
+  const [moi, personnes, occasions, cadeaux, budgets, envies, cagnottes] = await Promise.all([
+    api<Compte>('GET', '/moi'),
+    api<Collections['personnes']>('GET', '/personnes'),
+    api<Collections['occasions']>('GET', '/occasions'),
+    api<Collections['cadeaux']>('GET', '/cadeaux'),
+    api<Collections['budgets']>('GET', '/budgets'),
+    api<Collections['envies']>('GET', '/envies'),
+    api<Collections['cagnottes']>('GET', '/cagnottes'),
+  ]);
+  return { moi, collections: { personnes, occasions, cadeaux, budgets, envies, cagnottes } };
+}
+
 /** Charge le compte connecté et ses données, et garde la liste à jour après chaque changement. */
 export function FournisseurDonnees({ children }: { children: ReactNode }) {
   const [compte, setCompte] = useState<Compte | null>(null);
@@ -12,23 +26,21 @@ export function FournisseurDonnees({ children }: { children: ReactNode }) {
   const [pret, setPret] = useState(() => !jeton.lire());
 
   const recharger = useCallback(async () => {
-    const [moi, personnes, occasions, cadeaux, budgets, envies, cagnottes] = await Promise.all([
-      api<Compte>('GET', '/moi'),
-      api<Collections['personnes']>('GET', '/personnes'),
-      api<Collections['occasions']>('GET', '/occasions'),
-      api<Collections['cadeaux']>('GET', '/cadeaux'),
-      api<Collections['budgets']>('GET', '/budgets'),
-      api<Collections['envies']>('GET', '/envies'),
-      api<Collections['cagnottes']>('GET', '/cagnottes'),
-    ]);
+    const { moi, collections: lues } = await chargerTout();
     setCompte(moi);
-    setCollections({ personnes, occasions, cadeaux, budgets, envies, cagnottes });
+    setCollections(lues);
   }, []);
 
   useEffect(() => {
     quandDeconnecte(() => { setCompte(null); setCollections(VIDE); });
-    if (jeton.lire()) recharger().catch(() => {}).finally(() => setPret(true));
-  }, [recharger]);
+    if (!jeton.lire()) return;
+    let actif = true;
+    chargerTout()
+      .then(({ moi, collections: lues }) => { if (actif) { setCompte(moi); setCollections(lues); } })
+      .catch(() => {})
+      .finally(() => { if (actif) setPret(true); });
+    return () => { actif = false; };
+  }, []);
 
   const valeur = useMemo<Donnees>(() => ({
     ...collections,

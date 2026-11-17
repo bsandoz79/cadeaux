@@ -2,6 +2,9 @@
 
 ## [Non publié]
 
+### Modifié (code)
+- Chargement des pages regroupé dans un seul outil (`useChargement`) : réponses arrivées trop tard ignorées, plus aucun avertissement du lint.
+
 ### Ajouté
 - Cadeau payé à plusieurs : un cadeau peut être rattaché à une cagnotte (« Payé à plusieurs avec une cagnotte ») ; il coûte alors la part de l'organisateur, comptée au nom du proche et de l'occasion, sans double compte dans le bilan. L'extension rattache automatiquement le cadeau à la cagnotte qu'elle crée.
 - Extension : option « Après mes achats sur Amazon, me demander « C'est un cadeau ? » » (autorisation demandée à l'activation) : le produit commandé est noté acheté pour le proche choisi, puis cagnotte proposée avec envoi par WhatsApp ou SMS. Choix « pour moi » qui ajoute à la liste d'envies. Voir `docs/fonctionnalites/extension-achat-amazon.md`.

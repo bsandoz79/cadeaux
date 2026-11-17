@@ -14,6 +14,11 @@ RewriteRule . /index.html [L]
 <IfModule mod_headers.c>
   Header always set X-Content-Type-Options "nosniff"
   Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  # Seul le code du site s'exécute ; photos de produits acceptées depuis n'importe quel site en https.
+  # style-src-attr : React écrit quelques styles dans l'attribut style (largeur des barres d'avancement).
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self'; style-src-attr 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+  Header always set X-Frame-Options "DENY"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
   <FilesMatch "\.html$">
     Header set Cache-Control "no-cache"
   </FilesMatch>

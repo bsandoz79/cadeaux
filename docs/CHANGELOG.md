@@ -2,6 +2,9 @@
 
 ## [Non publié]
 
+### Sécurité
+- En-tête CSP sur le site (seul le code du site s'exécute, pas d'affichage dans un cadre) et sur l'API ; `X-Frame-Options` et `Permissions-Policy`.
+
 ### Tests
 - Tests d'écrans (`front/src/App.test.tsx`, fausse API `front/src/test/fausseApi.ts`) : inscription, pages légales sans compte, « déjà offert » et budget dépassé, montant mal écrit refusé sans appel au serveur, part de cagnotte par lien, réservation d'envie et vue du propriétaire.
 

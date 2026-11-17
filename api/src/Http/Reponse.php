@@ -34,6 +34,8 @@ final class Reponse
         header('Content-Type: application/json; charset=utf-8');
         header('Cache-Control: no-store');
         header('X-Content-Type-Options: nosniff');
+        // Une réponse de l'API n'est jamais une page : rien à charger, rien à afficher dans un cadre.
+        header("Content-Security-Policy: default-src 'none'; frame-ancestors 'none'");
         if ($this->statut !== 204) {
             echo json_encode($this->donnees, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
         }

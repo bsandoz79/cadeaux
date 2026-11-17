@@ -2,6 +2,9 @@
 
 ## [Non publié]
 
+### Corrigé (e-mails)
+- Expéditeur technique des e-mails (enveloppe) aligné sur `cadeaux@bsandoz.fr`, en-têtes `Reply-To` et `Date` : SPF et DMARC vérifient le même domaine, les e-mails ne sont plus refusés ou classés en indésirables pour cette raison.
+
 ### Corrigé
 - Un envoi d'e-mail en échec n'ajoute plus d'avertissement PHP dans la réponse de l'API (l'inscription restait cassée côté navigateur).
 

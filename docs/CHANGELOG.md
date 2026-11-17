@@ -2,6 +2,10 @@
 
 ## [Non publié]
 
+### Documentation
+- Sécurité (`docs/securite.md`) : mesures en place, permissions de l'extension, points à traiter.
+- RGPD (`docs/rgpd.md`) : registre des traitements (données, finalité, base légale, conservation, accès) et points à traiter.
+
 ### Ajouté
 - Comptes : inscription, connexion, déconnexion, suppression du compte et de toutes ses données. Connexion bloquée 15 minutes après 5 essais ratés.
 - Proches, avec date de naissance et note. Anniversaires des deux prochains mois sur l'accueil, avec un bouton « Préparer » qui crée l'occasion.

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { api } from '../api/client';
 import type { Cagnotte, Participation } from '../api/types';
 import { euros, saisieDepuis } from '../calculs/argent';
@@ -8,25 +8,17 @@ import { Champ, ChampMontant, Chiffre, EnTete, Jauge, Lien } from '../components
 import { FormulaireCagnotte } from '../components/FormulaireCagnotte';
 import { erreurChamps, montantDuFormulaire, useEnvoi } from '../components/formulaire';
 import { useDonnees } from '../donnees/contexte';
+import { useChargement } from '../donnees/useChargement';
 import { aller } from '../navigation';
 import styles from './pages.module.css';
 
 /** Cagnotte vue par son organisateur : lien à partager, parts reçues, reste à compléter. */
 export function CagnotteOrganisateur({ id }: { id: number }) {
   const d = useDonnees();
-  const [cagnotte, setCagnotte] = useState<Cagnotte | null>(null);
-  const [introuvable, setIntrouvable] = useState(false);
+  const { donnees: cagnotte, erreur, recharger: charger } = useChargement(() => api<Cagnotte>('GET', `/cagnottes/${id}`), [id]);
+  const introuvable = erreur !== undefined;
   const [edition, setEdition] = useState(false);
   const [copie, setCopie] = useState(false);
-
-  const charger = useCallback(async () => {
-    try {
-      setCagnotte(await api<Cagnotte>('GET', `/cagnottes/${id}`));
-    } catch {
-      setIntrouvable(true);
-    }
-  }, [id]);
-  useEffect(() => { void charger(); }, [charger]);
 
   /** Après un changement : la cagnotte et les totaux du compte (bilan, accueil). */
   const apres = async () => { await Promise.all([charger(), d.recharger()]); };

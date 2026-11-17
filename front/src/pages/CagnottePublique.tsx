@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useChargement } from '../donnees/useChargement';
 import { api } from '../api/client';
 import type { CagnottePublique as Cagnotte, Participation } from '../api/types';
 import { euros, saisieDepuis } from '../calculs/argent';
@@ -19,16 +20,12 @@ function ecrireCles(code: string, cles: Record<string, string>) {
 
 /** Page ouverte depuis le lien partagé : voir la cagnotte et ajouter sa part, sans compte. */
 export function CagnottePublique({ code }: { code: string }) {
-  const [cagnotte, setCagnotte] = useState<Cagnotte | null>(null);
-  const [introuvable, setIntrouvable] = useState(false);
   const [cles, setCles] = useState(() => lireCles(code));
   const [edition, setEdition] = useState<Participation | null>(null);
   const [merci, setMerci] = useState(false);
 
-  const charger = useCallback(async () => {
-    try { setCagnotte(await api<Cagnotte>('GET', `/c/${code}`)); } catch { setIntrouvable(true); }
-  }, [code]);
-  useEffect(() => { void charger(); }, [charger]);
+  const { donnees: cagnotte, erreur: erreurChargement, recharger: charger } = useChargement(() => api<Cagnotte>('GET', `/c/${code}`), [code]);
+  const introuvable = erreurChargement !== undefined;
 
   const conseil = cagnotte ? partConseillee(cagnotte.objectif, cagnotte.nombreParts) : null;
   const { envoyer, occupe, erreur, champs } = useEnvoi(async (f, form) => {

@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useChargement } from '../donnees/useChargement';
 import { api } from '../api/client';
 import type { ListePublique } from '../api/types';
 import { euros } from '../calculs/argent';
@@ -15,15 +16,11 @@ const ecrirePrenom = (p: string) => { try { localStorage.setItem('cadeaux.prenom
 
 /** Liste d'envies ouverte depuis son lien : chacun réserve ce qu'il offre, sans compte. */
 export function ListeEnviesPublique({ code }: { code: string }) {
-  const [liste, setListe] = useState<ListePublique | null>(null);
-  const [introuvable, setIntrouvable] = useState(false);
   const [cles, setCles] = useState(() => lire(code));
   const [choix, setChoix] = useState<number | null>(null);
 
-  const charger = useCallback(async () => {
-    try { setListe(await api<ListePublique>('GET', `/l/${code}`)); } catch { setIntrouvable(true); }
-  }, [code]);
-  useEffect(() => { void charger(); }, [charger]);
+  const { donnees: liste, erreur, recharger: charger } = useChargement(() => api<ListePublique>('GET', `/l/${code}`), [code]);
+  const introuvable = erreur !== undefined;
 
   const reserver = useEnvoi(async (f) => {
     const nom = String(f.get('nom') ?? '').trim();

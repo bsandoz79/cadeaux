@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { api, jeton } from '../api/client';
 import { aujourdhui } from '../calculs/bilan';
+import { dejaInstallee, surIphone, useInstallation } from '../installation';
 import { EnTete } from '../components/commun';
 import { useDonnees } from '../donnees/contexte';
 import { aller } from '../navigation';
@@ -11,6 +12,7 @@ export function MonCompte() {
   const d = useDonnees();
   const [export_, setExport] = useState<'pret' | 'en-cours' | 'erreur'>('pret');
   const [reglage, setReglage] = useState(false);
+  const installation = useInstallation();
   const basculerRappels = async (rappels: boolean) => {
     setReglage(true);
     try { await api('PATCH', '/moi', { rappels }); await d.recharger(); } finally { setReglage(false); }
@@ -41,6 +43,22 @@ export function MonCompte() {
       <EnTete titre="Mon compte" sousTitre={`${d.compte?.nom} · ${d.compte?.email}`}>
         <button type="button" className="btn btn--contour" onClick={deconnecter}>Me déconnecter</button>
       </EnTete>
+
+      {!dejaInstallee() && (
+        <section className="carte formulaire" aria-labelledby="titre-appli">
+          <h2 id="titre-appli">L’appli sur votre téléphone</h2>
+          {installation.possible ? (
+            <>
+              <p>Ajoutez Cadeaux à votre écran d’accueil : il s’ouvre en plein écran, comme une appli.</p>
+              <div><button type="button" className="btn" onClick={installation.installer}>Installer l’appli</button></div>
+            </>
+          ) : surIphone() ? (
+            <p>Sur iPhone : touchez le bouton Partager de Safari, puis « Sur l’écran d’accueil ».</p>
+          ) : (
+            <p>Sur votre téléphone, ouvrez cadeaux.bsandoz.fr dans Chrome, puis menu ⋮ → « Installer l’application » (ou, sur iPhone, Partager → « Sur l’écran d’accueil »).</p>
+          )}
+        </section>
+      )}
 
       <section className="carte formulaire" aria-labelledby="titre-rappels">
         <h2 id="titre-rappels">Rappels par e-mail</h2>

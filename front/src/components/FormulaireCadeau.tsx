@@ -1,6 +1,9 @@
+import { useState } from 'react';
 import type { Cadeau } from '../api/types';
 import { STATUTS } from '../api/types';
-import { saisieDepuis } from '../calculs/argent';
+import { euros, saisieDepuis } from '../calculs/argent';
+import { coutCadeau } from '../calculs/bilan';
+import { dejaOffert, ressemblance } from '../calculs/historique';
 import { useDonnees } from '../donnees/contexte';
 import { Champ, ChampMontant, Choix } from './commun';
 import { erreurChamps, montantDuFormulaire, useEnvoi } from './formulaire';
@@ -17,6 +20,11 @@ interface Props {
 export function FormulaireCadeau({ cadeau = {}, avecOccasion = false, onFini }: Props) {
   const d = useDonnees();
   const existant = cadeau.id !== undefined;
+  const [personneId, setPersonneId] = useState<number | null>(cadeau.personneId ?? null);
+  const [titre, setTitre] = useState(cadeau.titre ?? '');
+  const passes = personneId === null ? [] : dejaOffert(personneId, d.cadeaux, d.occasions, cadeau.id);
+  const doublon = ressemblance(titre, passes);
+  const nom = d.personnes.find((p) => p.id === personneId)?.nom;
   const { envoyer, occupe, erreur, champs } = useEnvoi(async (f) => {
     const montantPrevu = montantDuFormulaire(f, 'montantPrevu');
     const montantDepense = montantDuFormulaire(f, 'montantDepense');
@@ -44,12 +52,29 @@ export function FormulaireCadeau({ cadeau = {}, avecOccasion = false, onFini }: 
   return (
     <form className="formulaire" onSubmit={envoyer} noValidate>
       <div className="rangee">
-        <Choix libelle="Pour qui" nom="personneId" defaultValue={cadeau.personneId ?? ''} erreur={champs.personneId}>
+        <Choix libelle="Pour qui" nom="personneId" value={personneId ?? ''} onChange={(e) => setPersonneId(e.target.value ? Number(e.target.value) : null)} erreur={champs.personneId}>
           <option value="">Personne en particulier</option>
           {d.personnes.map((p) => <option key={p.id} value={p.id}>{p.nom}</option>)}
         </Choix>
-        <Champ libelle="Le cadeau" nom="titre" required defaultValue={cadeau.titre ?? ''} placeholder="Ex. une écharpe, un bon d’achat, de l’argent" erreur={champs.titre} />
+        <Champ libelle="Le cadeau" nom="titre" required value={titre} onChange={(e) => setTitre(e.target.value)} placeholder="Ex. une écharpe, un bon d’achat, de l’argent" erreur={champs.titre} />
       </div>
+      {doublon && (
+        <p className="erreur" role="status">
+          Vous avez déjà offert « {doublon.cadeau.titre} » à {nom} ({doublon.occasion.titre}).
+        </p>
+      )}
+      {passes.length > 0 && (
+        <details>
+          <summary>Déjà offert à {nom} ({passes.length})</summary>
+          <ul style={{ marginTop: '.5rem', display: 'grid', gap: '.25rem' }}>
+            {passes.slice(0, 10).map((p) => (
+              <li key={p.cadeau.id}>
+                <strong>{p.cadeau.titre}</strong> · {p.occasion.titre}{coutCadeau(p.cadeau) ? ` · ${euros(coutCadeau(p.cadeau))}` : ''}
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
       {avecOccasion && (
         <Choix libelle="Pour quelle occasion" nom="occasionId" defaultValue={cadeau.occasionId ?? ''} erreur={champs.occasionId}>
           <option value="">Pas encore d’occasion (idée)</option>

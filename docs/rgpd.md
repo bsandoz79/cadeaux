@@ -8,8 +8,9 @@ Hébergement : o2switch (France).
 | Donnée | Personnes concernées | Finalité | Base légale | Conservation | Qui y accède |
 |---|---|---|---|---|---|
 | E-mail, prénom, mot de passe haché | Utilisateur | Compte et connexion | Contrat (conditions d'utilisation) | Jusqu'à la suppression du compte | L'utilisateur |
-| Empreinte des jetons de connexion | Utilisateur | Rester connecté | Contrat | Jusqu'à la déconnexion ou la suppression du compte | Personne (empreinte seulement) |
-| Adresse IP et adresse e-mail des essais de connexion ratés | Utilisateur, tiers | Sécurité (force brute) | Intérêt légitime | 15 minutes | Personne |
+| Empreinte des jetons de connexion, date de dernière utilisation | Utilisateur | Rester connecté | Contrat | 90 jours sans utilisation, ou jusqu'à la déconnexion | Personne (empreinte seulement) |
+| Date de dernière activité du compte | Utilisateur | Supprimer les comptes inactifs | Intérêt légitime (minimisation) | Comme le compte | Personne |
+| Adresse IP et adresse e-mail des essais de connexion ratés ; adresse IP des parts ajoutées par lien | Utilisateur, tiers | Sécurité (force brute, abus) | Intérêt légitime | 15 minutes | Personne |
 | Proches : prénom ou surnom, date de naissance, note | Tiers (famille, amis) | Organiser ses cadeaux | Intérêt légitime de l'utilisateur, usage privé | Jusqu'à la suppression du proche ou du compte | L'utilisateur seul |
 | Occasions et cadeaux (montants, liens, notes) | Utilisateur, tiers | Suivre ses cadeaux et son budget | Contrat | Jusqu'à la suppression ou celle du compte | L'utilisateur seul |
 | Cagnotte : titre, bénéficiaire, objectif, message | Utilisateur, bénéficiaire | Cadeau commun | Contrat | Jusqu'à la suppression ou celle du compte | L'organisateur, et quiconque a le lien |

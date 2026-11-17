@@ -9,16 +9,21 @@ use Cadeaux\Http\ErreurHttp;
 /**
  * Comptes et connexion. Mot de passe haché (password_hash), jeton aléatoire dont seule l'empreinte SHA-256 est gardée.
  * Après 5 essais ratés en 15 minutes pour une même adresse ou une même IP, la connexion est refusée un moment.
+ * Une connexion inutilisée pendant 90 jours expire ; chaque visite note la dernière activité du compte
+ * (pour la suppression des comptes inactifs, voir Menage).
  */
 final class Comptes
 {
     private const ESSAIS_MAX = 5;
-    private const FENETRE_MINUTES = 15;
+    public const JOURS_VALIDITE_JETON = 90;
+
+    private readonly Limiteur $limiteur;
 
     public function __construct(
         private readonly \PDO $pdo,
         private readonly Horloge $horloge,
     ) {
+        $this->limiteur = new Limiteur($pdo, $horloge);
     }
 
     /**
@@ -70,7 +75,7 @@ final class Comptes
         $motDePasse = (string) ($donnees['motDePasse'] ?? '');
         $cles = ['email:' . $email, 'ip:' . $ip];
 
-        if ($this->tropDEssais($cles)) {
+        if (array_filter($cles, fn (string $cle): bool => $this->limiteur->depasse($cle, self::ESSAIS_MAX)) !== []) {
             throw new ErreurHttp(429, 'Trop d’essais. Réessayez dans un quart d’heure.');
         }
 
@@ -80,7 +85,7 @@ final class Comptes
 
         if ($ligne === false || !password_verify($motDePasse, (string) $ligne['mot_de_passe'])) {
             foreach ($cles as $cle) {
-                $this->pdo->prepare('INSERT INTO tentatives (cle, le) VALUES (?, ?)')->execute([$cle, $this->horloge->texte()]);
+                $this->limiteur->noter($cle);
             }
             throw new ErreurHttp(401, 'Adresse ou mot de passe incorrect.');
         }
@@ -94,17 +99,43 @@ final class Comptes
         return ['jeton' => $this->nouveauJeton($id), 'compte' => $this->compte($id)];
     }
 
-    /** Identifiant du compte connecté avec ce jeton, ou null. */
+    /**
+     * Identifiant du compte connecté avec ce jeton, ou null (jeton inconnu ou expiré).
+     * La date d'utilisation est mise à jour au plus une fois par heure, pour ne pas écrire à chaque requête.
+     */
     public function depuisJeton(?string $jeton): ?int
     {
         if ($jeton === null) {
             return null;
         }
-        $requete = $this->pdo->prepare('SELECT compte_id FROM jetons WHERE empreinte = ?');
-        $requete->execute([hash('sha256', $jeton)]);
-        $id = $requete->fetchColumn();
+        $empreinte = hash('sha256', $jeton);
+        $requete = $this->pdo->prepare('SELECT compte_id, cree_le, utilise_le FROM jetons WHERE empreinte = ?');
+        $requete->execute([$empreinte]);
+        $ligne = $requete->fetch(\PDO::FETCH_ASSOC);
+        if ($ligne === false) {
+            return null;
+        }
 
-        return $id === false ? null : (int) $id;
+        $maintenant = $this->horloge->maintenant();
+        $derniere = (string) ($ligne['utilise_le'] ?? $ligne['cree_le']);
+        if ($derniere < $maintenant->modify(sprintf('-%d days', self::JOURS_VALIDITE_JETON))->format('Y-m-d H:i:s')) {
+            $this->pdo->prepare('DELETE FROM jetons WHERE empreinte = ?')->execute([$empreinte]);
+
+            return null;
+        }
+        $id = (int) $ligne['compte_id'];
+        if ($derniere < $maintenant->modify('-1 hour')->format('Y-m-d H:i:s')) {
+            $this->pdo->prepare('UPDATE jetons SET utilise_le = ? WHERE empreinte = ?')->execute([$this->horloge->texte(), $empreinte]);
+            $this->noterActivite($id);
+        }
+
+        return $id;
+    }
+
+    /** Le compte sert : il n'est plus inactif, l'éventuel avertissement de suppression est annulé. */
+    private function noterActivite(int $id): void
+    {
+        $this->pdo->prepare('UPDATE comptes SET derniere_activite = ?, averti_le = NULL WHERE id = ?')->execute([$this->horloge->texte(), $id]);
     }
 
     public function deconnecter(string $jeton): void
@@ -133,25 +164,10 @@ final class Comptes
     private function nouveauJeton(int $compteId): string
     {
         $jeton = bin2hex(random_bytes(32));
-        $this->pdo->prepare('INSERT INTO jetons (compte_id, empreinte, cree_le) VALUES (?, ?, ?)')
-            ->execute([$compteId, hash('sha256', $jeton), $this->horloge->texte()]);
+        $this->pdo->prepare('INSERT INTO jetons (compte_id, empreinte, cree_le, utilise_le) VALUES (?, ?, ?, ?)')
+            ->execute([$compteId, hash('sha256', $jeton), $this->horloge->texte(), $this->horloge->texte()]);
+        $this->noterActivite($compteId);
 
         return $jeton;
-    }
-
-    /** @param list<string> $cles */
-    private function tropDEssais(array $cles): bool
-    {
-        $depuis = $this->horloge->maintenant()->modify(sprintf('-%d minutes', self::FENETRE_MINUTES))->format('Y-m-d H:i:s');
-        $this->pdo->prepare('DELETE FROM tentatives WHERE le < ?')->execute([$depuis]);
-        $requete = $this->pdo->prepare('SELECT COUNT(*) FROM tentatives WHERE cle = ? AND le >= ?');
-        foreach ($cles as $cle) {
-            $requete->execute([$cle, $depuis]);
-            if ((int) $requete->fetchColumn() >= self::ESSAIS_MAX) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

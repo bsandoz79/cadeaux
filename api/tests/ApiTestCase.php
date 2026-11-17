@@ -16,19 +16,16 @@ abstract class ApiTestCase extends TestCase
 {
     protected Application $app;
     protected \PDO $pdo;
+    /** Horloge réglable : `$this->horloge->instant = '…'`. */
+    protected HorlogeFixe $horloge;
 
     protected function setUp(): void
     {
         $this->pdo = new \PDO('sqlite::memory:', null, null, [\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION]);
         $this->pdo->exec('PRAGMA foreign_keys = ON');
         Schema::installer($this->pdo);
-        $horloge = new class extends Horloge {
-            public function maintenant(): \DateTimeImmutable
-            {
-                return new \DateTimeImmutable('2026-11-17 10:00:00', new \DateTimeZone('UTC'));
-            }
-        };
-        $this->app = new Application($this->pdo, $horloge);
+        $this->horloge = new HorlogeFixe();
+        $this->app = new Application($this->pdo, $this->horloge);
     }
 
     /**

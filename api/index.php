@@ -15,4 +15,13 @@ if (!is_file($config)) {
     exit;
 }
 
-Application::depuisConfig($config)->traiter(Requete::depuisGlobales())->envoyer();
+try {
+    $application = Application::depuisConfig($config);
+} catch (PDOException $e) {
+    // Base injoignable (identifiants, droits, serveur) : message clair au navigateur, détail dans le journal du serveur.
+    error_log('Cadeaux, connexion à la base : ' . $e->getMessage());
+    (new Reponse(503, ['message' => 'La base de données ne répond pas. Réessayez dans un instant.', 'code' => 'base']))->envoyer();
+    exit;
+}
+
+$application->traiter(Requete::depuisGlobales())->envoyer();

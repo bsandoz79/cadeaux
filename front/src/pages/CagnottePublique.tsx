@@ -7,6 +7,7 @@ import { dateLisible } from '../calculs/bilan';
 import { etatCagnotte, partConseillee } from '../calculs/cagnotte';
 import { Champ, Jauge, Lien } from '../components/commun';
 import { ChoixMontant } from '../components/ChoixMontant';
+import { RibParticipant } from '../components/Rib';
 import { erreurChamps, montantDuFormulaire, useEnvoi } from '../components/formulaire';
 import styles from './pages.module.css';
 
@@ -92,6 +93,10 @@ export function CagnottePublique({ code }: { code: string }) {
         <p>{etat.reste > 0 ? `Il manque ${euros(etat.reste)}.` : 'L’objectif est atteint, merci à tous !'}</p>
         {cagnotte.mode === 'egal' && conseil && <p className={styles.discret}>Parts égales : {euros(conseil)} par personne ({cagnotte.nombreParts} participants).</p>}
       </section>
+
+      {cagnotte.rib && !cagnotte.close && (
+        <RibParticipant code={code} titulaire={cagnotte.rib.titulaire} organisateur={cagnotte.organisateur} beneficiaire={cagnotte.beneficiaire} />
+      )}
 
       {cagnotte.close ? (
         <p className="vide">Cette cagnotte est terminée : on ne peut plus y participer.</p>

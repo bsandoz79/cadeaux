@@ -46,6 +46,8 @@ final class Cagnottes
             'lien' => $c['lien'],
             'message' => $c['message'],
             'close' => (bool) $c['close'],
+            // RIB : seulement le titulaire ici ; l'IBAN se demande à part (GET /c/{code}/rib).
+            'rib' => !$c['close'] && $c['rib_iban'] !== null ? ['titulaire' => $c['rib_titulaire']] : null,
             'organisateur' => (string) $organisateur->fetchColumn(),
             'participations' => $this->participations((int) $c['id']),
         ];
@@ -123,6 +125,7 @@ final class Cagnottes
         $this->verifierPlace($cagnotteId);
         [$nom, $montant] = $this->validerPart($donnees);
         $id = $this->inserer($cagnotteId, $nom, $montant, (bool) ($donnees['paye'] ?? false), null, (bool) ($donnees['organisateur'] ?? false));
+        $this->effacerRibSiTout($cagnotteId);
 
         return $this->participation($cagnotteId, $id);
     }
@@ -140,6 +143,7 @@ final class Cagnottes
         $paye = array_key_exists('paye', $donnees) ? (bool) $donnees['paye'] : $actuelle['paye'];
         $this->pdo->prepare('UPDATE participations SET nom = ?, montant = ?, paye = ? WHERE id = ?')
             ->execute([$nom, $montant, $paye ? 1 : 0, $id]);
+        $this->effacerRibSiTout($cagnotteId);
 
         return $this->participation($cagnotteId, $id);
     }
@@ -149,6 +153,16 @@ final class Cagnottes
         $this->cagnotteDuCompte($compteId, $cagnotteId);
         $this->participation($cagnotteId, $id);
         $this->pdo->prepare('DELETE FROM participations WHERE id = ?')->execute([$id]);
+    }
+
+    /** Toutes les parts payées atteignent l'objectif : plus besoin du RIB de l'organisateur. */
+    private function effacerRibSiTout(int $cagnotteId): void
+    {
+        $this->pdo->prepare(
+            'UPDATE cagnottes SET rib_titulaire = NULL, rib_iban = NULL, rib_masque = NULL, rib_le = NULL
+             WHERE id = ? AND rib_iban IS NOT NULL
+             AND objectif <= (SELECT COALESCE(SUM(montant), 0) FROM participations WHERE cagnotte_id = ? AND paye = 1)',
+        )->execute([$cagnotteId, $cagnotteId]);
     }
 
     private function verifierPlace(int $cagnotteId): void

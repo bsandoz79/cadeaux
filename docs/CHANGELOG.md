@@ -3,6 +3,9 @@
 ## [Non publié]
 
 ### Ajouté (cagnottes)
+- RIB de l'organisateur pour recevoir les parts par virement : IBAN vérifié et chiffré, affiché aux participants seulement sur demande (« Afficher le RIB », IBAN à copier, libellé conseillé), supprimé dès que la cagnotte est terminée ou que toutes les parts sont payées, et au plus tard 60 jours après.
+
+### Ajouté (cagnottes)
 - Aperçu du lien d'une cagnotte dans Snapchat, WhatsApp, Messenger… : titre « Cagnotte pour Julie : Montre », « 100 € sur 150 € · il manque 50 € », et une image avec le pourcentage, la barre d'avancement et les montants (dessinée en PHP, sans extension graphique). Les participants n'y figurent pas.
 
 ### Ajouté (cagnottes)

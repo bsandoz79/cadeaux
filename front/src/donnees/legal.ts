@@ -64,6 +64,7 @@ export const CONFIDENTIALITE: PageLegale = {
         'Une cagnotte est visible par toute personne qui a son lien : son titre, le prénom du bénéficiaire, le prénom de l’organisateur, et le prénom et le montant de chaque participant.',
         'Pour participer, il suffit d’un prénom (ou d’un surnom) et d’un montant. Vous pouvez modifier ou retirer votre part depuis le navigateur où vous l’avez ajoutée, ou en le demandant à l’organisateur.',
         'Les parts sont effacées quand l’organisateur supprime la cagnotte ou son compte.',
+        'Si l’organisateur ajoute son RIB pour recevoir les parts par virement, il est enregistré chiffré et montré seulement aux personnes qui ont le lien et cliquent sur « Afficher le RIB ». Il est supprimé dès que la cagnotte est terminée, dès que toutes les parts sont payées, et au plus tard 60 jours après son ajout.',
       ],
     },
     {

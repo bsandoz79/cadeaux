@@ -77,6 +77,8 @@ export interface Cagnotte {
   nombreParticipations?: number;
   /** Dans le détail seulement. */
   participations?: Participation[];
+  /** RIB de l'organisateur, masqué (l'IBAN complet n'est jamais renvoyé à l'organisateur). */
+  rib?: { titulaire: string; ibanMasque: string } | null;
 }
 
 /** Cagnotte vue depuis le lien partagé. */
@@ -91,6 +93,8 @@ export interface CagnottePublique {
   lien: string | null;
   message: string | null;
   close: boolean;
+  /** L'organisateur a ajouté son RIB : l'IBAN se demande à part (« Afficher le RIB »). */
+  rib: { titulaire: string } | null;
   organisateur: string;
   participations: Participation[];
 }

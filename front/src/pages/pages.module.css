@@ -72,3 +72,8 @@
 .ongletsPage { display: flex; gap: .4rem; flex-wrap: wrap; }
 .ongletsPage a { padding: .45rem 1rem; border-radius: 999px; border: 1px solid var(--c-bord-fort); text-decoration: none; color: var(--c-texte); font-weight: 600; font-size: .92rem; }
 .ongletsPage a[aria-current='page'] { background: var(--c-texte); color: var(--c-fond); border-color: var(--c-texte); }
+
+/* RIB affiché à un participant */
+.rib { display: grid; grid-template-columns: auto 1fr; gap: .3rem 1rem; margin: 0; }
+.rib dt { color: var(--c-texte-doux); font-size: .9rem; }
+.rib dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }

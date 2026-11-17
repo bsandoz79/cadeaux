@@ -18,6 +18,12 @@ abstract class ApiTestCase extends TestCase
     protected \PDO $pdo;
     /** Horloge réglable : `$this->horloge->instant = '…'`. */
     protected HorlogeFixe $horloge;
+    protected string $cleCoffre;
+
+    protected function tearDown(): void
+    {
+        @unlink($this->cleCoffre);
+    }
 
     protected function setUp(): void
     {
@@ -25,7 +31,9 @@ abstract class ApiTestCase extends TestCase
         $this->pdo->exec('PRAGMA foreign_keys = ON');
         Schema::installer($this->pdo);
         $this->horloge = new HorlogeFixe();
-        $this->app = new Application($this->pdo, $this->horloge);
+        $this->cleCoffre = tempnam(sys_get_temp_dir(), 'coffre');
+        unlink($this->cleCoffre);
+        $this->app = new Application($this->pdo, $this->horloge, new \Cadeaux\Coffre($this->cleCoffre));
     }
 
     /**

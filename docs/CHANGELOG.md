@@ -2,6 +2,12 @@
 
 ## [Non publié]
 
+### Tests
+- Tests d'écrans (`front/src/App.test.tsx`, fausse API `front/src/test/fausseApi.ts`) : inscription, pages légales sans compte, « déjà offert » et budget dépassé, montant mal écrit refusé sans appel au serveur, part de cagnotte par lien, réservation d'envie et vue du propriétaire.
+
+### Corrigé (accessibilité)
+- Le nom d'un champ ne contient plus son texte d'aide (« Mot de passe », et non « Mot de passe Au moins 8 caractères. ») : l'aide et l'erreur sont lues après, reliées par `aria-describedby`.
+
 ### Modifié (code)
 - Chargement des pages regroupé dans un seul outil (`useChargement`) : réponses arrivées trop tard ignorées, plus aucun avertissement du lint.
 

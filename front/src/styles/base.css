@@ -32,7 +32,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 
 /* Champs */
 .champ { display: grid; gap: .3rem; }
-.champ > span { font-weight: 600; font-size: .92rem; }
+.champ > span, .champ > label { font-weight: 600; font-size: .92rem; }
 .champ small { color: var(--c-texte-doux); font-size: .85rem; }
 .champ input, .champ select, .champ textarea { width: 100%; min-height: 46px; padding: .55rem .8rem; border: 1px solid var(--c-bord-fort); border-radius: var(--rayon-petit); background: var(--c-surface); }
 .champ textarea { min-height: 90px; resize: vertical; }

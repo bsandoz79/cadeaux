@@ -3,6 +3,7 @@ import { euros, lireMontant, saisieDepuis } from './argent';
 import { anneesDisponibles, aujourdhui, bilanAnnee, dateLisible, delai, prochainsAnniversaires } from './bilan';
 import { etatBudget } from './budget';
 import { dejaOffert, ressemblance } from './historique';
+import { liensPartage } from './partage';
 import { etatCagnotte, partConseillee, partsEgales } from './cagnotte';
 
 const cadeau = (c: Partial<Cadeau>): Cadeau => ({
@@ -167,5 +168,14 @@ describe('cadeau payé avec une cagnotte', () => {
     expect(b.cagnottes).toBe(2000);
     expect(b.total).toBe(12000);
     expect(b.parPersonne[0]).toMatchObject({ libelle: 'Papa', total: 10000 });
+  });
+});
+
+describe('partage d’une cagnotte', () => {
+  it('écrit le message et les liens WhatsApp et SMS', () => {
+    const l = liensPartage('https://cadeaux.bsandoz.fr/c/0123456789abcdef', 'Julie', 'Montre');
+    expect(l.texte).toBe('On se cotise pour Julie (Montre) ? Mets ta part ici : https://cadeaux.bsandoz.fr/c/0123456789abcdef');
+    expect(decodeURIComponent(l.whatsapp.replace('https://wa.me/?text=', ''))).toBe(l.texte);
+    expect(decodeURIComponent(l.sms.replace('sms:?&body=', ''))).toBe(l.texte);
   });
 });

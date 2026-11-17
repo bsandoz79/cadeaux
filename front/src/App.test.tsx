@@ -121,4 +121,31 @@ describe('liens partagés, sans compte', () => {
     expect(screen.queryByText(/Léa/)).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Je m’en occupe' })).not.toBeInTheDocument();
   });
+
+  it('liste d’envies : « On se cotise » lance une cagnotte et propose WhatsApp et SMS', async () => {
+    etat.listes.abcdefabcdefabcd = {
+      proprietaire: 'Julie',
+      message: null,
+      envies: [{ id: 1, titre: 'Montre', lien: null, image: null, prix: 15000, note: null, priorite: false }],
+    };
+    preparer('/l/abcdefabcdefabcd', false);
+    installerFausseApi(etat);
+    const { unmount } = ouvrir();
+    const u = userEvent.setup();
+    // Sans compte : invitation à se connecter, avec retour sur la liste.
+    await u.click(await screen.findByRole('button', { name: 'On se cotise' }));
+    expect(screen.getByRole('link', { name: 'Me connecter ou créer un compte' })).toHaveAttribute('href', '/?retour=%2Fl%2Fabcdefabcdefabcd');
+    unmount();
+
+    // Connecté (un proche qui a son compte, ici simulé par un jeton) : la cagnotte est lancée.
+    preparer('/l/abcdefabcdefabcd', true);
+    etat.listes.abcdefabcdefabcd.envies[0].reservation = null;
+    ouvrir();
+    await u.click(await screen.findByRole('button', { name: 'On se cotise' }));
+    await u.click(screen.getByRole('button', { name: 'Lancer la cagnotte' }));
+    expect(await screen.findByText('Cagnotte lancée ! Envoyez le lien aux autres :')).toBeInTheDocument();
+    const whatsapp = screen.getByRole('link', { name: 'WhatsApp' });
+    expect(decodeURIComponent(whatsapp.getAttribute('href')!)).toContain('On se cotise pour Julie (Montre) ? Mets ta part ici : http://localhost:3000/c/fedcbafedcbafedc');
+    expect(screen.getByRole('link', { name: 'SMS' }).getAttribute('href')).toMatch(/^sms:\?&body=/);
+  });
 });

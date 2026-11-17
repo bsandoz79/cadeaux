@@ -12,7 +12,7 @@ namespace Cadeaux;
 final class Schema
 {
     /** À augmenter à chaque changement des tables. */
-    public const VERSION = 6;
+    public const VERSION = 7;
 
     public static function installer(\PDO $pdo): void
     {
@@ -140,6 +140,7 @@ final class Schema
                 nom VARCHAR(80) NOT NULL,
                 cle CHAR(64) NOT NULL,
                 cree_le VARCHAR(19) NOT NULL,
+                cagnotte_code CHAR(16) NULL,
                 FOREIGN KEY (envie_id) REFERENCES envies(id) ON DELETE CASCADE
             )",
             "participations (
@@ -166,6 +167,7 @@ final class Schema
             ['jetons', 'utilise_le', 'VARCHAR(19) NULL'],         // v2
             ['cadeaux', 'cagnotte_id', $mysql ? 'INT UNSIGNED NULL' : 'INTEGER NULL'], // v5
             ['comptes', 'rappels', 'INT NOT NULL DEFAULT 1'],      // v6
+            ['reservations', 'cagnotte_code', 'CHAR(16) NULL'],    // v7
         ];
         foreach ($ajouts as [$table, $colonne, $type]) {
             if (!self::colonneExiste($pdo, $table, $colonne, $mysql)) {

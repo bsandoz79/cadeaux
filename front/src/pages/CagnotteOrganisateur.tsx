@@ -6,6 +6,7 @@ import { dateLisible } from '../calculs/bilan';
 import { etatCagnotte, partConseillee } from '../calculs/cagnotte';
 import { Champ, ChampMontant, Chiffre, EnTete, Jauge, Lien } from '../components/commun';
 import { FormulaireCagnotte } from '../components/FormulaireCagnotte';
+import { Partage } from '../components/Partage';
 import { erreurChamps, montantDuFormulaire, useEnvoi } from '../components/formulaire';
 import { useDonnees } from '../donnees/contexte';
 import { useChargement } from '../donnees/useChargement';
@@ -18,7 +19,6 @@ export function CagnotteOrganisateur({ id }: { id: number }) {
   const { donnees: cagnotte, erreur, recharger: charger } = useChargement(() => api<Cagnotte>('GET', `/cagnottes/${id}`), [id]);
   const introuvable = erreur !== undefined;
   const [edition, setEdition] = useState(false);
-  const [copie, setCopie] = useState(false);
 
   /** Après un changement : la cagnotte et les totaux du compte (bilan, accueil). */
   const apres = async () => { await Promise.all([charger(), d.recharger()]); };
@@ -31,14 +31,6 @@ export function CagnotteOrganisateur({ id }: { id: number }) {
   const lien = `${window.location.origin}/c/${cagnotte.code}`;
   const maPart = participations.filter((p) => p.organisateur).reduce((s, p) => s + p.montant, 0);
 
-  const copier = async () => {
-    try {
-      await navigator.clipboard.writeText(lien);
-      setCopie(true);
-      setTimeout(() => setCopie(false), 2500);
-    } catch { /* le champ reste sélectionnable à la main */ }
-  };
-  const partager = () => navigator.share?.({ title: cagnotte.titre, text: `Cagnotte pour ${cagnotte.beneficiaire} : ${cagnotte.titre}`, url: lien }).catch(() => {});
 
   const completer = async () => {
     await api('POST', `/cagnottes/${id}/participations`, { nom: d.compte?.nom ?? 'Moi', montant: etat.reste, paye: true, organisateur: true });
@@ -78,11 +70,7 @@ export function CagnotteOrganisateur({ id }: { id: number }) {
         <section className="carte formulaire" aria-labelledby="titre-partage">
           <h2 id="titre-partage">Envoyez ce lien aux participants</h2>
           <p className={styles.discret}>Ils voient le cadeau et ce qui a déjà été mis, et notent leur part. Pas besoin de compte.</p>
-          <div className={styles.partage}>
-            <input readOnly value={lien} aria-label="Lien de la cagnotte" onFocus={(e) => e.currentTarget.select()} />
-            <button type="button" className="btn btn--petit" onClick={copier}>{copie ? 'Lien copié' : 'Copier le lien'}</button>
-            {'share' in navigator && <button type="button" className="btn btn--petit btn--contour" onClick={partager}>Partager…</button>}
-          </div>
+          <Partage url={lien} beneficiaire={cagnotte.beneficiaire} titre={cagnotte.titre} />
         </section>
       )}
 

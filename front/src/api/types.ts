@@ -50,7 +50,7 @@ export interface ListePublique {
   proprietaire: string;
   message: string | null;
   estProprietaire: boolean;
-  envies: (Omit<Envie, 'creeLe'> & { reservation: { id: number; nom: string } | null })[];
+  envies: (Omit<Envie, 'creeLe'> & { reservation: { id: number; nom: string; cagnotte: string | null } | null })[];
 }
 
 export type ModeCagnotte = 'egal' | 'libre';

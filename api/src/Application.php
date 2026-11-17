@@ -18,6 +18,7 @@ use Cadeaux\Http\Routeur;
  *   GET    /c/{code} · POST /c/{code}/participations · PATCH|DELETE /c/{code}/participations/{pid}  (lien partagé)
  *   GET|POST|DELETE /liste (lien de ma liste d'envies) · GET|POST /envies · PATCH|DELETE /envies/{id}
  *   GET    /l/{code} · POST|DELETE /l/{code}/envies/{id}/reservation  (liste d'envies partagée, sans compte)
+ *   POST   /l/{code}/envies/{id}/cagnotte  (« On se cotise », proche connecté)
  */
 final class Application
 {
@@ -148,6 +149,28 @@ final class Application
         $r->ajouter('POST', '/l/{code}/envies/{id}/reservation', fn (Requete $q, string $code, string $id) => Reponse::cree(
             $this->envies->reserver($code, (int) $id, $q->corps, $q->ip, $this->comptes->depuisJeton($q->jeton())),
         ));
+        // « On se cotise » : une cagnotte pour cette envie, organisée par le proche connecté, et l'envie réservée au nom du groupe.
+        $r->ajouter('POST', '/l/{code}/envies/{id}/cagnotte', function (Requete $q, string $code, string $id) {
+            $compte = $this->compte($q);
+            $envie = $this->envies->envieAPartager($code, (int) $id, $compte);
+            $objectif = $q->corps['objectif'] ?? $envie['prix'];
+            $cagnotte = $this->collections()['cagnottes']->ajouter($compte, [
+                'titre' => $envie['titre'],
+                'beneficiaire' => $envie['proprietaire'],
+                'objectif' => $objectif,
+                'mode' => 'libre',
+                'lien' => $envie['lien'],
+            ], $this->colonnesALaCreation('cagnottes'));
+            try {
+                $reservation = $this->envies->reserver($code, (int) $id, ['nom' => $this->comptes->compte($compte)['nom'] . ' et d’autres'], $q->ip, $compte, $cagnotte['code']);
+            } catch (ErreurHttp $e) {
+                $this->collections()['cagnottes']->supprimer($compte, $cagnotte['id']); // déjà prise : pas de cagnotte orpheline
+
+                throw $e;
+            }
+
+            return Reponse::cree(['cagnotte' => $cagnotte] + $reservation);
+        });
         $r->ajouter('DELETE', '/l/{code}/envies/{id}/reservation', function (Requete $q, string $code, string $id) {
             $this->envies->annulerReservation($code, (int) $id, $q->entete('x-cle-reservation'));
 

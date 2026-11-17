@@ -4,6 +4,7 @@ import type { Compte } from '../api/types';
 import { Champ, Lien } from '../components/commun';
 import { useEnvoi } from '../components/formulaire';
 import { useDonnees } from '../donnees/contexte';
+import { aller } from '../navigation';
 import styles from './pages.module.css';
 
 const POINTS = [
@@ -20,6 +21,9 @@ export function Accueil() {
     const corps = { email: f.get('email'), motDePasse: f.get('motDePasse'), ...(mode === 'inscription' ? { nom: f.get('nom') } : {}) };
     const r = await api<{ jeton: string; compte: Compte }>('POST', mode === 'inscription' ? '/comptes' : '/connexion', corps);
     connecter(r.jeton, r.compte);
+    // Venu d'une liste d'envies ou d'une cagnotte : on y retourne.
+    const retour = new URLSearchParams(window.location.search).get('retour');
+    if (retour && /^\/(l|c)\/[a-f0-9]{16}$/.test(retour)) aller(retour);
   });
 
   return (

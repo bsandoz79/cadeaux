@@ -3,8 +3,11 @@ import { useChargement } from '../donnees/useChargement';
 import { api } from '../api/client';
 import type { ListePublique } from '../api/types';
 import { euros } from '../calculs/argent';
-import { Champ, Lien } from '../components/commun';
-import { useEnvoi } from '../components/formulaire';
+import { Champ, ChampMontant, Lien } from '../components/commun';
+import { Partage } from '../components/Partage';
+import { jeton } from '../api/client';
+import type { Cagnotte } from '../api/types';
+import { erreurChamps, montantDuFormulaire, useEnvoi } from '../components/formulaire';
 import styles from './pages.module.css';
 
 /** Réservations faites depuis ce navigateur (clé pour annuler) et prénom déjà saisi. */
@@ -18,6 +21,9 @@ const ecrirePrenom = (p: string) => { try { localStorage.setItem('cadeaux.prenom
 export function ListeEnviesPublique({ code }: { code: string }) {
   const [cles, setCles] = useState(() => lire(code));
   const [choix, setChoix] = useState<number | null>(null);
+  const [cotise, setCotise] = useState<number | null>(null);
+  const [lancee, setLancee] = useState<{ envieId: number; cagnotte: Cagnotte } | null>(null);
+  const connecte = jeton.lire() !== null;
 
   const { donnees: liste, erreur, recharger: charger } = useChargement(() => api<ListePublique>('GET', `/l/${code}`), [code]);
   const introuvable = erreur !== undefined;
@@ -32,6 +38,19 @@ export function ListeEnviesPublique({ code }: { code: string }) {
     setChoix(null);
     await charger();
   });
+  const seCotiser = useEnvoi(async (f) => {
+    const envie = liste?.envies.find((e) => e.id === cotise);
+    const objectif = envie?.prix ? undefined : montantDuFormulaire(f, 'objectif');
+    if (!envie?.prix && !objectif) throw erreurChamps({ objectif: 'Indiquez le prix total (ex. 300).' });
+    const r = await api<{ cagnotte: Cagnotte; cle: string }>('POST', `/l/${code}/envies/${cotise}/cagnotte`, objectif ? { objectif } : {});
+    const nouvelles = { ...cles, [String(cotise)]: r.cle };
+    setCles(nouvelles);
+    ecrire(code, nouvelles);
+    setLancee({ envieId: cotise!, cagnotte: r.cagnotte });
+    setCotise(null);
+    await charger();
+  });
+
   const annuler = async (envieId: number) => {
     if (!window.confirm('Annuler votre réservation ? D’autres pourront la prendre.')) return;
     await api('DELETE', `/l/${code}/envies/${envieId}/reservation`, undefined, { 'X-Cle-Reservation': cles[envieId] });
@@ -79,12 +98,40 @@ export function ListeEnviesPublique({ code }: { code: string }) {
                 <strong>{e.lien ? <a href={e.lien} target="_blank" rel="noopener noreferrer">{e.titre}</a> : e.titre}</strong>
                 {e.note && <span className={styles.discret}>{e.note}</span>}
                 {!liste.estProprietaire && (
-                  parMoi ? (
+                  lancee?.envieId === e.id ? (
+                    <div className="formulaire" style={{ gap: '.5rem', marginTop: '.4rem' }}>
+                      <p style={{ color: 'var(--c-vert)', fontWeight: 600 }}>Cagnotte lancée ! Envoyez le lien aux autres :</p>
+                      <Partage url={`${window.location.origin}/c/${lancee.cagnotte.code}`} beneficiaire={liste.proprietaire} titre={e.titre} />
+                      <Lien href={`/cagnottes/${lancee.cagnotte.id}`}>Suivre la cagnotte</Lien>
+                    </div>
+                  ) : parMoi && e.reservation?.cagnotte ? (
+                    <p style={{ color: 'var(--c-vert)', fontWeight: 600 }}>Vous organisez la cagnotte. <Lien href="/cagnottes">Suivre mes cagnottes</Lien></p>
+                  ) : parMoi ? (
                     <p style={{ color: 'var(--c-vert)', fontWeight: 600 }}>
                       Vous vous en occupez. <button type="button" className="btn btn--lien btn--petit" onClick={() => annuler(e.id)}>Annuler</button>
                     </p>
+                  ) : e.reservation?.cagnotte ? (
+                    <p className={styles.discret}>Cagnotte lancée par {e.reservation.nom.replace(/ et d’autres$/, '')} · <Lien href={`/c/${e.reservation.cagnotte}`}>Participer</Lien></p>
                   ) : e.reservation ? (
                     <p className={styles.discret}>Déjà pris par {e.reservation.nom}</p>
+                  ) : cotise === e.id ? (
+                    connecte ? (
+                      <form className="formulaire" onSubmit={seCotiser.envoyer} noValidate style={{ marginTop: '.4rem' }}>
+                        <p className={styles.discret}>Une cagnotte{e.prix ? ` de ${euros(e.prix)}` : ''} à votre nom : vous envoyez le lien aux autres, chacun met sa part. {liste.proprietaire} ne le saura pas.</p>
+                        {!e.prix && <ChampMontant libelle="Prix total (€)" nom="objectif" erreur={seCotiser.champs.objectif} autoFocus />}
+                        {seCotiser.erreur && !seCotiser.champs.objectif && <p className="erreur" role="alert">{seCotiser.erreur}</p>}
+                        <div className="actions">
+                          <button className="btn btn--petit" disabled={seCotiser.occupe}>Lancer la cagnotte</button>
+                          <button type="button" className="btn btn--petit btn--contour" onClick={() => setCotise(null)}>Annuler</button>
+                        </div>
+                      </form>
+                    ) : (
+                      <p className={styles.discret} style={{ marginTop: '.4rem' }}>
+                        Pour lancer une cagnotte, il faut un compte Cadeaux (gratuit) : vous suivrez qui a mis quoi.{' '}
+                        <Lien href={`/?retour=${encodeURIComponent(`/l/${code}`)}`}>Me connecter ou créer un compte</Lien>{' · '}
+                        <button type="button" className="btn btn--lien btn--petit" onClick={() => setCotise(null)}>Annuler</button>
+                      </p>
+                    )
                   ) : choix === e.id ? (
                     <form className="formulaire" onSubmit={reserver.envoyer} noValidate style={{ marginTop: '.4rem' }}>
                       <Champ libelle="Votre prénom" nom="nom" required autoComplete="given-name" defaultValue={lirePrenom()} erreur={reserver.champs.nom} autoFocus />
@@ -95,7 +142,10 @@ export function ListeEnviesPublique({ code }: { code: string }) {
                       </div>
                     </form>
                   ) : (
-                    <div><button type="button" className="btn btn--petit btn--contour" onClick={() => setChoix(e.id)}>Je m’en occupe</button></div>
+                    <div className="actions">
+                      <button type="button" className="btn btn--petit btn--contour" onClick={() => setChoix(e.id)}>Je m’en occupe</button>
+                      <button type="button" className="btn btn--petit btn--contour" onClick={() => setCotise(e.id)}>On se cotise</button>
+                    </div>
                   )
                 )}
               </div>

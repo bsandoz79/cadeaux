@@ -2,6 +2,7 @@ import type { Cadeau, Cagnotte, Occasion, Personne } from '../api/types';
 import { euros, lireMontant, saisieDepuis } from './argent';
 import { anneesDisponibles, aujourdhui, bilanAnnee, dateLisible, delai, prochainsAnniversaires } from './bilan';
 import { etatBudget } from './budget';
+import { dejaOffert, ressemblance } from './historique';
 import { etatCagnotte, partConseillee, partsEgales } from './cagnotte';
 
 const cadeau = (c: Partial<Cadeau>): Cadeau => ({
@@ -125,5 +126,32 @@ describe('budget par personne', () => {
     expect(etatBudget(5000, 3000)).toEqual({ budget: 5000, utilise: 3000, reste: 2000, depasse: 0, pourcentage: 60 });
     expect(etatBudget(5000, 6250)).toMatchObject({ reste: 0, depasse: 1250, pourcentage: 100 });
     expect(etatBudget(5000, 0)).toMatchObject({ reste: 5000, pourcentage: 0 });
+  });
+});
+
+describe('déjà offert', () => {
+  const occasions: Occasion[] = [
+    { id: 1, type: 'noel', titre: 'Noël 2024', date: '2024-12-25' },
+    { id: 2, type: 'noel', titre: 'Noël 2025', date: '2025-12-25' },
+  ];
+  const cadeaux: Cadeau[] = [
+    cadeau({ id: 1, personneId: 7, occasionId: 1, titre: 'Écharpe en laine', statut: 'offert' }),
+    cadeau({ id: 2, personneId: 7, occasionId: 2, titre: 'Livre de cuisine', statut: 'achete' }),
+    cadeau({ id: 3, personneId: 7, occasionId: 2, titre: 'Idée de montre', statut: 'idee' }),
+    cadeau({ id: 4, personneId: 8, occasionId: 2, titre: 'Echarpe', statut: 'offert' }),
+    cadeau({ id: 5, personneId: 7, occasionId: null, titre: 'Montre', statut: 'achete' }),
+  ];
+
+  it('liste ce qui a été acheté ou offert à la personne, le plus récent d’abord', () => {
+    expect(dejaOffert(7, cadeaux, occasions).map((p) => p.cadeau.id)).toEqual([2, 1]);
+    expect(dejaOffert(7, cadeaux, occasions, 2).map((p) => p.cadeau.id)).toEqual([1]);
+  });
+
+  it('repère un cadeau qui ressemble, accents et majuscules compris', () => {
+    const passes = dejaOffert(7, cadeaux, occasions);
+    expect(ressemblance('echarpe rouge', passes)?.cadeau.id).toBe(1);
+    expect(ressemblance('Un LIVRE', passes)?.cadeau.id).toBe(2);
+    expect(ressemblance('Parfum', passes)).toBeUndefined();
+    expect(ressemblance('un', passes)).toBeUndefined();
   });
 });

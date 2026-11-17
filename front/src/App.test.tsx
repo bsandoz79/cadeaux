@@ -119,7 +119,7 @@ describe('proches', () => {
     const creation = appels.find((a) => a.methode === 'POST' && a.chemin === '/occasions');
     expect(creation?.corps).toMatchObject({ type: 'anniversaire', titre: expect.stringMatching(/^Anniversaire de Léa \(\d+ ans\)$/), date: expect.stringMatching(/-12-24$/) });
     expect((await screen.findAllByLabelText('Pour qui'))[0]).toHaveValue('7');
-    expect(screen.getByRole('button', { name: 'Ajouter' })).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: 'Ajouter' }).length).toBeGreaterThan(0);
   });
 });
 

@@ -1,0 +1,8 @@
+.choix { display: grid; gap: .7rem; }
+.boutons { display: flex; flex-wrap: wrap; gap: .45rem; align-items: center; }
+.legende { flex-basis: 100%; font-weight: 600; font-size: .92rem; }
+.puce { min-height: 44px; padding: 0 1rem; border-radius: 999px; border: 1px solid var(--c-bord-fort); background: var(--c-surface); color: var(--c-texte);
+  font-weight: 700; cursor: pointer; font-variant-numeric: tabular-nums; }
+.puce:hover { border-color: var(--c-texte); }
+.puce[aria-pressed='true'] { background: var(--c-accent); border-color: var(--c-accent); color: #fff; }
+@media (prefers-color-scheme: dark) { .puce[aria-pressed='true'] { color: #1a1012; } }

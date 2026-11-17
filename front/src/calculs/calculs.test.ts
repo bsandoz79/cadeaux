@@ -4,7 +4,7 @@ import { anneesDisponibles, aujourdhui, bilanAnnee, dateLisible, delai, prochain
 import { etatBudget } from './budget';
 import { dejaOffert, ressemblance } from './historique';
 import { liensPartage } from './partage';
-import { etatCagnotte, partConseillee, partsEgales } from './cagnotte';
+import { etatCagnotte, montantsProposes, partConseillee, partsEgales } from './cagnotte';
 
 const cadeau = (c: Partial<Cadeau>): Cadeau => ({
   id: 1, titre: 'Cadeau', occasionId: null, personneId: null, montantPrevu: null, montantDepense: null,
@@ -178,5 +178,13 @@ describe('partage d’une cagnotte', () => {
     expect(decodeURIComponent(l.whatsapp.replace('https://wa.me/?text=', ''))).toBe(l.texte);
     expect(decodeURIComponent(l.sms.replace('sms:?&body=', ''))).toBe(l.texte);
     expect(l.snapchat).toBe('https://www.snapchat.com/share?link=https%3A%2F%2Fcadeaux.bsandoz.fr%2Fc%2F0123456789abcdef');
+  });
+});
+
+describe('montants proposés pour une part', () => {
+  it('part égale d’abord, puis 10, 20, 30 € et tout le reste', () => {
+    expect(montantsProposes(2143, 10000).map((m) => m.libelle)).toEqual(['Ma part : 21,43 €', '10 €', '20 €', '30 €', 'Tout le reste : 100 €']);
+    expect(montantsProposes(null, 2000).map((m) => m.centimes)).toEqual([1000, 2000, 3000]);
+    expect(montantsProposes(2000, 0).map((m) => m.centimes)).toEqual([2000, 1000, 3000]);
   });
 });

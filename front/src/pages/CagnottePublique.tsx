@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { useChargement } from '../donnees/useChargement';
 import { api } from '../api/client';
 import type { CagnottePublique as Cagnotte, Participation } from '../api/types';
-import { euros, saisieDepuis } from '../calculs/argent';
+import { euros } from '../calculs/argent';
 import { dateLisible } from '../calculs/bilan';
 import { etatCagnotte, partConseillee } from '../calculs/cagnotte';
-import { Champ, ChampMontant, Jauge, Lien } from '../components/commun';
+import { Champ, Jauge, Lien } from '../components/commun';
+import { ChoixMontant } from '../components/ChoixMontant';
 import { erreurChamps, montantDuFormulaire, useEnvoi } from '../components/formulaire';
 import styles from './pages.module.css';
 
@@ -23,6 +24,8 @@ export function CagnottePublique({ code }: { code: string }) {
   const [cles, setCles] = useState(() => lireCles(code));
   const [edition, setEdition] = useState<Participation | null>(null);
   const [merci, setMerci] = useState(false);
+  // Change après chaque envoi : le formulaire repart à vide.
+  const [envois, setEnvois] = useState(0);
 
   const { donnees: cagnotte, erreur: erreurChargement, recharger: charger } = useChargement(() => api<Cagnotte>('GET', `/c/${code}`), [code]);
   const introuvable = erreurChargement !== undefined;
@@ -43,6 +46,7 @@ export function CagnottePublique({ code }: { code: string }) {
       setMerci(true);
     }
     form.reset();
+    setEnvois((n) => n + 1);
     await charger();
   });
 
@@ -95,11 +99,9 @@ export function CagnottePublique({ code }: { code: string }) {
         <section className="carte" aria-labelledby="titre-participer">
           <h2 id="titre-participer" style={{ marginBottom: '.8rem' }}>{edition ? 'Modifier ma part' : 'Je participe'}</h2>
           {merci && !edition && <p role="status" style={{ color: 'var(--c-vert)', fontWeight: 600, marginBottom: '.8rem' }}>Merci, votre part est notée. Pensez à la donner à {cagnotte.organisateur}.</p>}
-          <form key={edition?.id ?? 'nouvelle'} className="formulaire" onSubmit={envoyer} noValidate>
-            <div className="rangee">
-              <Champ libelle="Votre prénom" nom="nom" required autoComplete="given-name" defaultValue={edition?.nom} erreur={champs.nom} />
-              <ChampMontant libelle="Votre part (€)" nom="montant" required defaultValue={saisieDepuis(edition?.montant ?? conseil)} erreur={champs.montant} />
-            </div>
+          <form key={`${edition?.id ?? 'nouvelle'}-${envois}`} className="formulaire" onSubmit={envoyer} noValidate>
+            <Champ libelle="Votre prénom" nom="nom" required autoComplete="given-name" defaultValue={edition?.nom} erreur={champs.nom} />
+            <ChoixMontant conseil={conseil} reste={etat.reste + (edition?.montant ?? 0)} depart={edition?.montant ?? null} erreur={champs.montant} />
             {erreur && <p className="erreur" role="alert">{erreur}</p>}
             <div className="actions">
               <button className="btn" disabled={occupe}>{edition ? 'Enregistrer' : 'Ajouter ma part'}</button>

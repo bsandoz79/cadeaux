@@ -88,7 +88,9 @@ describe('liens partagés, sans compte', () => {
     const u = userEvent.setup();
     expect(await screen.findByRole('heading', { name: 'Montre' })).toBeInTheDocument();
     await u.type(screen.getByLabelText('Votre prénom'), 'Tom');
-    await u.type(screen.getByLabelText('Votre part (€)'), '20');
+    await u.click(screen.getByRole('button', { name: '20 €' }));
+    expect(screen.getByLabelText('Votre part (€)')).toHaveValue('20');
+    expect(screen.getByRole('button', { name: '20 €' })).toHaveAttribute('aria-pressed', 'true');
     await u.click(screen.getByRole('button', { name: 'Ajouter ma part' }));
     expect(await screen.findByText(/Merci, votre part est notée/)).toBeInTheDocument();
     expect(screen.getByText('Il manque 130 €.')).toBeInTheDocument();

@@ -2,6 +2,9 @@
 
 ## [Non publié]
 
+### Ajouté (cagnottes)
+- Page d'une cagnotte : montants en un geste (part égale, 10, 20, 30 €, « Tout le reste », « Autre »).
+
 ### Modifié (partage)
 - Partage d'une cagnotte en logos seuls (WhatsApp, Snapchat, SMS, Partager, Copier), nommés pour les lecteurs d'écran ; Snapchat ajouté (lien de partage officiel `snapchat.com/share?link=`), sur le site et dans l'extension.
 

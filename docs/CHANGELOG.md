@@ -3,6 +3,7 @@
 ## [Non publié]
 
 ### Ajouté
+- Extension : option « Après mes achats sur Amazon, me demander « C'est un cadeau ? » » (autorisation demandée à l'activation) : le produit commandé est noté acheté pour le proche choisi, puis cagnotte proposée avec envoi par WhatsApp ou SMS. Choix « pour moi » qui ajoute à la liste d'envies. Voir `docs/fonctionnalites/extension-achat-amazon.md`.
 - Liste d'envies partagée par lien : les proches réservent « Je m'en occupe » sans compte, les autres voient que c'est pris, le propriétaire ne voit jamais les réservations. Voir `docs/fonctionnalites/liste-envies.md`.
 - « Déjà offert » : dans le formulaire d'un cadeau, ce qui a déjà été offert au proche choisi, et un avertissement si le cadeau ressemble à un ancien. Voir `docs/fonctionnalites/deja-offert.md`.
 - Budget par personne et par occasion : barre « il reste » ou « dépassé de », total des budgets, proches avec un budget mais sans cadeau encore, reprise des budgets de l'an dernier. Voir `docs/fonctionnalites/budget-par-personne.md`.

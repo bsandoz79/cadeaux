@@ -31,10 +31,15 @@
         <label>Le cadeau <textarea name="titre" rows="3" maxlength="200" required></textarea></label>
       </div>
       <label>Prix (€) <input name="prix" inputmode="decimal" autocomplete="off" placeholder="Non trouvé, à remplir" /></label>
-      <label>Pour qui
+      <fieldset class="pour">
+        <legend>C’est pour</legend>
+        <label class="radio"><input type="radio" name="pour" value="autre" checked /> Quelqu’un d’autre (idée de cadeau)</label>
+        <label class="radio"><input type="radio" name="pour" value="moi" /> Moi (ma liste d’envies)</label>
+      </fieldset>
+      <label data-autre>Pour qui
         <select name="personneId"><option value="">Personne en particulier</option></select>
       </label>
-      <label>Pour quelle occasion
+      <label data-autre>Pour quelle occasion
         <select name="occasionId"><option value="">Plus tard (idée)</option></select>
       </label>
       <p class="erreur" role="alert"></p>
@@ -43,8 +48,13 @@
 
     <div id="fait" hidden>
       <p class="ok">C’est noté !</p>
-      <p><a href="https://cadeaux.bsandoz.fr/idees" target="_blank" rel="noopener">Voir mes idées</a></p>
+      <p><a id="voir" href="https://cadeaux.bsandoz.fr/idees" target="_blank" rel="noopener">Voir mes idées</a></p>
     </div>
+
+    <section id="reglages" hidden>
+      <label class="radio"><input type="checkbox" id="amazon" /> Après mes achats sur Amazon, me demander « C’est un cadeau ? »</label>
+      <p class="discret">Chrome vous demandera l’autorisation pour amazon.fr. L’extension retient alors les derniers produits que vous regardez, dans ce navigateur seulement, pour vous les proposer après la commande.</p>
+    </section>
 
     <p id="chargement" class="discret">Chargement…</p>
   </body>

@@ -1,4 +1,5 @@
 // Lecture du produit par l'extension Chrome (extension/produit.js), sur des pages types.
+import { ajouterVu, estFicheProduit, estPageMerci, liensPartage, produitsRecents, VUS_MAX } from '../../extension/amazon-logique.js';
 import { lireProduit } from '../../extension/produit.js';
 
 const page = (html: string, url = 'https://boutique.example/produit') => {
@@ -38,5 +39,43 @@ describe('extension : lecture du produit', () => {
   it('refuse les images en javascript: et lit les prix à milliers', () => {
     page('<meta property="og:image" content="javascript:alert(1)"><meta property="product:price:amount" content="1,299.50">');
     expect(lireProduit()).toMatchObject({ image: null, prix: 129950 });
+  });
+});
+
+describe('extension : aide après achat sur Amazon', () => {
+  const H = 3_600_000;
+  const produit = (n: number) => ({ titre: `Produit ${n}`, prix: n * 100, image: null, lien: `https://www.amazon.fr/dp/B00000000${n}` });
+
+  it('reconnaît la page de confirmation de commande et les fiches produit', () => {
+    expect(estPageMerci('https://www.amazon.fr/gp/buy/thankyou/handlers/display.html?purchaseId=1')).toBe(true);
+    expect(estPageMerci('https://www.amazon.fr/checkout/p/p-123/thankyou?pipelineType=Chewbacca')).toBe(true);
+    expect(estPageMerci('https://www.amazon.fr/autre', 'Merci, votre commande a été passée.')).toBe(true);
+    expect(estPageMerci('https://www.amazon.fr/dp/B0CHX1W1XY', 'Ajouter au panier')).toBe(false);
+    expect(estFicheProduit('https://www.amazon.fr/Montre-Casio/dp/B000GAYQKY/ref=sr_1_1')).toBe(true);
+    expect(estFicheProduit('https://www.amazon.fr/gp/product/B000GAYQKY')).toBe(true);
+    expect(estFicheProduit('https://www.amazon.fr/s?k=montre')).toBe(false);
+  });
+
+  it('retient les 10 derniers produits vus pendant 7 jours, sans doublon', () => {
+    let vus = ajouterVu([], produit(1), 0);
+    vus = ajouterVu(vus, produit(2), H);
+    vus = ajouterVu(vus, produit(1), 2 * H);
+    expect(vus.map((v) => v.titre)).toEqual(['Produit 1', 'Produit 2']);
+    for (let i = 3; i <= 14; i++) vus = ajouterVu(vus, produit(i), i * H);
+    expect(vus).toHaveLength(VUS_MAX);
+    expect(ajouterVu(vus, produit(99), 9 * 24 * H).map((v) => v.titre)).toEqual(['Produit 99']);
+    expect(ajouterVu(vus, null, 0)).toBe(vus);
+  });
+
+  it('propose après la commande les produits vus dans les 48 dernières heures', () => {
+    const vus = [{ ...produit(1), vuLe: 0 }, { ...produit(2), vuLe: 47 * H }];
+    expect(produitsRecents(vus, 50 * H).map((v) => v.titre)).toEqual(['Produit 2']);
+  });
+
+  it('prépare les messages WhatsApp et SMS', () => {
+    const l = liensPartage('https://cadeaux.bsandoz.fr/c/0123456789abcdef', 'Papa', 'Montre');
+    expect(l.texte).toBe('On se cotise pour Papa (Montre) ? Mets ta part ici : https://cadeaux.bsandoz.fr/c/0123456789abcdef');
+    expect(l.whatsapp).toBe(`https://wa.me/?text=${encodeURIComponent(l.texte)}`);
+    expect(l.sms.startsWith('sms:?&body=On%20se%20cotise')).toBe(true);
   });
 });

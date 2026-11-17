@@ -2,14 +2,19 @@
   "manifest_version": 3,
   "name": "Cadeaux",
   "short_name": "Cadeaux",
-  "version": "0.1.0",
-  "description": "Ajoutez le produit de la page à vos idées de cadeaux, avec son prix et sa photo (cadeaux.bsandoz.fr).",
+  "version": "0.2.0",
+  "description": "Ajoutez le produit de la page à vos idées de cadeaux ou à votre liste d'envies, et notez vos achats Amazon offerts (cadeaux.bsandoz.fr).",
   "action": {
     "default_title": "Ajouter à mes idées de cadeaux",
     "default_popup": "popup.html",
     "default_icon": { "16": "icones/16.png", "32": "icones/32.png", "48": "icones/48.png", "128": "icones/128.png" }
   },
   "icons": { "16": "icones/16.png", "32": "icones/32.png", "48": "icones/48.png", "128": "icones/128.png" },
+  "background": { "service_worker": "fond.js", "type": "module" },
   "permissions": ["activeTab", "scripting", "storage"],
-  "host_permissions": ["https://cadeaux.bsandoz.fr/*"]
+  "host_permissions": ["https://cadeaux.bsandoz.fr/*"],
+  "optional_host_permissions": ["https://www.amazon.fr/*"],
+  "web_accessible_resources": [
+    { "resources": ["produit.js", "amazon-logique.js"], "matches": ["https://www.amazon.fr/*"] }
+  ]
 }

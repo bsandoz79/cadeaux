@@ -10,7 +10,32 @@ const $ = (id) => document.getElementById(id);
 const montrer = (id) => {
   for (const e of ['connexion', 'ajout', 'fait', 'chargement']) $(e).hidden = e !== id;
   $('deconnexion').hidden = id === 'connexion' || id === 'chargement';
+  $('reglages').hidden = id === 'connexion' || id === 'chargement';
 };
+
+// Aide après achat sur Amazon : permission demandée au moment où l'utilisateur l'active, script ajouté ensuite.
+const AMAZON = ['https://www.amazon.fr/*'];
+const ID_SCRIPT = 'cadeaux-amazon';
+async function etatAmazon() {
+  const scripts = await chrome.scripting.getRegisteredContentScripts({ ids: [ID_SCRIPT] }).catch(() => []);
+  $('amazon').checked = scripts.length > 0 && (await chrome.permissions.contains({ origins: AMAZON }));
+}
+$('amazon').addEventListener('change', async (e) => {
+  if (e.target.checked) {
+    const accorde = await chrome.permissions.request({ origins: AMAZON });
+    if (accorde) await chrome.scripting.registerContentScripts([{ id: ID_SCRIPT, matches: AMAZON, js: ['amazon.js'], runAt: 'document_idle' }]).catch(() => {});
+  } else {
+    await chrome.runtime.sendMessage({ type: 'desactiver-amazon' });
+  }
+  await etatAmazon();
+});
+void etatAmazon();
+
+// « Pour moi » : la liste d'envies, sans destinataire ni occasion.
+$('ajout').addEventListener('change', () => {
+  const moi = $('ajout').pour.value === 'moi';
+  for (const el of document.querySelectorAll('[data-autre]')) el.hidden = moi;
+});
 
 async function jeton() {
   return (await chrome.storage.local.get('jeton')).jeton ?? null;
@@ -99,15 +124,21 @@ $('ajout').addEventListener('submit', async (e) => {
   bouton.disabled = true;
   erreur.textContent = '';
   try {
-    await api('POST', '/cadeaux', {
-      titre: form.titre.value.trim(),
-      montantPrevu: montant,
-      personneId: form.personneId.value ? Number(form.personneId.value) : null,
-      occasionId: form.occasionId.value ? Number(form.occasionId.value) : null,
-      statut: form.occasionId.value ? 'prevu' : 'idee',
-      lien: produit?.lien ?? null,
-      image: produit?.image ?? null,
-    });
+    if (form.pour.value === 'moi') {
+      await api('POST', '/envies', { titre: form.titre.value.trim(), prix: montant, lien: produit?.lien ?? null, image: produit?.image ?? null });
+      $('voir').href = 'https://cadeaux.bsandoz.fr/envies';
+      $('voir').textContent = 'Voir ma liste d’envies';
+    } else {
+      await api('POST', '/cadeaux', {
+        titre: form.titre.value.trim(),
+        montantPrevu: montant,
+        personneId: form.personneId.value ? Number(form.personneId.value) : null,
+        occasionId: form.occasionId.value ? Number(form.occasionId.value) : null,
+        statut: form.occasionId.value ? 'prevu' : 'idee',
+        lien: produit?.lien ?? null,
+        image: produit?.image ?? null,
+      });
+    }
     montrer('fait');
   } catch (x) {
     if (x.statut === 401) return montrer('connexion');

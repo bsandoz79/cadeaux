@@ -43,7 +43,7 @@ jobs:
           npm run build
 
       - name: Extension Chrome – archive à télécharger depuis le site
-        run: cd extension && zip -qr ../front/dist/extension-cadeaux.zip . -x produit.d.ts
+        run: cd extension && zip -qr ../front/dist/extension-cadeaux.zip . -x "*.d.ts"
 
       - name: API – dépendances de production et configuration
         working-directory: api

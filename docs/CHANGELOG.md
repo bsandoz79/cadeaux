@@ -2,6 +2,9 @@
 
 ## [Non publié]
 
+### Sécurité
+- Changement de mot de passe depuis « Mon compte » appliqué seulement après un clic sur le lien envoyé à l'adresse du compte (1 heure) ; toutes les connexions sont ensuite fermées.
+
 ### Sécurité (vol de compte)
 - Changement d'adresse appliqué 48 heures après la demande ; l'ancienne adresse reçoit « Ce n'est pas moi ».
 - « Ce n'est pas moi » (changement d'adresse, mot de passe changé, RIB ajouté, connexion depuis un nouvel appareil) : connexions fermées, compte bloqué jusqu'à un nouveau mot de passe, RIB effacés, changement d'adresse annulé.

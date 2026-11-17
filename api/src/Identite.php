@@ -10,6 +10,7 @@ use Cadeaux\Http\ErreurHttp;
  * Tout ce qui passe par un lien envoyé par e-mail :
  * - confirmation de l'adresse à l'inscription (lien valable 7 jours) ;
  * - mot de passe oublié (lien valable 1 heure ; toutes les connexions sont fermées après le changement) ;
+ * - changement de mot de passe depuis « Mon compte » : appliqué seulement au clic sur le lien envoyé (1 heure) ;
  * - changement d'adresse : lien envoyé à la nouvelle adresse, et changement fait seulement 48 heures après la demande ;
  *   l'ancienne adresse reçoit un lien « Ce n'est pas moi » ;
  * - « Ce n'est pas moi » (changement d'adresse, de mot de passe, nouvel appareil, RIB ajouté) : toutes les connexions
@@ -20,7 +21,7 @@ use Cadeaux\Http\ErreurHttp;
  */
 final class Identite
 {
-    private const DUREES = ['confirmation' => '+7 days', 'motdepasse' => '+1 hour', 'email' => '+7 days', 'alerte' => '+7 days'];
+    private const DUREES = ['confirmation' => '+7 days', 'motdepasse' => '+1 hour', 'nouveaumdp' => '+1 hour', 'email' => '+7 days', 'alerte' => '+7 days'];
     public const DELAI_SECURITE_HEURES = 48;
 
     private readonly Limiteur $limiteur;
@@ -154,13 +155,41 @@ final class Identite
         return ['type' => (string) $l['type'], 'email' => (string) $this->comptes->compte($id)['email']];
     }
 
-    /** Changer de mot de passe depuis « Mon compte » : les autres appareils sont déconnectés. */
-    public function changerMotDePasse(int $compteId, string $actuel, string $nouveau, ?string $jetonCourant): void
+    /**
+     * Changer de mot de passe depuis « Mon compte » : rien ne change avant le clic sur le lien envoyé à l'adresse du
+     * compte (1 heure). Un voleur qui connaît le mot de passe sans avoir la boîte mail ne peut donc pas le changer.
+     * Le nouveau mot de passe attend haché dans le lien.
+     */
+    public function demanderChangementMotDePasse(int $compteId, string $actuel, string $nouveau): void
     {
         $this->verifierMotDePasseActuel($compteId, $actuel);
         self::verifierMotDePasse($nouveau, 'nouveau');
-        $this->pdo->prepare('UPDATE comptes SET mot_de_passe = ?, securite_le = ? WHERE id = ?')->execute([password_hash($nouveau, PASSWORD_DEFAULT), $this->horloge->texte(), $compteId]);
-        $this->pdo->prepare('DELETE FROM jetons WHERE compte_id = ? AND empreinte <> ?')->execute([$compteId, hash('sha256', (string) $jetonCourant)]);
+        if ($this->limiteur->depasse('nouveaumdp:' . $compteId, 3)) {
+            throw new ErreurHttp(429, 'Trop de demandes. Réessayez dans un quart d’heure.');
+        }
+        $this->limiteur->noter('nouveaumdp:' . $compteId);
+        $compte = $this->comptes->compte($compteId);
+        $lien = $this->creerLien($compteId, 'nouveaumdp', null, password_hash($nouveau, PASSWORD_DEFAULT));
+        $this->courrier->envoyer((string) $compte['email'], 'Confirmez votre nouveau mot de passe', <<<TXT
+            Bonjour {$compte['nom']},
+
+            Pour confirmer votre nouveau mot de passe, ouvrez ce lien (valable 1 heure) puis cliquez sur « Confirmer » :
+            {$this->site}/motdepasse/confirmer/{$lien}
+
+            Vous n'avez rien demandé ? Quelqu'un connaît peut-être votre mot de passe. Bloquez votre compte :
+            {$this->site}/securite/{$this->creerLien($compteId, 'alerte')}
+
+            Cadeaux
+            TXT);
+    }
+
+    /** Lien de confirmation ouvert : le nouveau mot de passe s'applique, toutes les connexions sont fermées. */
+    public function confirmerChangementMotDePasse(string $lien): void
+    {
+        $l = $this->utiliserLien($lien, ['nouveaumdp']);
+        $compteId = (int) $l['compte_id'];
+        $this->pdo->prepare('UPDATE comptes SET mot_de_passe = ?, securite_le = ? WHERE id = ?')->execute([(string) $l['donnee'], $this->horloge->texte(), $compteId]);
+        $this->pdo->prepare('DELETE FROM jetons WHERE compte_id = ?')->execute([$compteId]);
         $compte = $this->comptes->compte($compteId);
         $this->courrier->envoyer((string) $compte['email'], 'Votre mot de passe a été changé', <<<TXT
             Bonjour {$compte['nom']},
@@ -255,7 +284,7 @@ final class Identite
         $l = $this->utiliserLien($lien, ['alerte']);
         $id = (int) $l['compte_id'];
         $this->pdo->prepare('DELETE FROM changements_email WHERE compte_id = ?')->execute([$id]);
-        $this->pdo->prepare("DELETE FROM liens WHERE compte_id = ? AND type IN ('email', 'alerte')")->execute([$id]);
+        $this->pdo->prepare("DELETE FROM liens WHERE compte_id = ? AND type IN ('email', 'alerte', 'nouveaumdp')")->execute([$id]);
         $this->pdo->prepare('DELETE FROM jetons WHERE compte_id = ?')->execute([$id]);
         $this->pdo->prepare('DELETE FROM appareils WHERE compte_id = ?')->execute([$id]);
         $this->pdo->prepare('UPDATE comptes SET bloque = 1 WHERE id = ?')->execute([$id]);
@@ -366,15 +395,15 @@ final class Identite
         return "$navigateur sur $systeme";
     }
 
-    private function creerLien(int $compteId, string $type, ?string $nouvelEmail = null): string
+    private function creerLien(int $compteId, string $type, ?string $nouvelEmail = null, ?string $donnee = null): string
     {
         // Un seul lien valable à la fois par type (sauf « Ce n'est pas moi » : chaque alerte garde le sien).
         if ($type !== 'alerte') {
             $this->pdo->prepare('DELETE FROM liens WHERE compte_id = ? AND type = ?')->execute([$compteId, $type]);
         }
         $lien = bin2hex(random_bytes(32));
-        $this->pdo->prepare('INSERT INTO liens (compte_id, type, empreinte, nouvel_email, expire_le) VALUES (?, ?, ?, ?, ?)')
-            ->execute([$compteId, $type, hash('sha256', $lien), $nouvelEmail, $this->horloge->maintenant()->modify(self::DUREES[$type])->format('Y-m-d H:i:s')]);
+        $this->pdo->prepare('INSERT INTO liens (compte_id, type, empreinte, nouvel_email, donnee, expire_le) VALUES (?, ?, ?, ?, ?, ?)')
+            ->execute([$compteId, $type, hash('sha256', $lien), $nouvelEmail, $donnee, $this->horloge->maintenant()->modify(self::DUREES[$type])->format('Y-m-d H:i:s')]);
 
         return $lien;
     }

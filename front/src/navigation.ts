@@ -23,6 +23,7 @@ export type Route =
   | { page: 'motdepasse'; jeton: string }
   | { page: 'confirmer'; jeton: string }
   | { page: 'securite'; jeton: string }
+  | { page: 'confirmerMdp'; jeton: string }
   | { page: 'introuvable' };
 
 export function lireRoute(chemin: string): Route {
@@ -45,6 +46,7 @@ export function lireRoute(chemin: string): Route {
   if ((m = /^\/motdepasse\/([a-f0-9]{64})$/.exec(c))) return { page: 'motdepasse', jeton: m[1] };
   if ((m = /^\/confirmer\/([a-f0-9]{64})$/.exec(c))) return { page: 'confirmer', jeton: m[1] };
   if ((m = /^\/securite\/([a-f0-9]{64})$/.exec(c))) return { page: 'securite', jeton: m[1] };
+  if ((m = /^\/motdepasse\/confirmer\/([a-f0-9]{64})$/.exec(c))) return { page: 'confirmerMdp', jeton: m[1] };
   return { page: 'introuvable' };
 }
 

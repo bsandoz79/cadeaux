@@ -112,9 +112,9 @@ function ReglagesCompte() {
     setFait('Prénom enregistré.');
   });
   const motDePasse = useEnvoi(async (f, form) => {
-    await api('POST', '/moi/motdepasse', { actuel: f.get('actuel'), nouveau: f.get('nouveau') });
+    const r = await api<{ message: string }>('POST', '/moi/motdepasse', { actuel: f.get('actuel'), nouveau: f.get('nouveau') });
     form.reset();
-    setFait('Mot de passe changé. Vos autres appareils ont été déconnectés.');
+    setFait(r.message);
   });
   const adresse = useEnvoi(async (f, form) => {
     const r = await api<{ message: string }>('POST', '/moi/email', { email: f.get('email'), motDePasse: f.get('motDePasse') });

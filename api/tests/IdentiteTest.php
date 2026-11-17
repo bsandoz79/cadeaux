@@ -88,15 +88,28 @@ final class IdentiteTest extends ApiTestCase
         self::assertSame(410, $this->appel('POST', '/motdepasse/nouveau', ['jeton' => $this->lienRecu('motdepasse'), 'motDePasse' => 'nouveau-mot-de-passe'])->statut);
     }
 
-    public function testChangerSonMotDePasseDeconnecteLesAutresAppareils(): void
+    public function testChangerSonMotDePasseSeConfirmeParEmail(): void
     {
         $ici = $this->inscrire();
         $ailleurs = $this->appel('POST', '/connexion', ['email' => 'baptiste@example.com', 'motDePasse' => 'un-bon-mot-de-passe'])->donnees['jeton'];
+        $this->courriels = [];
         $faux = $this->appel('POST', '/moi/motdepasse', ['actuel' => 'faux', 'nouveau' => 'nouveau-mot-de-passe'], $ici);
         self::assertSame(['actuel'], array_keys($faux->donnees['champs']));
-        self::assertSame(204, $this->appel('POST', '/moi/motdepasse', ['actuel' => 'un-bon-mot-de-passe', 'nouveau' => 'nouveau-mot-de-passe'], $ici)->statut);
-        self::assertSame(200, $this->appel('GET', '/moi', [], $ici)->statut);
+
+        self::assertSame(200, $this->appel('POST', '/moi/motdepasse', ['actuel' => 'un-bon-mot-de-passe', 'nouveau' => 'nouveau-mot-de-passe'], $ici)->statut);
+        self::assertSame('Confirmez votre nouveau mot de passe', $this->courriels[0]['sujet']);
+        self::assertStringContainsString('/securite/', $this->courriels[0]['texte']);
+        // Rien ne change avant le lien.
+        self::assertSame(200, $this->appel('POST', '/connexion', ['email' => 'baptiste@example.com', 'motDePasse' => 'un-bon-mot-de-passe'])->statut);
+        self::assertStringNotContainsString('nouveau-mot-de-passe', json_encode($this->pdo->query('SELECT * FROM liens')->fetchAll()), 'mot de passe haché dans le lien');
+
+        preg_match('#/motdepasse/confirmer/([a-f0-9]{64})#', $this->courriels[0]['texte'], $m);
+        self::assertSame(200, $this->appel('POST', '/motdepasse/confirmer', ['jeton' => $m[1]])->statut);
+        self::assertSame(401, $this->appel('GET', '/moi', [], $ici)->statut);
         self::assertSame(401, $this->appel('GET', '/moi', [], $ailleurs)->statut);
+        self::assertSame(200, $this->appel('POST', '/connexion', ['email' => 'baptiste@example.com', 'motDePasse' => 'nouveau-mot-de-passe'])->statut);
+        self::assertContains('Votre mot de passe a été changé', array_column($this->courriels, 'sujet'));
+        self::assertSame(410, $this->appel('POST', '/motdepasse/confirmer', ['jeton' => $m[1]])->statut);
     }
 
     public function testChangerDAdresseParUnLienEnvoyeALaNouvelle(): void

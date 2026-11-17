@@ -14,7 +14,7 @@ export function RibOrganisateur({ cagnotte, onChange }: { cagnotte: Cagnotte; on
   const { envoyer, occupe, erreur, champs } = useEnvoi(async (f) => {
     const iban = normaliserIban(String(f.get('iban') ?? ''));
     if (!ibanValide(iban)) throw erreurChamps({ iban: 'IBAN invalide : vérifiez-le sur votre RIB (ex. FR76 3000 6000 0112 3456 7890 189).' });
-    await api('PUT', `/cagnottes/${cagnotte.id}/rib`, { titulaire: String(f.get('titulaire') ?? ''), iban });
+    await api('PUT', `/cagnottes/${cagnotte.id}/rib`, { titulaire: String(f.get('titulaire') ?? ''), iban, motDePasse: String(f.get('motDePasse') ?? '') });
     setOuvert(false);
     await onChange();
   });
@@ -38,6 +38,7 @@ export function RibOrganisateur({ cagnotte, onChange }: { cagnotte: Cagnotte; on
         <form className="formulaire" onSubmit={envoyer} noValidate>
           <Champ libelle="Titulaire du compte" nom="titulaire" required autoComplete="name" erreur={champs.titulaire} />
           <Champ libelle="IBAN" nom="iban" required autoComplete="off" spellCheck={false} placeholder="FR76 …" erreur={champs.iban} />
+          <Champ libelle="Votre mot de passe" nom="motDePasse" type="password" autoComplete="current-password" required erreur={champs.motDePasse} aide="Demandé pour protéger l’argent des participants." />
           <p className={styles.discret}>Votre RIB est enregistré chiffré et montré seulement aux personnes qui ont le lien et cliquent sur « Afficher le RIB ». {SUPPRESSION}</p>
           {erreur && !Object.keys(champs).length && <p className="erreur" role="alert">{erreur}</p>}
           <div className="actions">
@@ -56,7 +57,7 @@ export function RibOrganisateur({ cagnotte, onChange }: { cagnotte: Cagnotte; on
 }
 
 /** Participant : afficher le RIB de l'organisateur, sur demande, et copier l'IBAN. */
-export function RibParticipant({ code, titulaire, organisateur, beneficiaire }: { code: string; titulaire: string; organisateur: string; beneficiaire: string }) {
+export function RibParticipant({ code, titulaire, organisateur, beneficiaire, recent }: { code: string; titulaire: string; organisateur: string; beneficiaire: string; recent: boolean }) {
   const [rib, setRib] = useState<{ titulaire: string; iban: string } | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
   const [copie, setCopie] = useState(false);
@@ -71,6 +72,11 @@ export function RibParticipant({ code, titulaire, organisateur, beneficiaire }: 
   return (
     <section className="carte formulaire" aria-labelledby="titre-virement">
       <h2 id="titre-virement">Payer par virement</h2>
+      {recent && (
+        <p role="note" style={{ background: 'var(--c-or-doux)', color: 'var(--c-alerte)', padding: '.7rem .9rem', borderRadius: 'var(--rayon-petit)', fontWeight: 600 }}>
+          Ce RIB a été ajouté ou modifié il y a moins de 48 heures. Avant de virer, vérifiez auprès de {organisateur} (de vive voix ou par message) que c’est bien le sien.
+        </p>
+      )}
       {rib ? (
         <>
           <dl className={styles.rib}>

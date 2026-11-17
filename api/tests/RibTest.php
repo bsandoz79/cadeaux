@@ -18,7 +18,7 @@ final class RibTest extends ApiTestCase
     {
         $jeton = $this->inscrire();
         $g = $this->appel('POST', '/cagnottes', ['titre' => 'Montre', 'beneficiaire' => 'Julie', 'objectif' => 15000], $jeton)->donnees;
-        $r = $this->appel('PUT', '/cagnottes/' . $g['id'] . '/rib', ['titulaire' => 'Baptiste Sandoz', 'iban' => 'fr76 3000-6000 0112 3456 7890 189'], $jeton);
+        $r = $this->appel('PUT', '/cagnottes/' . $g['id'] . '/rib', ['titulaire' => 'Baptiste Sandoz', 'iban' => 'fr76 3000-6000 0112 3456 7890 189', 'motDePasse' => 'un-bon-mot-de-passe'], $jeton);
         self::assertSame(200, $r->statut, json_encode($r->donnees));
         self::assertSame(['titulaire' => 'Baptiste Sandoz', 'ibanMasque' => 'FR76 •••• •••• •••• •••• •••0 189'], $r->donnees);
 
@@ -41,10 +41,10 @@ final class RibTest extends ApiTestCase
         self::assertStringNotContainsString('3000', base64_decode($brut), 'pas d’IBAN en clair dans la base');
 
         $publique = $this->appel('GET', '/c/' . $g['code'])->donnees;
-        self::assertSame(['titulaire' => 'Baptiste Sandoz'], $publique['rib']);
+        self::assertSame(['titulaire' => 'Baptiste Sandoz', 'recent' => true], $publique['rib']);
         self::assertStringNotContainsString('3000', json_encode($publique));
 
-        self::assertSame(['titulaire' => 'Baptiste Sandoz', 'iban' => self::IBAN], $this->appel('GET', '/c/' . $g['code'] . '/rib')->donnees);
+        self::assertSame(['titulaire' => 'Baptiste Sandoz', 'iban' => self::IBAN, 'recent' => true], $this->appel('GET', '/c/' . $g['code'] . '/rib')->donnees);
         self::assertSame('FR76 •••• •••• •••• •••• •••0 189', $this->appel('GET', '/cagnottes/' . $g['id'], [], $jeton)->donnees['rib']['ibanMasque']);
         self::assertSame('Baptiste Sandoz', $this->appel('GET', '/cagnottes', [], $jeton)->donnees[0]['rib']['titulaire']);
     }
@@ -53,10 +53,10 @@ final class RibTest extends ApiTestCase
     {
         [, $g] = $this->cagnotteAvecRib();
         $autre = $this->inscrire('autre@example.com', 'Autre');
-        self::assertSame(404, $this->appel('PUT', '/cagnottes/' . $g['id'] . '/rib', ['titulaire' => 'X', 'iban' => self::IBAN], $autre)->statut);
+        self::assertSame(404, $this->appel('PUT', '/cagnottes/' . $g['id'] . '/rib', ['titulaire' => 'X', 'iban' => self::IBAN, 'motDePasse' => 'un-bon-mot-de-passe'], $autre)->statut);
         self::assertSame(404, $this->appel('DELETE', '/cagnottes/' . $g['id'] . '/rib', [], $autre)->statut);
         $mienne = $this->appel('POST', '/cagnottes', ['titre' => 'X', 'beneficiaire' => 'Y', 'objectif' => 100], $autre)->donnees;
-        $r = $this->appel('PUT', '/cagnottes/' . $mienne['id'] . '/rib', ['titulaire' => '', 'iban' => 'FR76 1234'], $autre);
+        $r = $this->appel('PUT', '/cagnottes/' . $mienne['id'] . '/rib', ['titulaire' => '', 'iban' => 'FR76 1234', 'motDePasse' => 'un-bon-mot-de-passe'], $autre);
         self::assertSame(['titulaire', 'iban'], array_keys($r->donnees['champs']));
     }
 
@@ -84,7 +84,7 @@ final class RibTest extends ApiTestCase
         self::assertSame(204, $this->appel('DELETE', '/cagnottes/' . $g['id'] . '/rib', [], $jeton)->statut);
         self::assertNull($this->appel('GET', '/c/' . $g['code'])->donnees['rib']);
 
-        $this->appel('PUT', '/cagnottes/' . $g['id'] . '/rib', ['titulaire' => 'B', 'iban' => self::IBAN], $jeton);
+        $this->appel('PUT', '/cagnottes/' . $g['id'] . '/rib', ['titulaire' => 'B', 'iban' => self::IBAN, 'motDePasse' => 'un-bon-mot-de-passe'], $jeton);
         $this->horloge->instant = '2027-01-15 04:00:00'; // 59 jours
         $courrier = new class implements \Cadeaux\Courrier {
             public function envoyer(string $destinataire, string $sujet, string $texte): bool

@@ -108,12 +108,16 @@ final class IdentiteTest extends ApiTestCase
         self::assertSame(['email'], array_keys($this->appel('POST', '/moi/email', ['email' => 'prise@example.com', 'motDePasse' => 'un-bon-mot-de-passe'], $jeton)->donnees['champs']));
 
         self::assertSame(200, $this->appel('POST', '/moi/email', ['email' => 'Nouvelle@example.com', 'motDePasse' => 'un-bon-mot-de-passe'], $jeton)->statut);
-        self::assertSame(['nouvelle@example.com', 'baptiste@example.com'], array_column($this->courriels, 'a'), 'lien à la nouvelle, avertissement à l’ancienne');
-        self::assertSame('baptiste@example.com', $this->appel('GET', '/moi', [], $jeton)->donnees['email'], 'rien ne change avant le lien');
+        self::assertSame(['nouvelle@example.com', 'baptiste@example.com'], array_column($this->courriels, 'a'), 'lien à la nouvelle, « Ce n’est pas moi » à l’ancienne');
+        self::assertStringContainsString('https://cadeaux.test/securite/', $this->courriels[1]['texte']);
 
-        $lien = $this->courriels[0]['texte'];
-        preg_match('#/confirmer/([a-f0-9]{64})#', $lien, $m);
-        self::assertSame(['type' => 'email', 'email' => 'nouvelle@example.com'], $this->appel('POST', '/email/confirmer', ['jeton' => $m[1]])->donnees);
+        preg_match('#/confirmer/([a-f0-9]{64})#', $this->courriels[0]['texte'], $m);
+        $r = $this->appel('POST', '/email/confirmer', ['jeton' => $m[1]])->donnees;
+        self::assertSame(['email', 'nouvelle@example.com', '2026-11-19 10:00:00'], [$r['type'], $r['email'], $r['le']]);
+        self::assertSame('baptiste@example.com', $this->appel('GET', '/moi', [], $jeton)->donnees['email'], 'rien ne change avant 48 h');
+
+        $this->horloge->instant = '2026-11-19 10:01:00';
+        self::assertSame('nouvelle@example.com', $this->appel('GET', '/moi', [], $jeton)->donnees['email']);
         self::assertSame(200, $this->appel('POST', '/connexion', ['email' => 'nouvelle@example.com', 'motDePasse' => 'un-bon-mot-de-passe'])->statut);
     }
 }

@@ -69,6 +69,30 @@ describe('mot de passe et adresse', () => {
     expect(await screen.findByText('Merci, votre adresse baptiste@example.com est confirmée.')).toBeInTheDocument();
   });
 
+  it('« Ce n’est pas moi » : rien ne se passe sans clic, puis le compte est bloqué', async () => {
+    preparer(`/securite/${'d'.repeat(64)}`);
+    const { appels } = installerFausseApi(etat);
+    ouvrir();
+    const u = userEvent.setup();
+    await u.click(await screen.findByRole('button', { name: 'Bloquer mon compte' }));
+    expect(appels.filter((a) => a.chemin === '/securite/bloquer')).toHaveLength(1);
+    expect(await screen.findByText(/Votre compte est bloqué/)).toBeInTheDocument();
+    expect(localStorage.getItem('cadeaux.jeton')).toBeNull();
+  });
+
+  it('la connexion envoie l’identifiant de l’appareil', async () => {
+    preparer('/', false);
+    const { appels } = installerFausseApi(etat);
+    ouvrir();
+    const u = userEvent.setup();
+    await u.click(screen.getByRole('tab', { name: 'Se connecter' }));
+    await u.type(screen.getByLabelText('Adresse e-mail'), 'baptiste@example.com');
+    await u.type(screen.getByLabelText('Mot de passe'), 'motdepasse123');
+    await u.click(screen.getByRole('button', { name: 'Me connecter' }));
+    await screen.findByRole('heading', { name: 'Bonjour Baptiste' });
+    expect(appels[0].entetes['X-Appareil']).toBe(localStorage.getItem('cadeaux.appareil'));
+  });
+
   it('les rappels ne sont pas cochés d’office à l’inscription', async () => {
     preparer('/', false);
     const { appels } = installerFausseApi(etat);
@@ -202,12 +226,13 @@ describe('liens partagés, sans compte', () => {
   });
 
   it('cagnotte : le RIB de l’organisateur s’affiche seulement sur demande', async () => {
-    etat.cagnottes = [{ id: 3, code: 'abcdefabcdefabcd', titre: 'Montre', beneficiaire: 'Julie', objectif: 15000, mode: 'libre', nombreParts: null, dateLimite: null, lien: null, message: null, close: false, creeLe: '', rib: { titulaire: 'Baptiste Sandoz' } }];
+    etat.cagnottes = [{ id: 3, code: 'abcdefabcdefabcd', titre: 'Montre', beneficiaire: 'Julie', objectif: 15000, mode: 'libre', nombreParts: null, dateLimite: null, lien: null, message: null, close: false, creeLe: '', rib: { titulaire: 'Baptiste Sandoz', recent: true } }];
     preparer('/c/abcdefabcdefabcd', false);
     const { appels } = installerFausseApi(etat);
     ouvrir();
     const u = userEvent.setup();
     expect(await screen.findByRole('heading', { name: 'Payer par virement' })).toBeInTheDocument();
+    expect(screen.getByText(/Ce RIB a été ajouté ou modifié il y a moins de 48 heures/)).toBeInTheDocument();
     expect(screen.queryByText(/FR76/)).not.toBeInTheDocument();
     expect(appels.some((a) => a.chemin.endsWith('/rib'))).toBe(false);
     await u.click(screen.getByRole('button', { name: 'Afficher le RIB' }));

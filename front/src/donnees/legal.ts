@@ -47,7 +47,8 @@ export const CONFIDENTIALITE: PageLegale = {
       paragraphes: [
         'Votre adresse e-mail, votre prénom et votre mot de passe (enregistré sous une forme illisible, même pour nous) servent à vous connecter.',
         'Votre connexion reste active sur un appareil tant que vous vous en servez ; après 90 jours sans visite, il faut vous reconnecter.',
-        'Un e-mail vous est envoyé pour confirmer votre adresse, et quand vous demandez un nouveau mot de passe ou un changement d’adresse.',
+        'Un e-mail vous est envoyé pour confirmer votre adresse, quand vous demandez un nouveau mot de passe ou un changement d’adresse, quand votre mot de passe change, quand un RIB est ajouté à une cagnotte et quand votre compte est ouvert depuis un nouvel appareil. Ces e-mails contiennent un lien « Ce n’est pas moi » pour bloquer le compte.',
+        'Pour reconnaître vos appareils, chaque navigateur reçoit un identifiant au hasard ; seule son empreinte est gardée, avec la date de la dernière connexion, jusqu’à la suppression du compte ou son blocage.',
         'Les rappels par e-mail ne partent que si vous les avez choisis (case à l’inscription, ou « Mon compte ») et que votre adresse est confirmée : au plus un e-mail par jour, 7 jours avant l’anniversaire d’un proche et 2 jours avant la date limite d’une cagnotte incomplète. Vous pouvez les couper à tout moment.',
         'Si vous n’utilisez plus le site pendant près de 3 ans, vous recevez un e-mail ; sans nouvelle visite dans les 30 jours, votre compte et tout ce qu’il contient sont supprimés.',
       ],

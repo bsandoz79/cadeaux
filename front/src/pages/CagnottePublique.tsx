@@ -95,7 +95,7 @@ export function CagnottePublique({ code }: { code: string }) {
       </section>
 
       {cagnotte.rib && !cagnotte.close && (
-        <RibParticipant code={code} titulaire={cagnotte.rib.titulaire} organisateur={cagnotte.organisateur} beneficiaire={cagnotte.beneficiaire} />
+        <RibParticipant code={code} titulaire={cagnotte.rib.titulaire} organisateur={cagnotte.organisateur} beneficiaire={cagnotte.beneficiaire} recent={cagnotte.rib.recent} />
       )}
 
       {cagnotte.close ? (

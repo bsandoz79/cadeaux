@@ -16,6 +16,8 @@ require __DIR__ . '/../vendor/autoload.php';
 use Cadeaux\CourrierPhp;
 use Cadeaux\Horloge;
 use Cadeaux\Menage;
+use Cadeaux\Comptes;
+use Cadeaux\Identite;
 use Cadeaux\Rappels;
 
 /** @var array{dsn: string, utilisateur?: string, motDePasse?: string, expediteur?: string} $config */
@@ -25,4 +27,5 @@ $pdo = new PDO($config['dsn'], $config['utilisateur'] ?? null, $config['motDePas
 $courrier = new CourrierPhp($config['expediteur'] ?? 'Cadeaux <cadeaux@bsandoz.fr>');
 $resultat = (new Menage($pdo, new Horloge(), $courrier))->lancer();
 $resultat['rappels'] = (new Rappels($pdo, new Horloge(), $courrier))->envoyer();
+$resultat['adresses'] = (new Identite($pdo, new Horloge(), $courrier, new Comptes($pdo, new Horloge()), $config['site'] ?? 'https://cadeaux.bsandoz.fr'))->appliquerChangementsEchus();
 echo date('c') . ' ' . json_encode($resultat) . PHP_EOL;

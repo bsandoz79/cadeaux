@@ -12,7 +12,7 @@ use Cadeaux\Http\Routeur;
 /**
  * Les routes de l'API (toutes sous /api) :
  *   POST   /comptes, /connexion, /deconnexion · GET /moi · DELETE /moi · GET /moi/export (toutes les données du compte)
- *   GET|POST /personnes · PATCH|DELETE /personnes/{id}       (idem /occasions, /cadeaux, /cagnottes)
+ *   GET|POST /personnes · PATCH|DELETE /personnes/{id}       (idem /occasions, /cadeaux, /budgets, /cagnottes)
  *   GET    /cagnottes/{id}  (avec les participations)
  *   POST   /cagnottes/{id}/participations · PATCH|DELETE /cagnottes/{id}/participations/{pid}   (organisateur)
  *   GET    /c/{code} · POST /c/{code}/participations · PATCH|DELETE /c/{code}/participations/{pid}  (lien partagé)
@@ -175,6 +175,7 @@ final class Application
             'proches' => $c['personnes']->lister($compteId),
             'occasions' => $c['occasions']->lister($compteId),
             'cadeaux' => $c['cadeaux']->lister($compteId),
+            'budgets' => $c['budgets']->lister($compteId),
             'cagnottes' => array_map(
                 fn (array $g): array => $g + ['participations' => $this->cagnottes->participations($g['id'])],
                 $c['cagnottes']->lister($compteId),
@@ -228,6 +229,11 @@ final class Application
                 'note' => ['colonne' => 'note', 'type' => 'texte', 'max' => 500],
                 'creeLe' => ['colonne' => 'cree_le', 'type' => 'lecture'],
             ], 'id DESC'),
+            'budgets' => new Collection($pdo, 'budgets', [
+                'occasionId' => ['colonne' => 'occasion_id', 'type' => 'ref', 'table' => 'occasions', 'requis' => true],
+                'personneId' => ['colonne' => 'personne_id', 'type' => 'ref', 'table' => 'personnes', 'requis' => true],
+                'montant' => ['colonne' => 'montant', 'type' => 'centimes', 'requis' => true],
+            ]),
             'cagnottes' => new Collection($pdo, 'cagnottes', [
                 'code' => ['colonne' => 'code', 'type' => 'lecture'],
                 'titre' => ['colonne' => 'titre', 'type' => 'texte', 'requis' => true, 'max' => 200],

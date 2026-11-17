@@ -25,6 +25,9 @@ export interface Cadeau {
   creeLe: string;
 }
 
+/** Budget prévu pour une personne à une occasion (ex. Papa, 50 € à Noël). */
+export interface Budget { id: number; occasionId: number; personneId: number; montant: number }
+
 export type ModeCagnotte = 'egal' | 'libre';
 
 export interface Participation { id: number; nom: string; montant: number; paye: boolean; organisateur: boolean }

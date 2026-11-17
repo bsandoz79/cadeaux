@@ -146,17 +146,40 @@ final class Comptes
     /** @return array<string, mixed> */
     public function compte(int $id): array
     {
-        $requete = $this->pdo->prepare('SELECT id, email, nom FROM comptes WHERE id = ?');
+        $requete = $this->pdo->prepare('SELECT id, email, nom, rappels FROM comptes WHERE id = ?');
         $requete->execute([$id]);
         $ligne = $requete->fetch(\PDO::FETCH_ASSOC) ?: throw ErreurHttp::introuvable();
 
-        return ['id' => (int) $ligne['id'], 'email' => $ligne['email'], 'nom' => $ligne['nom']];
+        return ['id' => (int) $ligne['id'], 'email' => $ligne['email'], 'nom' => $ligne['nom'], 'rappels' => (bool) $ligne['rappels']];
+    }
+
+    /**
+     * Réglages du compte : prénom et rappels par e-mail.
+     *
+     * @param array<string, mixed> $donnees
+     *
+     * @return array<string, mixed>
+     */
+    public function regler(int $id, array $donnees): array
+    {
+        if (array_key_exists('nom', $donnees)) {
+            $nom = trim((string) $donnees['nom']);
+            if ($nom === '' || mb_strlen($nom) > 80) {
+                throw ErreurHttp::invalide(['nom' => 'Indiquez votre prénom (80 caractères au plus).']);
+            }
+            $this->pdo->prepare('UPDATE comptes SET nom = ? WHERE id = ?')->execute([$nom, $id]);
+        }
+        if (array_key_exists('rappels', $donnees)) {
+            $this->pdo->prepare('UPDATE comptes SET rappels = ? WHERE id = ?')->execute([$donnees['rappels'] ? 1 : 0, $id]);
+        }
+
+        return $this->compte($id);
     }
 
     /** Supprime le compte et tout ce qui lui appartient. */
     public function supprimer(int $id): void
     {
-        foreach (['reservations' => 'envie_id IN (SELECT id FROM envies WHERE compte_id = ?)', 'envies' => 'compte_id = ?', 'listes' => 'compte_id = ?', 'participations' => 'cagnotte_id IN (SELECT id FROM cagnottes WHERE compte_id = ?)', 'cagnottes' => 'compte_id = ?', 'cadeaux' => 'compte_id = ?', 'budgets' => 'compte_id = ?', 'occasions' => 'compte_id = ?', 'personnes' => 'compte_id = ?', 'jetons' => 'compte_id = ?', 'comptes' => 'id = ?'] as $table => $condition) {
+        foreach (['reservations' => 'envie_id IN (SELECT id FROM envies WHERE compte_id = ?)', 'envies' => 'compte_id = ?', 'listes' => 'compte_id = ?', 'rappels_envoyes' => 'compte_id = ?', 'participations' => 'cagnotte_id IN (SELECT id FROM cagnottes WHERE compte_id = ?)', 'cagnottes' => 'compte_id = ?', 'cadeaux' => 'compte_id = ?', 'budgets' => 'compte_id = ?', 'occasions' => 'compte_id = ?', 'personnes' => 'compte_id = ?', 'jetons' => 'compte_id = ?', 'comptes' => 'id = ?'] as $table => $condition) {
             $this->pdo->prepare("DELETE FROM $table WHERE $condition")->execute([$id]);
         }
     }

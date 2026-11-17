@@ -10,6 +10,11 @@ import styles from './pages.module.css';
 export function MonCompte() {
   const d = useDonnees();
   const [export_, setExport] = useState<'pret' | 'en-cours' | 'erreur'>('pret');
+  const [reglage, setReglage] = useState(false);
+  const basculerRappels = async (rappels: boolean) => {
+    setReglage(true);
+    try { await api('PATCH', '/moi', { rappels }); await d.recharger(); } finally { setReglage(false); }
+  };
   const deconnecter = async () => { await d.deconnecter(); aller('/'); };
   const telecharger = async () => {
     setExport('en-cours');
@@ -36,6 +41,15 @@ export function MonCompte() {
       <EnTete titre="Mon compte" sousTitre={`${d.compte?.nom} · ${d.compte?.email}`}>
         <button type="button" className="btn btn--contour" onClick={deconnecter}>Me déconnecter</button>
       </EnTete>
+
+      <section className="carte formulaire" aria-labelledby="titre-rappels">
+        <h2 id="titre-rappels">Rappels par e-mail</h2>
+        <label className={styles.coche}>
+          <input type="checkbox" checked={d.compte?.rappels ?? false} disabled={reglage} onChange={(e) => basculerRappels(e.target.checked)} />
+          M’envoyer un e-mail 7 jours avant l’anniversaire d’un proche, et 2 jours avant la date limite d’une cagnotte qui n’est pas complète.
+        </label>
+        <p className={styles.discret}>Au plus un e-mail par jour, à {d.compte?.email}.</p>
+      </section>
 
       <section className="carte formulaire" aria-labelledby="titre-extension">
         <h2 id="titre-extension">Extension Chrome</h2>

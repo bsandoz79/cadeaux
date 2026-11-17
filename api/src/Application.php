@@ -11,7 +11,7 @@ use Cadeaux\Http\Routeur;
 
 /**
  * Les routes de l'API (toutes sous /api) :
- *   POST   /comptes, /connexion, /deconnexion · GET /moi · DELETE /moi · GET /moi/export (toutes les données du compte)
+ *   POST   /comptes, /connexion, /deconnexion · GET|PATCH|DELETE /moi (PATCH : prénom, rappels) · GET /moi/export (toutes les données du compte)
  *   GET|POST /personnes · PATCH|DELETE /personnes/{id}       (idem /occasions, /cadeaux, /budgets, /cagnottes)
  *   GET    /cagnottes/{id}  (avec les participations)
  *   POST   /cagnottes/{id}/participations · PATCH|DELETE /cagnottes/{id}/participations/{pid}   (organisateur)
@@ -86,6 +86,7 @@ final class Application
             return Reponse::vide();
         });
         $r->ajouter('GET', '/moi', fn (Requete $q) => Reponse::ok($this->comptes->compte($this->compte($q))));
+        $r->ajouter('PATCH', '/moi', fn (Requete $q) => Reponse::ok($this->comptes->regler($this->compte($q), $q->corps)));
         $r->ajouter('GET', '/moi/export', fn (Requete $q) => Reponse::ok($this->export($this->compte($q))));
         $r->ajouter('DELETE', '/moi', function (Requete $q) {
             $this->comptes->supprimer($this->compte($q));
@@ -194,13 +195,13 @@ final class Application
     private function export(int $compteId): array
     {
         $c = $this->collections();
-        $compte = $this->pdo->prepare('SELECT email, nom, cree_le, derniere_activite FROM comptes WHERE id = ?');
+        $compte = $this->pdo->prepare('SELECT email, nom, cree_le, derniere_activite, rappels FROM comptes WHERE id = ?');
         $compte->execute([$compteId]);
         $ligne = $compte->fetch(\PDO::FETCH_ASSOC) ?: throw ErreurHttp::introuvable();
 
         return [
             'exporteLe' => $this->horloge->texte(),
-            'compte' => ['email' => $ligne['email'], 'nom' => $ligne['nom'], 'creeLe' => $ligne['cree_le'], 'derniereActivite' => $ligne['derniere_activite']],
+            'compte' => ['email' => $ligne['email'], 'nom' => $ligne['nom'], 'creeLe' => $ligne['cree_le'], 'derniereActivite' => $ligne['derniere_activite'], 'rappels' => (bool) $ligne['rappels']],
             'proches' => $c['personnes']->lister($compteId),
             'occasions' => $c['occasions']->lister($compteId),
             'cadeaux' => $c['cadeaux']->lister($compteId),

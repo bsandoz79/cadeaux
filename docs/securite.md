@@ -7,6 +7,7 @@
 | Mots de passe | `password_hash` (algorithme par défaut de PHP), 8 caractères au moins, réhachage automatique | `api/src/Comptes.php` |
 | Connexion | Jeton aléatoire de 256 bits ; seule son empreinte SHA-256 est stockée ; envoyé dans l'en-tête `Authorization` (pas de cookie, donc pas de CSRF) | `Comptes.php`, `Http/Requete.php` |
 | Force brute | 5 essais ratés en 15 minutes par adresse ou par IP, puis refus (429) ; les essais sont effacés après 15 minutes | `Comptes.php`, `Limiteur.php` |
+| Liens par e-mail | Confirmation d'adresse (7 jours), mot de passe oublié (1 heure), changement d'adresse (24 heures, lien envoyé à la nouvelle, ancienne prévenue) ; 256 bits, empreinte seule gardée, usage unique, un seul lien valable par type. « Mot de passe oublié » répond pareil que le compte existe ou non, limité à 5 demandes par IP et 3 par adresse par quart d'heure. Nouveau mot de passe = toutes les connexions fermées ; changement depuis « Mon compte » = mot de passe actuel demandé, autres appareils déconnectés | `Identite.php` |
 | Durée des connexions | Une connexion inutilisée pendant 90 jours expire et son jeton est effacé ; chaque visite la prolonge | `Comptes.php` |
 | Cloisonnement | Chaque lecture, modification et suppression filtre sur le compte connecté ; une référence vers l'élément d'un autre compte est refusée | `api/src/Collection.php` |
 | Entrées | Validation par champ (type, longueur, date réelle, montant, liste de choix, URL `http(s)` seulement) ; requêtes préparées | `Collection.php`, `Cagnottes.php` |

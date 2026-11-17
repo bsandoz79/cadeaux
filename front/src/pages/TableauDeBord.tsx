@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { api } from '../api/client';
 import { libelleType } from '../api/types';
 import { euros } from '../calculs/argent';
 import { aujourdhui, bilanAnnee, dateLisible, delai, prochainsAnniversaires } from '../calculs/bilan';
@@ -34,6 +35,7 @@ export function TableauDeBord() {
 
   return (
     <div className={styles.pile}>
+      {d.compte && !d.compte.emailConfirme && <BandeauConfirmation email={d.compte.email} />}
       <header>
         <h1>Bonjour {d.compte?.nom}</h1>
         <p className={styles.chapo}>Vos cadeaux de {annee}, en un coup d’œil.</p>
@@ -124,5 +126,20 @@ export function TableauDeBord() {
         )}
       </section>
     </div>
+  );
+}
+
+/** Adresse pas encore confirmée : rappel discret, avec « Renvoyer l'e-mail ». */
+function BandeauConfirmation({ email }: { email: string }) {
+  const [etat, setEtat] = useState<'pret' | 'envoye' | string>('pret');
+  const renvoyer = async () => {
+    try { await api('POST', '/email/renvoyer'); setEtat('envoye'); } catch (e) { setEtat(e instanceof Error ? e.message : 'Une erreur est survenue.'); }
+  };
+  return (
+    <p className="carte" role="status" style={{ background: 'var(--c-or-doux)', borderColor: 'transparent' }}>
+      Confirmez votre adresse avec le lien envoyé à <strong>{email}</strong> (pensez aux indésirables). Sans elle, pas de rappels par e-mail.{' '}
+      {etat === 'pret' ? <button type="button" className="btn btn--lien btn--petit" onClick={renvoyer}>Renvoyer l’e-mail</button>
+        : etat === 'envoye' ? <strong>E-mail renvoyé.</strong> : <span className="erreur">{etat}</span>}
+    </p>
   );
 }

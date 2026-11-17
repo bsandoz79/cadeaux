@@ -16,9 +16,14 @@ const POINTS = [
 /** Présentation et connexion (visiteur non connecté). */
 export function Accueil() {
   const { connecter } = useDonnees();
-  const [mode, setMode] = useState<'inscription' | 'connexion'>('inscription');
+  const [mode, setMode] = useState<'inscription' | 'connexion' | 'oubli'>('inscription');
+  const [envoye, setEnvoye] = useState<string | null>(null);
+  const oubli = useEnvoi(async (f) => {
+    const r = await api<{ message: string }>('POST', '/motdepasse/oubli', { email: f.get('email') });
+    setEnvoye(r.message);
+  });
   const { envoyer, occupe, erreur, champs } = useEnvoi(async (f) => {
-    const corps = { email: f.get('email'), motDePasse: f.get('motDePasse'), ...(mode === 'inscription' ? { nom: f.get('nom') } : {}) };
+    const corps = { email: f.get('email'), motDePasse: f.get('motDePasse'), ...(mode === 'inscription' ? { nom: f.get('nom'), rappels: f.get('rappels') === 'on' } : {}) };
     const r = await api<{ jeton: string; compte: Compte }>('POST', mode === 'inscription' ? '/comptes' : '/connexion', corps);
     connecter(r.jeton, r.compte);
     // Venu d'une liste d'envies ou d'une cagnotte : on y retourne.
@@ -45,9 +50,21 @@ export function Accueil() {
       <section className={`carte ${styles.connexion}`} aria-labelledby="titre-connexion">
         <div className={styles.onglets} role="tablist" aria-label="Compte">
           <button type="button" role="tab" aria-selected={mode === 'inscription'} onClick={() => setMode('inscription')}>Créer un compte</button>
-          <button type="button" role="tab" aria-selected={mode === 'connexion'} onClick={() => setMode('connexion')}>Se connecter</button>
+          <button type="button" role="tab" aria-selected={mode !== 'inscription'} onClick={() => setMode('connexion')}>Se connecter</button>
         </div>
         <h2 id="titre-connexion" className="sr-only">{mode === 'inscription' ? 'Créer un compte' : 'Se connecter'}</h2>
+        {mode === 'oubli' ? (
+          <form className="formulaire" onSubmit={oubli.envoyer} noValidate>
+            <p>Indiquez votre adresse : vous recevrez un lien pour choisir un nouveau mot de passe.</p>
+            <Champ libelle="Adresse e-mail" nom="email" type="email" autoComplete="email" required />
+            {envoye && <p role="status" style={{ color: 'var(--c-vert)', fontWeight: 600 }}>{envoye} Pensez à regarder dans les indésirables.</p>}
+            {oubli.erreur && <p className="erreur" role="alert">{oubli.erreur}</p>}
+            <div className="actions">
+              <button className="btn" disabled={oubli.occupe}>Recevoir le lien</button>
+              <button type="button" className="btn btn--lien" onClick={() => { setMode('connexion'); setEnvoye(null); }}>Retour</button>
+            </div>
+          </form>
+        ) : (
         <form className="formulaire" onSubmit={envoyer} noValidate>
           {mode === 'inscription' && <Champ libelle="Prénom" nom="nom" autoComplete="given-name" required erreur={champs.nom} />}
           <Champ libelle="Adresse e-mail" nom="email" type="email" autoComplete="email" required erreur={champs.email} />
@@ -60,9 +77,16 @@ export function Accueil() {
             erreur={champs.motDePasse}
             aide={mode === 'inscription' ? 'Au moins 8 caractères.' : undefined}
           />
+          {mode === 'inscription' && (
+            <label className={styles.coche}>
+              <input type="checkbox" name="rappels" /> M’envoyer un rappel par e-mail avant les anniversaires de mes proches et la fin de mes cagnottes
+            </label>
+          )}
           {erreur && !Object.keys(champs).length && <p className="erreur" role="alert">{erreur}</p>}
           <button className="btn" disabled={occupe}>{mode === 'inscription' ? 'Créer mon compte' : 'Me connecter'}</button>
+          {mode === 'connexion' && <button type="button" className="btn btn--lien" onClick={() => setMode('oubli')}>Mot de passe oublié ?</button>}
         </form>
+        )}
         <p className={styles.note}>
           Vos listes ne sont visibles que par vous ; une cagnotte n’est visible que par ceux qui ont son lien.
           {mode === 'inscription' && <> En créant un compte, vous acceptez la <Lien href="/confidentialite">politique de confidentialité</Lien>.</>}

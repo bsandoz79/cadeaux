@@ -1,6 +1,6 @@
 /** Données échangées avec l'API. Montants en centimes, dates « AAAA-MM-JJ ». */
 
-export interface Compte { id: number; email: string; nom: string; rappels: boolean }
+export interface Compte { id: number; email: string; nom: string; rappels: boolean; emailConfirme: boolean }
 
 export interface Personne { id: number; nom: string; dateNaissance: string | null; note: string | null }
 

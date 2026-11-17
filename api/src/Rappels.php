@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace Cadeaux;
 
 /**
- * Rappels par e-mail, envoyés par la tâche quotidienne (bin/menage.php) aux comptes qui les acceptent :
+ * Rappels par e-mail, envoyés par la tâche quotidienne (bin/menage.php) aux comptes qui les acceptent et dont
+ * l'adresse est confirmée :
  * - anniversaire d'un proche dans 7 jours, avec le budget et ce qui est déjà prévu pour lui ;
  * - cagnotte dont la date limite tombe dans 2 jours et à laquelle il manque de l'argent.
  * Un seul e-mail par compte et par jour ; chaque rappel n'est envoyé qu'une fois (table rappels_envoyes).
@@ -31,7 +32,7 @@ final class Rappels
         $limite = $jour->modify(sprintf('+%d days', self::JOURS_AVANT_DATE_LIMITE))->format('Y-m-d');
 
         $envoyes = 0;
-        foreach ($this->pdo->query('SELECT id, email, nom FROM comptes WHERE rappels = 1')->fetchAll(\PDO::FETCH_ASSOC) as $compte) {
+        foreach ($this->pdo->query('SELECT id, email, nom FROM comptes WHERE rappels = 1 AND email_confirme = 1')->fetchAll(\PDO::FETCH_ASSOC) as $compte) {
             $id = (int) $compte['id'];
             $lignes = [];
             $cles = [];

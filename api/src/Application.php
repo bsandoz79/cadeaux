@@ -11,7 +11,8 @@ use Cadeaux\Http\Routeur;
 
 /**
  * Les routes de l'API (toutes sous /api) :
- *   POST   /comptes, /connexion, /deconnexion · GET|PATCH|DELETE /moi (PATCH : prénom, rappels) · GET /moi/export (toutes les données du compte)
+ *   POST   /comptes, /connexion, /deconnexion · GET|PATCH|DELETE /moi (PATCH : prénom, rappels)
+ *   POST   /email/confirmer, /email/renvoyer, /motdepasse/oubli, /motdepasse/nouveau, /moi/motdepasse, /moi/email · GET /moi/export (toutes les données du compte)
  *   GET|POST /personnes · PATCH|DELETE /personnes/{id}       (idem /occasions, /cadeaux, /budgets, /cagnottes)
  *   GET    /cagnottes/{id}  (avec les participations)
  *   POST   /cagnottes/{id}/participations · PATCH|DELETE /cagnottes/{id}/participations/{pid}   (organisateur)
@@ -31,13 +32,20 @@ final class Application
     private readonly Cagnottes $cagnottes;
     private readonly Envies $envies;
     private readonly Ribs $ribs;
+    private readonly Identite $identite;
     /** @var array<string, Collection>|null */
     private ?array $collections = null;
 
-    public function __construct(private readonly \PDO $pdo, private readonly Horloge $horloge = new Horloge(), ?Coffre $coffre = null)
-    {
+    public function __construct(
+        private readonly \PDO $pdo,
+        private readonly Horloge $horloge = new Horloge(),
+        ?Coffre $coffre = null,
+        ?Courrier $courrier = null,
+        string $site = 'https://cadeaux.bsandoz.fr',
+    ) {
         $this->ribs = new Ribs($pdo, $horloge, $coffre ?? new Coffre(dirname(__DIR__) . '/var/cle-coffre'));
         $this->comptes = new Comptes($pdo, $horloge);
+        $this->identite = new Identite($pdo, $horloge, $courrier ?? new CourrierPhp('Cadeaux <cadeaux@bsandoz.fr>'), $this->comptes, $site);
         $this->cagnottes = new Cagnottes($pdo, $horloge);
         $this->envies = new Envies($pdo, $horloge);
         $this->routeur = new Routeur();
@@ -47,7 +55,10 @@ final class Application
     /** Connexion à la base décrite dans config.local.php (non versionné), tables créées si besoin. */
     public static function depuisConfig(string $fichier): self
     {
-        return new self(self::base($fichier));
+        /** @var array{expediteur?: string, site?: string} $config */
+        $config = require $fichier;
+
+        return new self(self::base($fichier), new Horloge(), null, new CourrierPhp($config['expediteur'] ?? 'Cadeaux <cadeaux@bsandoz.fr>'), $config['site'] ?? 'https://cadeaux.bsandoz.fr');
     }
 
     /** Connexion seule (page d'aperçu des cagnottes, tâche quotidienne). */
@@ -87,7 +98,36 @@ final class Application
         $r = $this->routeur;
 
         // Comptes
-        $r->ajouter('POST', '/comptes', fn (Requete $q) => Reponse::cree($this->comptes->inscrire($q->corps)));
+        $r->ajouter('POST', '/comptes', function (Requete $q) {
+            $session = $this->comptes->inscrire($q->corps);
+            $this->identite->envoyerConfirmation($session['compte']['id']);
+
+            return Reponse::cree($session);
+        });
+        $r->ajouter('POST', '/email/confirmer', fn (Requete $q) => Reponse::ok($this->identite->confirmer((string) ($q->corps['jeton'] ?? ''))));
+        $r->ajouter('POST', '/email/renvoyer', function (Requete $q) {
+            $this->identite->envoyerConfirmation($this->compte($q));
+
+            return Reponse::vide();
+        });
+        $r->ajouter('POST', '/motdepasse/oubli', function (Requete $q) {
+            $this->identite->demanderReinitialisation((string) ($q->corps['email'] ?? ''), $q->ip);
+
+            return Reponse::ok(['message' => 'Si un compte existe avec cette adresse, un e-mail vient de partir.']);
+        });
+        $r->ajouter('POST', '/motdepasse/nouveau', fn (Requete $q) => Reponse::ok(
+            $this->identite->reinitialiser((string) ($q->corps['jeton'] ?? ''), (string) ($q->corps['motDePasse'] ?? '')),
+        ));
+        $r->ajouter('POST', '/moi/motdepasse', function (Requete $q) {
+            $this->identite->changerMotDePasse($this->compte($q), (string) ($q->corps['actuel'] ?? ''), (string) ($q->corps['nouveau'] ?? ''), $q->jeton());
+
+            return Reponse::vide();
+        });
+        $r->ajouter('POST', '/moi/email', function (Requete $q) {
+            $this->identite->demanderChangementEmail($this->compte($q), (string) ($q->corps['email'] ?? ''), (string) ($q->corps['motDePasse'] ?? ''));
+
+            return Reponse::ok(['message' => 'Un lien vient de partir à la nouvelle adresse.']);
+        });
         $r->ajouter('POST', '/connexion', fn (Requete $q) => Reponse::ok($this->comptes->connecter($q->corps, $q->ip)));
         $r->ajouter('POST', '/deconnexion', function (Requete $q) {
             $this->compte($q);

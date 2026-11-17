@@ -9,8 +9,9 @@ Hébergement : o2switch (France).
 | Donnée | Personnes concernées | Finalité | Base légale | Conservation | Qui y accède |
 |---|---|---|---|---|---|
 | E-mail, prénom, mot de passe haché | Utilisateur | Compte et connexion | Contrat (conditions d'utilisation) | Jusqu'à la suppression du compte, au plus 3 ans sans activité | L'utilisateur |
+| Liens envoyés par e-mail (confirmation d'adresse, nouveau mot de passe, changement d'adresse) : empreinte, nouvelle adresse demandée ; adresse confirmée ou non | Utilisateur | Vérifier l'adresse, retrouver l'accès au compte | Contrat | Jusqu'à leur utilisation, au plus 7 jours (1 heure pour le mot de passe, 24 heures pour l'adresse) | Personne (empreinte seulement) |
 | Empreinte des jetons de connexion, date de dernière utilisation | Utilisateur | Rester connecté | Contrat | 90 jours sans utilisation, ou jusqu'à la déconnexion | Personne (empreinte seulement) |
-| Réglage des rappels ; rappels déjà envoyés (clé, date) | Utilisateur | Rappels par e-mail (anniversaire à J-7, cagnotte incomplète à J-2) | Intérêt légitime, désactivable à tout moment dans « Mon compte » | Comme le compte | Personne |
+| Réglage des rappels ; rappels déjà envoyés (clé, date) | Utilisateur | Rappels par e-mail (anniversaire à J-7, cagnotte incomplète à J-2), seulement à une adresse confirmée | Consentement (case à cocher à l'inscription, non cochée ; modifiable dans « Mon compte ») | Comme le compte | Personne |
 | Date de dernière activité du compte | Utilisateur | Supprimer les comptes inactifs | Intérêt légitime (minimisation) | Comme le compte | Personne |
 | Adresse IP et adresse e-mail des essais de connexion ratés ; adresse IP des parts et réservations ajoutées par lien | Utilisateur, tiers | Sécurité (force brute, abus) | Intérêt légitime | 15 minutes | Personne |
 | Proches : prénom ou surnom, date de naissance, note | Tiers (famille, amis) | Organiser ses cadeaux | Intérêt légitime de l'utilisateur, usage privé | Jusqu'à la suppression du proche ou du compte | L'utilisateur seul |

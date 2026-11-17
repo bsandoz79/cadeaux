@@ -18,7 +18,8 @@ Hébergement : o2switch (France).
 | Participation : prénom saisi, montant | Participants (sans compte) | Cadeau commun | Consentement (saisie volontaire) | Jusqu'à son retrait ou la suppression de la cagnotte | L'organisateur, et quiconque a le lien |
 | Liste d'envies : envies (titre, prix, lien, photo, précision), lien de partage, petit mot | Utilisateur | Partager ce qui lui ferait plaisir | Contrat | Jusqu'à la suppression ou celle du compte ; le lien jusqu'à ce qu'il soit coupé | Quiconque a le lien |
 | Réservation d'une envie : prénom saisi | Proches (sans compte) | Éviter les doublons de cadeaux | Consentement (saisie volontaire) | Jusqu'à son annulation, ou la suppression de l'envie, de la liste ou du compte | Ceux qui ont le lien, **jamais le propriétaire** (ni à l'écran, ni dans son export) |
-| Produit lu par l'extension (nom, prix, photo, adresse) | Utilisateur | Noter une idée de cadeau | Action volontaire | Comme les cadeaux | L'utilisateur seul |
+| Produit lu par l'extension (nom, prix, photo, adresse) | Utilisateur | Noter une idée de cadeau ou une envie | Action volontaire | Comme les cadeaux | L'utilisateur seul |
+| Derniers produits regardés sur amazon.fr (nom, prix, photo, adresse) | Utilisateur | Les proposer après une commande (« C'est un cadeau ? ») | Consentement (option à activer, autorisation Chrome) | Dans le navigateur seulement : 10 produits, 7 jours au plus ; effacés à la désactivation. Jamais envoyés sans clic sur « Noter le cadeau » | L'utilisateur seul |
 
 ## Ce qui est en place
 - Pages « Politique de confidentialité » et « Mentions légales », visibles sans compte, liées depuis le pied de page, l'inscription, la page de cagnotte et l'extension.

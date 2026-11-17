@@ -24,3 +24,8 @@ a { color: var(--accent); }
 .ok { color: var(--vert); font-weight: 700; font-size: 1.1rem; margin: .5rem 0; }
 p { margin: 0; }
 [hidden] { display: none !important; }
+fieldset.pour { border: 0; padding: 0; margin: 0; display: grid; gap: .3rem; }
+fieldset.pour legend { font-weight: 600; font-size: .88rem; padding: 0; margin-bottom: .2rem; }
+label.radio { display: flex; gap: .45rem; align-items: center; font-weight: 400; cursor: pointer; }
+label.radio input { width: auto; }
+#reglages { margin-top: 1rem; padding-top: .8rem; border-top: 1px solid var(--bord); display: grid; gap: .4rem; }

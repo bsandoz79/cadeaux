@@ -27,6 +27,15 @@
 | `activeTab` + `scripting` | Lire le produit de l'onglet ouvert, **seulement** quand l'utilisateur clique sur l'icône. |
 | `storage` | Garder le jeton de connexion dans l'extension (jamais dans la page visitée). |
 | `https://cadeaux.bsandoz.fr/*` | Appeler l'API. |
+| `https://www.amazon.fr/*` (**facultative**) | Demandée seulement quand l'utilisateur active « Après mes achats sur Amazon, me demander… ». Retirée quand il la désactive (ou clique « Ne plus me demander »). Le script `amazon.js` n'est ajouté qu'après cet accord. |
+| Service de fond (`fond.js`) | Fait les appels à l'API pour l'encadré d'Amazon (une page ne peut pas l'appeler) ; n'accepte que les messages de l'extension elle-même et seulement 5 routes (`GET /personnes`, `GET /occasions`, `POST /cadeaux`, `PATCH /cadeaux/{id}`, `POST /cagnottes`). |
+| Ressources accessibles (`produit.js`, `amazon-logique.js`) | Chargées par le script d'Amazon ; ne contiennent ni donnée ni secret. Leur présence révèle à amazon.fr que l'extension est installée. |
+
+L'encadré d'Amazon vit dans un Shadow DOM fermé : la page ne peut pas le lire, et tout texte venant d'Amazon y est échappé avant affichage.
+
+## Dépendances
+- `composer audit` : aucune faille (17/11/2026).
+- `npm audit` : faille « haute » dans `picomatch` (ReDoS, GHSA-fc5q-39xc-vjpf), utilisé seulement par les outils de construction et de test (Vite, Vitest), jamais envoyé aux visiteurs. La correction proposée ferait revenir Vitest à une ancienne version : risque accepté, à revérifier à chaque mise à jour des outils.
 
 ## Points à traiter
 - Politique de sécurité du contenu (en-tête CSP) sur le site.

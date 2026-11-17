@@ -39,7 +39,7 @@ export function MonCompte() {
 
       <section className="carte formulaire" aria-labelledby="titre-extension">
         <h2 id="titre-extension">Extension Chrome</h2>
-        <p>Sur la page d’un produit (Amazon, Fnac, Decathlon…), un clic sur l’extension ajoute le produit à vos idées, avec son prix et sa photo.</p>
+        <p>Sur la page d’un produit (Amazon, Fnac, Decathlon…), un clic sur l’extension ajoute le produit à vos idées ou à votre liste d’envies, avec son prix et sa photo. En option, après une commande sur Amazon, elle vous demande si c’est un cadeau et pour qui, et propose d’en faire une cagnotte.</p>
         <ol style={{ listStyle: 'decimal', paddingLeft: '1.2rem', display: 'grid', gap: '.3rem' }}>
           <li><a href="/extension-cadeaux.zip" download>Téléchargez l’extension</a> et décompressez le fichier.</li>
           <li>Dans Chrome, ouvrez la page <code>chrome://extensions</code>, activez le « Mode développeur » (en haut à droite), puis cliquez sur « Charger l’extension non empaquetée » et choisissez le dossier décompressé.</li>

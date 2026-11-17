@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { api, jeton } from '../api/client';
 import { aujourdhui } from '../calculs/bilan';
 import { dejaInstallee, surIphone, useInstallation } from '../installation';
-import { EnTete } from '../components/commun';
+import { Champ, EnTete } from '../components/commun';
+import { useEnvoi } from '../components/formulaire';
 import { useDonnees } from '../donnees/contexte';
 import { aller } from '../navigation';
 import styles from './pages.module.css';
@@ -60,13 +61,17 @@ export function MonCompte() {
         </section>
       )}
 
+      <ReglagesCompte />
+
       <section className="carte formulaire" aria-labelledby="titre-rappels">
         <h2 id="titre-rappels">Rappels par e-mail</h2>
         <label className={styles.coche}>
           <input type="checkbox" checked={d.compte?.rappels ?? false} disabled={reglage} onChange={(e) => basculerRappels(e.target.checked)} />
           M’envoyer un e-mail 7 jours avant l’anniversaire d’un proche, et 2 jours avant la date limite d’une cagnotte qui n’est pas complète.
         </label>
-        <p className={styles.discret}>Au plus un e-mail par jour, à {d.compte?.email}.</p>
+        <p className={styles.discret}>
+          Au plus un e-mail par jour, à {d.compte?.email}.{d.compte && !d.compte.emailConfirme && ' Confirmez d’abord votre adresse (lien reçu par e-mail) : sinon, rien ne part.'}
+        </p>
       </section>
 
       <section className="carte formulaire" aria-labelledby="titre-extension">
@@ -93,5 +98,58 @@ export function MonCompte() {
         <div><button type="button" className="btn btn--contour btn--danger" onClick={supprimer}>Supprimer mon compte</button></div>
       </section>
     </div>
+  );
+}
+
+/** Prénom, mot de passe et adresse e-mail. */
+function ReglagesCompte() {
+  const d = useDonnees();
+  const [fait, setFait] = useState<string | null>(null);
+  const prenom = useEnvoi(async (f) => {
+    await api('PATCH', '/moi', { nom: String(f.get('nom') ?? '') });
+    await d.recharger();
+    setFait('Prénom enregistré.');
+  });
+  const motDePasse = useEnvoi(async (f, form) => {
+    await api('POST', '/moi/motdepasse', { actuel: f.get('actuel'), nouveau: f.get('nouveau') });
+    form.reset();
+    setFait('Mot de passe changé. Vos autres appareils ont été déconnectés.');
+  });
+  const adresse = useEnvoi(async (f, form) => {
+    const r = await api<{ message: string }>('POST', '/moi/email', { email: f.get('email'), motDePasse: f.get('motDePasse') });
+    form.reset();
+    setFait(`${r.message} Votre adresse changera quand vous l’aurez ouvert.`);
+  });
+  return (
+    <section className="carte formulaire" aria-labelledby="titre-reglages">
+      <h2 id="titre-reglages">Mes informations</h2>
+      {fait && <p role="status" style={{ color: 'var(--c-vert)', fontWeight: 600 }}>{fait}</p>}
+      <details>
+        <summary>Prénom</summary>
+        <form className="formulaire" onSubmit={prenom.envoyer} noValidate style={{ marginTop: '.8rem' }}>
+          <Champ libelle="Prénom" nom="nom" required defaultValue={d.compte?.nom} autoComplete="given-name" erreur={prenom.champs.nom} />
+          <div><button className="btn btn--petit" disabled={prenom.occupe}>Enregistrer</button></div>
+        </form>
+      </details>
+      <details>
+        <summary>Mot de passe</summary>
+        <form className="formulaire" onSubmit={motDePasse.envoyer} noValidate style={{ marginTop: '.8rem' }}>
+          <Champ libelle="Mot de passe actuel" nom="actuel" type="password" autoComplete="current-password" required erreur={motDePasse.champs.actuel} />
+          <Champ libelle="Nouveau mot de passe" nom="nouveau" type="password" autoComplete="new-password" required aide="Au moins 8 caractères." erreur={motDePasse.champs.nouveau} />
+          {motDePasse.erreur && !Object.keys(motDePasse.champs).length && <p className="erreur" role="alert">{motDePasse.erreur}</p>}
+          <div><button className="btn btn--petit" disabled={motDePasse.occupe}>Changer le mot de passe</button></div>
+        </form>
+      </details>
+      <details>
+        <summary>Adresse e-mail</summary>
+        <form className="formulaire" onSubmit={adresse.envoyer} noValidate style={{ marginTop: '.8rem' }}>
+          <Champ libelle="Nouvelle adresse" nom="email" type="email" autoComplete="email" required erreur={adresse.champs.email} />
+          <Champ libelle="Mot de passe" nom="motDePasse" type="password" autoComplete="current-password" required erreur={adresse.champs.actuel} />
+          {adresse.erreur && !Object.keys(adresse.champs).length && <p className="erreur" role="alert">{adresse.erreur}</p>}
+          <p className={styles.discret}>Un lien part à la nouvelle adresse ; votre adresse actuelle est prévenue.</p>
+          <div><button className="btn btn--petit" disabled={adresse.occupe}>Changer d’adresse</button></div>
+        </form>
+      </details>
+    </section>
   );
 }

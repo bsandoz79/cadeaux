@@ -57,11 +57,12 @@ final class Comptes
             throw ErreurHttp::invalide(['email' => 'Un compte existe déjà avec cette adresse.']);
         }
 
-        $this->pdo->prepare('INSERT INTO comptes (email, nom, mot_de_passe, cree_le) VALUES (?, ?, ?, ?)')
-            ->execute([$email, $nom, password_hash($motDePasse, PASSWORD_DEFAULT), $this->horloge->texte()]);
+        // Rappels par e-mail : seulement si la case a été cochée à l'inscription.
+        $this->pdo->prepare('INSERT INTO comptes (email, nom, mot_de_passe, cree_le, rappels, email_confirme) VALUES (?, ?, ?, ?, ?, 0)')
+            ->execute([$email, $nom, password_hash($motDePasse, PASSWORD_DEFAULT), $this->horloge->texte(), ($donnees['rappels'] ?? false) ? 1 : 0]);
         $id = (int) $this->pdo->lastInsertId();
 
-        return ['jeton' => $this->nouveauJeton($id), 'compte' => $this->compte($id)];
+        return $this->ouvrirSession($id);
     }
 
     /**
@@ -96,6 +97,12 @@ final class Comptes
                 ->execute([password_hash($motDePasse, PASSWORD_DEFAULT), $id]);
         }
 
+        return $this->ouvrirSession($id);
+    }
+
+    /** @return array{jeton: string, compte: array<string, mixed>} */
+    public function ouvrirSession(int $id): array
+    {
         return ['jeton' => $this->nouveauJeton($id), 'compte' => $this->compte($id)];
     }
 
@@ -146,11 +153,11 @@ final class Comptes
     /** @return array<string, mixed> */
     public function compte(int $id): array
     {
-        $requete = $this->pdo->prepare('SELECT id, email, nom, rappels FROM comptes WHERE id = ?');
+        $requete = $this->pdo->prepare('SELECT id, email, nom, rappels, email_confirme FROM comptes WHERE id = ?');
         $requete->execute([$id]);
         $ligne = $requete->fetch(\PDO::FETCH_ASSOC) ?: throw ErreurHttp::introuvable();
 
-        return ['id' => (int) $ligne['id'], 'email' => $ligne['email'], 'nom' => $ligne['nom'], 'rappels' => (bool) $ligne['rappels']];
+        return ['id' => (int) $ligne['id'], 'email' => $ligne['email'], 'nom' => $ligne['nom'], 'rappels' => (bool) $ligne['rappels'], 'emailConfirme' => (bool) $ligne['email_confirme']];
     }
 
     /**
@@ -179,7 +186,7 @@ final class Comptes
     /** Supprime le compte et tout ce qui lui appartient. */
     public function supprimer(int $id): void
     {
-        foreach (['reservations' => 'envie_id IN (SELECT id FROM envies WHERE compte_id = ?)', 'envies' => 'compte_id = ?', 'listes' => 'compte_id = ?', 'rappels_envoyes' => 'compte_id = ?', 'participations' => 'cagnotte_id IN (SELECT id FROM cagnottes WHERE compte_id = ?)', 'cagnottes' => 'compte_id = ?', 'cadeaux' => 'compte_id = ?', 'budgets' => 'compte_id = ?', 'occasions' => 'compte_id = ?', 'personnes' => 'compte_id = ?', 'jetons' => 'compte_id = ?', 'comptes' => 'id = ?'] as $table => $condition) {
+        foreach (['reservations' => 'envie_id IN (SELECT id FROM envies WHERE compte_id = ?)', 'envies' => 'compte_id = ?', 'listes' => 'compte_id = ?', 'rappels_envoyes' => 'compte_id = ?', 'liens' => 'compte_id = ?', 'participations' => 'cagnotte_id IN (SELECT id FROM cagnottes WHERE compte_id = ?)', 'cagnottes' => 'compte_id = ?', 'cadeaux' => 'compte_id = ?', 'budgets' => 'compte_id = ?', 'occasions' => 'compte_id = ?', 'personnes' => 'compte_id = ?', 'jetons' => 'compte_id = ?', 'comptes' => 'id = ?'] as $table => $condition) {
             $this->pdo->prepare("DELETE FROM $table WHERE $condition")->execute([$id]);
         }
     }

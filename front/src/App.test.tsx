@@ -36,6 +36,54 @@ describe('compte', () => {
   });
 });
 
+describe('mot de passe et adresse', () => {
+  it('mot de passe oublié : demande, puis nouveau mot de passe depuis le lien', async () => {
+    preparer('/', false);
+    const { appels } = installerFausseApi(etat);
+    const { unmount } = ouvrir();
+    const u = userEvent.setup();
+    await u.click(screen.getByRole('tab', { name: 'Se connecter' }));
+    await u.click(screen.getByRole('button', { name: 'Mot de passe oublié ?' }));
+    await u.type(screen.getByLabelText('Adresse e-mail'), 'baptiste@example.com');
+    await u.click(screen.getByRole('button', { name: 'Recevoir le lien' }));
+    expect(await screen.findByText(/un e-mail vient de partir/)).toBeInTheDocument();
+    unmount();
+
+    preparer(`/motdepasse/${'f'.repeat(64)}`, false);
+    ouvrir();
+    await u.type(screen.getByLabelText('Choisissez votre mot de passe'), 'nouveau-mot-de-passe');
+    await u.click(screen.getByRole('button', { name: 'Enregistrer et me connecter' }));
+    expect(await screen.findByRole('heading', { name: 'Bonjour Baptiste' })).toBeInTheDocument();
+    expect(appels.find((a) => a.chemin === '/motdepasse/nouveau')?.corps).toEqual({ jeton: 'f'.repeat(64), motDePasse: 'nouveau-mot-de-passe' });
+  });
+
+  it('adresse pas confirmée : bandeau sur l’accueil, puis lien de confirmation', async () => {
+    etat.compte.emailConfirme = false;
+    preparer('/');
+    installerFausseApi(etat);
+    const { unmount } = ouvrir();
+    expect(await screen.findByText(/Confirmez votre adresse avec le lien envoyé à/)).toBeInTheDocument();
+    unmount();
+    preparer(`/confirmer/${'e'.repeat(64)}`);
+    ouvrir();
+    expect(await screen.findByText('Merci, votre adresse baptiste@example.com est confirmée.')).toBeInTheDocument();
+  });
+
+  it('les rappels ne sont pas cochés d’office à l’inscription', async () => {
+    preparer('/', false);
+    const { appels } = installerFausseApi(etat);
+    ouvrir();
+    const u = userEvent.setup();
+    expect(screen.getByRole('checkbox', { name: /M’envoyer un rappel par e-mail/ })).not.toBeChecked();
+    await u.type(screen.getByLabelText('Prénom'), 'Léa');
+    await u.type(screen.getByLabelText('Adresse e-mail'), 'lea@example.com');
+    await u.type(screen.getByLabelText('Mot de passe'), 'motdepasse123');
+    await u.click(screen.getByRole('button', { name: 'Créer mon compte' }));
+    await screen.findByRole('heading', { name: 'Bonjour Baptiste' });
+    expect(appels[0].corps).toMatchObject({ rappels: false });
+  });
+});
+
 describe('occasion', () => {
   beforeEach(() => {
     etat.personnes = [{ id: 7, nom: 'Papa', dateNaissance: null, note: null }];

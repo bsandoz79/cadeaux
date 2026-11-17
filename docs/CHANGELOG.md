@@ -2,6 +2,12 @@
 
 ## [Non publié]
 
+### Ajouté (compte)
+- Confirmation de l'adresse e-mail à l'inscription (lien valable 7 jours, « Renvoyer l'e-mail » sur l'accueil) ; les rappels ne partent qu'à une adresse confirmée.
+- Mot de passe oublié : lien valable 1 heure, toutes les connexions fermées après le changement.
+- Mon compte : changer de prénom, de mot de passe (autres appareils déconnectés) et d'adresse (lien envoyé à la nouvelle, ancienne prévenue).
+- Rappels par e-mail choisis à l'inscription (case non cochée par défaut).
+
 ### Ajouté (cagnottes)
 - RIB de l'organisateur pour recevoir les parts par virement : IBAN vérifié et chiffré, affiché aux participants seulement sur demande (« Afficher le RIB », IBAN à copier, libellé conseillé), supprimé dès que la cagnotte est terminée ou que toutes les parts sont payées, et au plus tard 60 jours après.
 

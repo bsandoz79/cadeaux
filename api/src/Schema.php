@@ -12,7 +12,7 @@ namespace Cadeaux;
 final class Schema
 {
     /** À augmenter à chaque changement des tables. */
-    public const VERSION = 8;
+    public const VERSION = 9;
 
     public static function installer(\PDO $pdo): void
     {
@@ -30,7 +30,17 @@ final class Schema
                 cree_le VARCHAR(19) NOT NULL,
                 derniere_activite VARCHAR(19) NULL,
                 averti_le VARCHAR(19) NULL,
-                rappels INT NOT NULL DEFAULT 1
+                rappels INT NOT NULL DEFAULT 1,
+                email_confirme INT NOT NULL DEFAULT 0
+            )",
+            "liens (
+                id $id,
+                compte_id $ref NOT NULL,
+                type VARCHAR(20) NOT NULL,
+                empreinte CHAR(64) NOT NULL UNIQUE,
+                nouvel_email VARCHAR(190) NULL,
+                expire_le VARCHAR(19) NOT NULL,
+                FOREIGN KEY (compte_id) REFERENCES comptes(id) ON DELETE CASCADE
             )",
             "rappels_envoyes (
                 id $id,
@@ -176,10 +186,15 @@ final class Schema
             ['cagnottes', 'rib_iban', 'VARCHAR(255) NULL'],        // v8 (chiffré)
             ['cagnottes', 'rib_masque', 'VARCHAR(60) NULL'],       // v8
             ['cagnottes', 'rib_le', 'VARCHAR(19) NULL'],           // v8
+            ['comptes', 'email_confirme', 'INT NOT NULL DEFAULT 0'], // v9
         ];
         foreach ($ajouts as [$table, $colonne, $type]) {
             if (!self::colonneExiste($pdo, $table, $colonne, $mysql)) {
                 $pdo->exec("ALTER TABLE $table ADD COLUMN $colonne $type");
+                if ($colonne === 'email_confirme') {
+                    // Comptes créés avant la confirmation des adresses : considérés comme confirmés.
+                    $pdo->exec('UPDATE comptes SET email_confirme = 1');
+                }
             }
         }
     }

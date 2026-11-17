@@ -7,7 +7,7 @@ import { vi } from 'vitest';
 type Element = { id: number } & Record<string, unknown>;
 
 export interface EtatFaux {
-  compte: { id: number; email: string; nom: string; rappels: boolean };
+  compte: { id: number; email: string; nom: string; rappels: boolean; emailConfirme: boolean };
   personnes: Element[];
   occasions: Element[];
   cadeaux: Element[];
@@ -20,7 +20,7 @@ export interface EtatFaux {
 
 export function etatVide(): EtatFaux {
   return {
-    compte: { id: 1, email: 'baptiste@example.com', nom: 'Baptiste', rappels: true },
+    compte: { id: 1, email: 'baptiste@example.com', nom: 'Baptiste', rappels: true, emailConfirme: true },
     personnes: [], occasions: [], cadeaux: [], budgets: [], envies: [], cagnottes: [], participations: {}, listes: {},
   };
 }
@@ -48,6 +48,10 @@ export function installerFausseApi(etat: EtatFaux) {
 
     if (methode === 'POST' && (chemin === '/comptes' || chemin === '/connexion')) return json(chemin === '/comptes' ? 201 : 200, { jeton: 'a'.repeat(64), compte: etat.compte });
     if (chemin === '/moi') return json(200, etat.compte);
+    if (chemin === '/motdepasse/oubli') return json(200, { message: 'Si un compte existe avec cette adresse, un e-mail vient de partir.' });
+    if (chemin === '/motdepasse/nouveau') return corps.jeton === 'f'.repeat(64) ? json(200, { jeton: 'a'.repeat(64), compte: etat.compte }) : json(410, { message: 'Ce lien n’est plus valable. Refaites une demande.' });
+    if (chemin === '/email/confirmer') { etat.compte.emailConfirme = true; return json(200, { type: 'confirmation', email: etat.compte.email }); }
+    if (chemin === '/email/renvoyer') return json(204);
     if (chemin === '/liste') return json(200, { code: null, message: null });
 
     for (const nom of COLLECTIONS) {

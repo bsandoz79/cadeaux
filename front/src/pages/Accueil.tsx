@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { api } from '../api/client';
 import type { Compte } from '../api/types';
-import { Champ } from '../components/commun';
+import { Champ, Lien } from '../components/commun';
 import { useEnvoi } from '../components/formulaire';
 import { useDonnees } from '../donnees/contexte';
 import styles from './pages.module.css';
@@ -59,7 +59,10 @@ export function Accueil() {
           {erreur && !Object.keys(champs).length && <p className="erreur" role="alert">{erreur}</p>}
           <button className="btn" disabled={occupe}>{mode === 'inscription' ? 'Créer mon compte' : 'Me connecter'}</button>
         </form>
-        <p className={styles.note}>Gratuit. Vos listes ne sont visibles que par vous ; une cagnotte n’est visible que par ceux qui ont son lien.</p>
+        <p className={styles.note}>
+          Vos listes ne sont visibles que par vous ; une cagnotte n’est visible que par ceux qui ont son lien.
+          {mode === 'inscription' && <> En créant un compte, vous acceptez la <Lien href="/confidentialite">politique de confidentialité</Lien>.</>}
+        </p>
       </section>
     </div>
   );

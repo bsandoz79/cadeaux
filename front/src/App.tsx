@@ -10,6 +10,8 @@ import { CagnottePublique } from './pages/CagnottePublique';
 import { Cagnottes } from './pages/Cagnottes';
 import { MonCompte } from './pages/MonCompte';
 import { Idees } from './pages/Idees';
+import { Legal } from './pages/Legal';
+import { CONFIDENTIALITE, MENTIONS_LEGALES } from './donnees/legal';
 import { OccasionDetail } from './pages/OccasionDetail';
 import { Occasions } from './pages/Occasions';
 import { Proches } from './pages/Proches';
@@ -27,6 +29,7 @@ const MENU: { href: string; libelle: string; pages: Route['page'][] }[] = [
 const TITRES: Partial<Record<Route['page'], string>> = {
   occasions: 'Occasions', occasion: 'Occasion', proches: 'Proches', idees: 'Idées de cadeaux', cagnottes: 'Cagnottes',
   cagnotte: 'Cagnotte', bilan: 'Bilan de l’année', compte: 'Mon compte', publique: 'Cadeau commun',
+  confidentialite: 'Politique de confidentialité', mentions: 'Mentions légales',
 };
 
 export function App() {
@@ -40,8 +43,9 @@ export function App() {
     document.title = titre ? `${titre} · Cadeaux` : 'Cadeaux : vos cadeaux, votre budget et vos cagnottes communes';
   }, [route.page]);
 
-  // La page d'une cagnotte partagée s'ouvre sans compte.
+  // La page d'une cagnotte partagée et les pages légales s'ouvrent sans compte.
   const publique = route.page === 'publique';
+  const legale = route.page === 'confidentialite' || route.page === 'mentions';
   const connecte = compte !== null;
 
   return (
@@ -79,6 +83,7 @@ export function App() {
 
       <main id="contenu" ref={principal} className={styles.contenu} tabIndex={-1}>
         {publique ? <CagnottePublique code={route.code} />
+          : legale ? <Legal page={route.page === 'mentions' ? MENTIONS_LEGALES : CONFIDENTIALITE} />
           : !pret ? <p className={styles.chargement}>Chargement…</p>
           : !connecte ? <Accueil />
           : <Page route={route} />}
@@ -86,6 +91,10 @@ export function App() {
 
       <footer className={styles.pied}>
         <p>Cadeaux · les montants sont notés ici, l’argent ne passe pas par le site.</p>
+        <p className={styles.liensPied}>
+          <Lien href="/confidentialite">Confidentialité</Lien>
+          <Lien href="/mentions-legales">Mentions légales</Lien>
+        </p>
       </footer>
     </div>
   );

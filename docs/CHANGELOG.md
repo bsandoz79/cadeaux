@@ -3,6 +3,10 @@
 ## [Non publié]
 
 ### Ajouté (RGPD)
+- Pages « Politique de confidentialité » et « Mentions légales », accessibles sans compte, liées depuis le pied de page, l'inscription, la page de cagnotte et l'extension.
+- Page de cagnotte : information sur la visibilité du prénom et de la part de chaque participant.
+
+### Ajouté (RGPD)
 - Comptes inactifs : e-mail d'avertissement après près de 3 ans sans activité, puis suppression du compte et de toutes ses données 30 jours plus tard si l'utilisateur ne revient pas. Tâche quotidienne `api/bin/menage.php`, qui efface aussi les connexions expirées.
 
 ### Ajouté (RGPD)

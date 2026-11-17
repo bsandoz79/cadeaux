@@ -1,6 +1,7 @@
 # RGPD : registre des traitements
 
-Responsable du traitement : Baptiste Sandoz, éditeur de cadeaux.bsandoz.fr. Contact : [à compléter].
+Responsable du traitement : Baptiste Sandoz, éditeur de cadeaux.bsandoz.fr. Contact : contact@bsandoz.fr.
+Textes publiés : `front/src/donnees/legal.ts` (pages /confidentialite et /mentions-legales), à mettre à jour avec ce registre.
 Hébergement : o2switch (France).
 
 ## Données traitées
@@ -18,6 +19,8 @@ Hébergement : o2switch (France).
 | Produit lu par l'extension (nom, prix, photo, adresse) | Utilisateur | Noter une idée de cadeau | Action volontaire | Comme les cadeaux | L'utilisateur seul |
 
 ## Ce qui est en place
+- Pages « Politique de confidentialité » et « Mentions légales », visibles sans compte, liées depuis le pied de page, l'inscription, la page de cagnotte et l'extension.
+- Page de cagnotte : les participants sont informés que leur prénom et leur part sont visibles par ceux qui ont le lien, et comment les retirer.
 - Aucun cookie, aucun traceur, aucune mesure d'audience, aucun service tiers : rien qui demande un bandeau de consentement. Le jeton de connexion est gardé dans le navigateur (strictement nécessaire).
 - Suppression du compte par l'utilisateur, qui efface toutes ses données et ses cagnottes.
 - Comptes inactifs : e-mail d'avertissement après près de 3 ans sans activité, suppression complète 30 jours plus tard si l'utilisateur ne revient pas (tâche quotidienne `api/bin/menage.php`).
@@ -26,5 +29,4 @@ Hébergement : o2switch (France).
 - Pas de paiement : aucune donnée bancaire.
 
 ## Points à traiter
-- Page « Politique de confidentialité » et « Mentions légales » sur le site (obligatoires).
-- Information des participants sur la page de cagnotte : qui voit leur prénom et comment le retirer.
+- Mentions légales : adresse postale de l'hébergeur à vérifier sur le site d'o2switch.

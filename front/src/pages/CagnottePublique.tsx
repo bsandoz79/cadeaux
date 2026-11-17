@@ -4,7 +4,7 @@ import type { CagnottePublique as Cagnotte, Participation } from '../api/types';
 import { euros, saisieDepuis } from '../calculs/argent';
 import { dateLisible } from '../calculs/bilan';
 import { etatCagnotte, partConseillee } from '../calculs/cagnotte';
-import { Champ, ChampMontant, Jauge } from '../components/commun';
+import { Champ, ChampMontant, Jauge, Lien } from '../components/commun';
 import { erreurChamps, montantDuFormulaire, useEnvoi } from '../components/formulaire';
 import styles from './pages.module.css';
 
@@ -109,7 +109,10 @@ export function CagnottePublique({ code }: { code: string }) {
               {edition && <button type="button" className="btn btn--contour" onClick={() => setEdition(null)}>Annuler</button>}
             </div>
           </form>
-          <p className={styles.note} style={{ marginTop: '.8rem' }}>Le site note seulement les montants : l’argent se donne directement à {cagnotte.organisateur}.</p>
+          <p className={styles.note} style={{ marginTop: '.8rem' }}>
+            Le site note seulement les montants : l’argent se donne directement à {cagnotte.organisateur}. Votre prénom et votre part sont visibles par toutes les personnes qui ont ce lien ; vous pouvez les modifier ou les retirer depuis ce navigateur.{' '}
+            <Lien href="/confidentialite">Confidentialité</Lien>
+          </p>
         </section>
       )}
 

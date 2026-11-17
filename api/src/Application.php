@@ -16,6 +16,8 @@ use Cadeaux\Http\Routeur;
  *   GET    /cagnottes/{id}  (avec les participations)
  *   POST   /cagnottes/{id}/participations · PATCH|DELETE /cagnottes/{id}/participations/{pid}   (organisateur)
  *   GET    /c/{code} · POST /c/{code}/participations · PATCH|DELETE /c/{code}/participations/{pid}  (lien partagé)
+ *   GET|POST|DELETE /liste (lien de ma liste d'envies) · GET|POST /envies · PATCH|DELETE /envies/{id}
+ *   GET    /l/{code} · POST|DELETE /l/{code}/envies/{id}/reservation  (liste d'envies partagée, sans compte)
  */
 final class Application
 {
@@ -25,6 +27,7 @@ final class Application
     private readonly Routeur $routeur;
     private readonly Comptes $comptes;
     private readonly Cagnottes $cagnottes;
+    private readonly Envies $envies;
     /** @var array<string, Collection>|null */
     private ?array $collections = null;
 
@@ -32,6 +35,7 @@ final class Application
     {
         $this->comptes = new Comptes($pdo, $horloge);
         $this->cagnottes = new Cagnottes($pdo, $horloge);
+        $this->envies = new Envies($pdo, $horloge);
         $this->routeur = new Routeur();
         $this->routes();
     }
@@ -98,8 +102,11 @@ final class Application
                 $collection->ajouter($this->compte($q), $q->corps, $this->colonnesALaCreation($chemin)),
             ));
             $r->ajouter('PATCH', "/$chemin/{id}", fn (Requete $q, string $id) => Reponse::ok($collection->modifier($this->compte($q), (int) $id, $q->corps)));
-            $r->ajouter('DELETE', "/$chemin/{id}", function (Requete $q, string $id) use ($collection) {
+            $r->ajouter('DELETE', "/$chemin/{id}", function (Requete $q, string $id) use ($collection, $chemin) {
                 $collection->supprimer($this->compte($q), (int) $id);
+                if ($chemin === 'envies') {
+                    $this->envies->apresSuppression((int) $id);
+                }
 
                 return Reponse::vide();
             });
@@ -120,6 +127,24 @@ final class Application
         ));
         $r->ajouter('DELETE', '/cagnottes/{id}/participations/{pid}', function (Requete $q, string $id, string $pid) {
             $this->cagnottes->retirerParOrganisateur($this->compte($q), (int) $id, (int) $pid);
+
+            return Reponse::vide();
+        });
+
+        // Liste d'envies : lien de partage (propriétaire) et page partagée (sans compte)
+        $r->ajouter('GET', '/liste', fn (Requete $q) => Reponse::ok($this->envies->lien($this->compte($q))));
+        $r->ajouter('POST', '/liste', fn (Requete $q) => Reponse::ok($this->envies->partager($this->compte($q), $q->corps)));
+        $r->ajouter('DELETE', '/liste', function (Requete $q) {
+            $this->envies->arreterPartage($this->compte($q));
+
+            return Reponse::vide();
+        });
+        $r->ajouter('GET', '/l/{code}', fn (Requete $q, string $code) => Reponse::ok($this->envies->publique($code, $this->comptes->depuisJeton($q->jeton()))));
+        $r->ajouter('POST', '/l/{code}/envies/{id}/reservation', fn (Requete $q, string $code, string $id) => Reponse::cree(
+            $this->envies->reserver($code, (int) $id, $q->corps, $q->ip, $this->comptes->depuisJeton($q->jeton())),
+        ));
+        $r->ajouter('DELETE', '/l/{code}/envies/{id}/reservation', function (Requete $q, string $code, string $id) {
+            $this->envies->annulerReservation($code, (int) $id, $q->entete('x-cle-reservation'));
 
             return Reponse::vide();
         });
@@ -176,6 +201,9 @@ final class Application
             'occasions' => $c['occasions']->lister($compteId),
             'cadeaux' => $c['cadeaux']->lister($compteId),
             'budgets' => $c['budgets']->lister($compteId),
+            // Mes envies, sans leurs réservations : elles restent une surprise (et sont les données des autres).
+            'envies' => $c['envies']->lister($compteId),
+            'lienListeEnvies' => $this->envies->lien($compteId),
             'cagnottes' => array_map(
                 fn (array $g): array => $g + ['participations' => $this->cagnottes->participations($g['id'])],
                 $c['cagnottes']->lister($compteId),
@@ -194,6 +222,7 @@ final class Application
         return match ($chemin) {
             'cadeaux' => ['cree_le' => $this->horloge->texte()],
             'cagnottes' => ['cree_le' => $this->horloge->texte(), 'code' => Cagnottes::nouveauCode()],
+            'envies' => ['cree_le' => $this->horloge->texte()],
             default => [],
         };
     }
@@ -229,6 +258,15 @@ final class Application
                 'note' => ['colonne' => 'note', 'type' => 'texte', 'max' => 500],
                 'creeLe' => ['colonne' => 'cree_le', 'type' => 'lecture'],
             ], 'id DESC'),
+            'envies' => new Collection($pdo, 'envies', [
+                'titre' => ['colonne' => 'titre', 'type' => 'texte', 'requis' => true, 'max' => 200],
+                'lien' => ['colonne' => 'lien', 'type' => 'url'],
+                'image' => ['colonne' => 'image', 'type' => 'url'],
+                'prix' => ['colonne' => 'prix', 'type' => 'centimes'],
+                'note' => ['colonne' => 'note', 'type' => 'texte', 'max' => 500],
+                'priorite' => ['colonne' => 'priorite', 'type' => 'booleen', 'defaut' => false],
+                'creeLe' => ['colonne' => 'cree_le', 'type' => 'lecture'],
+            ], 'priorite DESC, id DESC'),
             'budgets' => new Collection($pdo, 'budgets', [
                 'occasionId' => ['colonne' => 'occasion_id', 'type' => 'ref', 'table' => 'occasions', 'requis' => true],
                 'personneId' => ['colonne' => 'personne_id', 'type' => 'ref', 'table' => 'personnes', 'requis' => true],

@@ -66,6 +66,13 @@ export const CONFIDENTIALITE: PageLegale = {
       ],
     },
     {
+      titre: 'Les listes d’envies',
+      paragraphes: [
+        'Votre liste d’envies n’est visible que par les personnes à qui vous donnez son lien. Vous pouvez couper le lien à tout moment : l’ancienne adresse ne marche plus.',
+        'Pour réserver une envie, il suffit d’un prénom. Il est visible par ceux qui ont le lien, mais jamais par le propriétaire de la liste, pour garder la surprise. La réservation s’annule depuis le navigateur où elle a été faite, et disparaît avec l’envie ou la liste.',
+      ],
+    },
+    {
       titre: 'L’extension Chrome',
       paragraphes: [
         'L’extension lit la page ouverte (nom, prix, photo et adresse du produit) seulement quand vous cliquez sur son icône, et n’envoie rien tant que vous n’avez pas cliqué sur « Ajouter ».',
@@ -74,7 +81,7 @@ export const CONFIDENTIALITE: PageLegale = {
     {
       titre: 'Sécurité et données techniques',
       paragraphes: [
-        'Pour bloquer les tentatives d’intrusion et les abus, l’adresse IP d’un essai de connexion raté ou d’une part ajoutée par lien est gardée 15 minutes, puis effacée.',
+        'Pour bloquer les tentatives d’intrusion et les abus, l’adresse IP d’un essai de connexion raté, d’une part ajoutée ou d’une envie réservée par lien est gardée 15 minutes, puis effacée.',
         'Le site n’utilise aucun cookie, aucune mesure d’audience et aucun service extérieur. Votre connexion est gardée dans votre navigateur, uniquement pour vous éviter de vous reconnecter.',
         'Les données sont hébergées en France par o2switch.',
       ],

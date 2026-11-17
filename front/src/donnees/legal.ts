@@ -47,6 +47,7 @@ export const CONFIDENTIALITE: PageLegale = {
       paragraphes: [
         'Votre adresse e-mail, votre prénom et votre mot de passe (enregistré sous une forme illisible, même pour nous) servent à vous connecter.',
         'Votre connexion reste active sur un appareil tant que vous vous en servez ; après 90 jours sans visite, il faut vous reconnecter.',
+        'Si les rappels sont activés (« Mon compte »), vous recevez au plus un e-mail par jour : 7 jours avant l’anniversaire d’un proche, et 2 jours avant la date limite d’une cagnotte incomplète. Vous pouvez les couper à tout moment.',
         'Si vous n’utilisez plus le site pendant près de 3 ans, vous recevez un e-mail ; sans nouvelle visite dans les 30 jours, votre compte et tout ce qu’il contient sont supprimés.',
       ],
     },

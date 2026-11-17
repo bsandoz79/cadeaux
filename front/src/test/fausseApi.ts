@@ -7,7 +7,7 @@ import { vi } from 'vitest';
 type Element = { id: number } & Record<string, unknown>;
 
 export interface EtatFaux {
-  compte: { id: number; email: string; nom: string };
+  compte: { id: number; email: string; nom: string; rappels: boolean };
   personnes: Element[];
   occasions: Element[];
   cadeaux: Element[];
@@ -20,7 +20,7 @@ export interface EtatFaux {
 
 export function etatVide(): EtatFaux {
   return {
-    compte: { id: 1, email: 'baptiste@example.com', nom: 'Baptiste' },
+    compte: { id: 1, email: 'baptiste@example.com', nom: 'Baptiste', rappels: true },
     personnes: [], occasions: [], cadeaux: [], budgets: [], envies: [], cagnottes: [], participations: {}, listes: {},
   };
 }

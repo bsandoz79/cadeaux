@@ -12,7 +12,7 @@ namespace Cadeaux;
 final class Schema
 {
     /** À augmenter à chaque changement des tables. */
-    public const VERSION = 5;
+    public const VERSION = 6;
 
     public static function installer(\PDO $pdo): void
     {
@@ -29,7 +29,16 @@ final class Schema
                 mot_de_passe VARCHAR(255) NOT NULL,
                 cree_le VARCHAR(19) NOT NULL,
                 derniere_activite VARCHAR(19) NULL,
-                averti_le VARCHAR(19) NULL
+                averti_le VARCHAR(19) NULL,
+                rappels INT NOT NULL DEFAULT 1
+            )",
+            "rappels_envoyes (
+                id $id,
+                compte_id $ref NOT NULL,
+                cle VARCHAR(100) NOT NULL,
+                envoye_le VARCHAR(19) NOT NULL,
+                UNIQUE (compte_id, cle),
+                FOREIGN KEY (compte_id) REFERENCES comptes(id) ON DELETE CASCADE
             )",
             "jetons (
                 id $id,
@@ -156,6 +165,7 @@ final class Schema
             ['comptes', 'averti_le', 'VARCHAR(19) NULL'],         // v2
             ['jetons', 'utilise_le', 'VARCHAR(19) NULL'],         // v2
             ['cadeaux', 'cagnotte_id', $mysql ? 'INT UNSIGNED NULL' : 'INTEGER NULL'], // v5
+            ['comptes', 'rappels', 'INT NOT NULL DEFAULT 1'],      // v6
         ];
         foreach ($ajouts as [$table, $colonne, $type]) {
             if (!self::colonneExiste($pdo, $table, $colonne, $mysql)) {

@@ -2,6 +2,9 @@
 
 ## [Non publié]
 
+### Ajouté (rappels)
+- Rappels par e-mail, au plus un par jour : anniversaire d'un proche dans 7 jours (âge, budget, ce qui est prévu), cagnotte incomplète 2 jours avant sa date limite. Désactivables dans « Mon compte ». Envoyés par la tâche quotidienne `api/bin/menage.php`.
+
 ### Sécurité
 - En-tête CSP sur le site (seul le code du site s'exécute, pas d'affichage dans un cadre) et sur l'API ; `X-Frame-Options` et `Permissions-Policy`.
 

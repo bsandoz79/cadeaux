@@ -15,15 +15,18 @@ interface ChampProps {
   children?: ReactNode;
 }
 
-/** Champ texte (ou autre type d'input) avec libellé, aide et erreur reliées. */
+/**
+ * Champ texte (ou autre type d'input) : le libellé seul donne son nom au champ ; l'aide et l'erreur y sont reliées
+ * par aria-describedby (lues après le nom, sans s'y mélanger).
+ */
 export function Champ({ libelle, nom, erreur, aide, ...input }: ChampProps & React.InputHTMLAttributes<HTMLInputElement>) {
   const id = useId();
   return (
-    <label className="champ" htmlFor={id}>
-      <span>{libelle}</span>
+    <div className="champ">
+      <label htmlFor={id}>{libelle}</label>
       <input id={id} name={nom} aria-invalid={erreur ? true : undefined} aria-describedby={erreur || aide ? `${id}-d` : undefined} {...input} />
       {(erreur || aide) && <small id={`${id}-d`} className={erreur ? 'erreur' : undefined}>{erreur ?? aide}</small>}
-    </label>
+    </div>
   );
 }
 
@@ -31,11 +34,11 @@ export function Champ({ libelle, nom, erreur, aide, ...input }: ChampProps & Rea
 export function Choix({ libelle, nom, erreur, children, ...select }: ChampProps & React.SelectHTMLAttributes<HTMLSelectElement>) {
   const id = useId();
   return (
-    <label className="champ" htmlFor={id}>
-      <span>{libelle}</span>
-      <select id={id} name={nom} aria-invalid={erreur ? true : undefined} {...select}>{children}</select>
-      {erreur && <small className="erreur">{erreur}</small>}
-    </label>
+    <div className="champ">
+      <label htmlFor={id}>{libelle}</label>
+      <select id={id} name={nom} aria-invalid={erreur ? true : undefined} aria-describedby={erreur ? `${id}-d` : undefined} {...select}>{children}</select>
+      {erreur && <small id={`${id}-d`} className="erreur">{erreur}</small>}
+    </div>
   );
 }
 

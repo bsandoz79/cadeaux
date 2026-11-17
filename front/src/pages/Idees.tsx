@@ -2,6 +2,7 @@ import { CarteCadeau } from '../components/CarteCadeau';
 import { Depliable, EnTete, Lien } from '../components/commun';
 import { FormulaireCadeau } from '../components/FormulaireCadeau';
 import { useDonnees } from '../donnees/contexte';
+import { OngletsIdees } from '../components/OngletsIdees';
 import styles from './pages.module.css';
 
 /** Idées de cadeaux pas encore rattachées à une occasion (notées ici ou avec l'extension Chrome). */
@@ -11,6 +12,7 @@ export function Idees() {
 
   return (
     <div className={styles.pile}>
+      <OngletsIdees actif="idees" />
       <EnTete titre="Idées de cadeaux" sousTitre="Notez une idée dès qu’elle vous vient. Vous la rattacherez à Noël ou à un anniversaire plus tard." />
       <Depliable bouton="Noter une idée">{(fermer) => <FormulaireCadeau cadeau={{ statut: 'idee' }} avecOccasion onFini={fermer} />}</Depliable>
       {idees.length === 0 ? (

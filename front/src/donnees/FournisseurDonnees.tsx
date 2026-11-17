@@ -3,7 +3,7 @@ import { api, jeton, quandDeconnecte } from '../api/client';
 import type { Compte } from '../api/types';
 import { ContexteDonnees, type Collections, type Donnees, type NomCollection } from './contexte';
 
-const VIDE: Collections = { personnes: [], occasions: [], cadeaux: [], budgets: [], cagnottes: [] };
+const VIDE: Collections = { personnes: [], occasions: [], cadeaux: [], budgets: [], envies: [], cagnottes: [] };
 
 /** Charge le compte connecté et ses données, et garde la liste à jour après chaque changement. */
 export function FournisseurDonnees({ children }: { children: ReactNode }) {
@@ -12,16 +12,17 @@ export function FournisseurDonnees({ children }: { children: ReactNode }) {
   const [pret, setPret] = useState(() => !jeton.lire());
 
   const recharger = useCallback(async () => {
-    const [moi, personnes, occasions, cadeaux, budgets, cagnottes] = await Promise.all([
+    const [moi, personnes, occasions, cadeaux, budgets, envies, cagnottes] = await Promise.all([
       api<Compte>('GET', '/moi'),
       api<Collections['personnes']>('GET', '/personnes'),
       api<Collections['occasions']>('GET', '/occasions'),
       api<Collections['cadeaux']>('GET', '/cadeaux'),
       api<Collections['budgets']>('GET', '/budgets'),
+      api<Collections['envies']>('GET', '/envies'),
       api<Collections['cagnottes']>('GET', '/cagnottes'),
     ]);
     setCompte(moi);
-    setCollections({ personnes, occasions, cadeaux, budgets, cagnottes });
+    setCollections({ personnes, occasions, cadeaux, budgets, envies, cagnottes });
   }, []);
 
   useEffect(() => {

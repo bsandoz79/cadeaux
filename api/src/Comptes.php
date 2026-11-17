@@ -156,7 +156,7 @@ final class Comptes
     /** Supprime le compte et tout ce qui lui appartient. */
     public function supprimer(int $id): void
     {
-        foreach (['participations' => 'cagnotte_id IN (SELECT id FROM cagnottes WHERE compte_id = ?)', 'cagnottes' => 'compte_id = ?', 'cadeaux' => 'compte_id = ?', 'budgets' => 'compte_id = ?', 'occasions' => 'compte_id = ?', 'personnes' => 'compte_id = ?', 'jetons' => 'compte_id = ?', 'comptes' => 'id = ?'] as $table => $condition) {
+        foreach (['reservations' => 'envie_id IN (SELECT id FROM envies WHERE compte_id = ?)', 'envies' => 'compte_id = ?', 'listes' => 'compte_id = ?', 'participations' => 'cagnotte_id IN (SELECT id FROM cagnottes WHERE compte_id = ?)', 'cagnottes' => 'compte_id = ?', 'cadeaux' => 'compte_id = ?', 'budgets' => 'compte_id = ?', 'occasions' => 'compte_id = ?', 'personnes' => 'compte_id = ?', 'jetons' => 'compte_id = ?', 'comptes' => 'id = ?'] as $table => $condition) {
             $this->pdo->prepare("DELETE FROM $table WHERE $condition")->execute([$id]);
         }
     }

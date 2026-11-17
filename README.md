@@ -8,6 +8,8 @@ Notez les cadeaux de Noël, d'anniversaire et des autres fêtes, voyez ce qu'ils
 - **Proches** : avec leur date de naissance, les anniversaires des deux prochains mois s'affichent sur l'accueil.
 - **Bilan de l'année** : total, déjà dépensé, encore prévu, part des cagnottes ; détail par occasion et par personne ; comparaison avec l'année d'avant.
 - **Idées** : notées sur le site ou avec l'extension Chrome, puis rattachées à une occasion.
+- **Liste d'envies** : ce qui vous ferait plaisir, partagé par lien ; vos proches réservent ce qu'ils offrent, sans doublon, et vous ne voyez pas qui a pris quoi.
+- **Budget par personne** et **déjà offert** : budget de chacun par occasion, et rappel de ce qui lui a déjà été offert.
 - **Cagnottes** : parts égales (150 € à 7 : six parts de 21,43 € et une de 21,42 €) ou parts libres que l'organisateur complète. Les participants ajoutent leur part depuis le lien, sans compte. Le site note les montants ; l'argent ne passe pas par lui.
 - **Extension Chrome** : sur la page d'un produit, un clic l'ajoute aux idées avec son nom, son prix et sa photo.
 

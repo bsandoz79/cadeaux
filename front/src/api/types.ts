@@ -28,6 +28,29 @@ export interface Cadeau {
 /** Budget prévu pour une personne à une occasion (ex. Papa, 50 € à Noël). */
 export interface Budget { id: number; occasionId: number; personneId: number; montant: number }
 
+/** Une envie de ma liste (je la partage par lien ; les autres la réservent). */
+export interface Envie {
+  id: number;
+  titre: string;
+  lien: string | null;
+  image: string | null;
+  prix: number | null;
+  note: string | null;
+  /** « Très envie » : en tête de liste. */
+  priorite: boolean;
+  creeLe: string;
+}
+
+export interface LienListe { code: string | null; message: string | null }
+
+/** Liste d'envies vue depuis son lien. `reservation` est toujours null pour le propriétaire. */
+export interface ListePublique {
+  proprietaire: string;
+  message: string | null;
+  estProprietaire: boolean;
+  envies: (Omit<Envie, 'creeLe'> & { reservation: { id: number; nom: string } | null })[];
+}
+
 export type ModeCagnotte = 'egal' | 'libre';
 
 export interface Participation { id: number; nom: string; montant: number; paye: boolean; organisateur: boolean }

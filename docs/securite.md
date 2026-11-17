@@ -11,7 +11,8 @@
 | Cloisonnement | Chaque lecture, modification et suppression filtre sur le compte connecté ; une référence vers l'élément d'un autre compte est refusée | `api/src/Collection.php` |
 | Entrées | Validation par champ (type, longueur, date réelle, montant, liste de choix, URL `http(s)` seulement) ; requêtes préparées | `Collection.php`, `Cagnottes.php` |
 | Cagnotte partagée | Code aléatoire de 64 bits dans le lien ; clé de 256 bits par participation (empreinte stockée) pour modifier sa part ; cagnotte terminée = plus de participation | `Cagnottes.php` |
-| Abus du lien partagé | 10 parts par adresse IP et par quart d'heure, 100 parts au plus par cagnotte | `Cagnottes.php`, `Limiteur.php` |
+| Abus du lien partagé | 10 parts par adresse IP et par quart d'heure, 100 parts au plus par cagnotte ; 20 réservations d'envies par IP et par quart d'heure | `Cagnottes.php`, `Envies.php`, `Limiteur.php` |
+| Liste d'envies | Code aléatoire de 64 bits, lien coupable (nouveau code au prochain partage) ; une seule réservation par envie (contrainte d'unicité) ; clé de 256 bits pour annuler ; réservations jamais renvoyées au propriétaire, même connecté sur son propre lien | `Envies.php` |
 | Évolution de la base | Tables et colonnes ajoutées automatiquement au premier appel après une mise à jour (version du schéma) | `Schema.php` |
 | Erreurs | Message générique au navigateur, détail dans le journal du serveur | `Application.php` |
 | Fichiers du serveur | `.htaccess` de l'API : code, dépendances, tests et configuration inaccessibles ; listes de dossiers coupées | `api/.htaccess` |

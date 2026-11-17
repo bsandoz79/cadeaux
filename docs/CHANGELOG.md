@@ -3,6 +3,7 @@
 ## [Non publié]
 
 ### Ajouté
+- Liste d'envies partagée par lien : les proches réservent « Je m'en occupe » sans compte, les autres voient que c'est pris, le propriétaire ne voit jamais les réservations. Voir `docs/fonctionnalites/liste-envies.md`.
 - « Déjà offert » : dans le formulaire d'un cadeau, ce qui a déjà été offert au proche choisi, et un avertissement si le cadeau ressemble à un ancien. Voir `docs/fonctionnalites/deja-offert.md`.
 - Budget par personne et par occasion : barre « il reste » ou « dépassé de », total des budgets, proches avec un budget mais sans cadeau encore, reprise des budgets de l'an dernier. Voir `docs/fonctionnalites/budget-par-personne.md`.
 

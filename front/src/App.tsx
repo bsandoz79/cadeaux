@@ -10,6 +10,8 @@ import { CagnottePublique } from './pages/CagnottePublique';
 import { Cagnottes } from './pages/Cagnottes';
 import { MonCompte } from './pages/MonCompte';
 import { Idees } from './pages/Idees';
+import { ListeEnviesPublique } from './pages/ListeEnviesPublique';
+import { MesEnvies } from './pages/MesEnvies';
 import { Legal } from './pages/Legal';
 import { CONFIDENTIALITE, MENTIONS_LEGALES } from './donnees/legal';
 import { OccasionDetail } from './pages/OccasionDetail';
@@ -21,7 +23,7 @@ const MENU: { href: string; libelle: string; pages: Route['page'][] }[] = [
   { href: '/', libelle: 'Accueil', pages: ['accueil'] },
   { href: '/occasions', libelle: 'Occasions', pages: ['occasions', 'occasion'] },
   { href: '/proches', libelle: 'Proches', pages: ['proches'] },
-  { href: '/idees', libelle: 'Idées', pages: ['idees'] },
+  { href: '/idees', libelle: 'Idées', pages: ['idees', 'envies'] },
   { href: '/cagnottes', libelle: 'Cagnottes', pages: ['cagnottes', 'cagnotte'] },
   { href: '/bilan', libelle: 'Bilan', pages: ['bilan'] },
 ];
@@ -29,7 +31,7 @@ const MENU: { href: string; libelle: string; pages: Route['page'][] }[] = [
 const TITRES: Partial<Record<Route['page'], string>> = {
   occasions: 'Occasions', occasion: 'Occasion', proches: 'Proches', idees: 'Idées de cadeaux', cagnottes: 'Cagnottes',
   cagnotte: 'Cagnotte', bilan: 'Bilan de l’année', compte: 'Mon compte', publique: 'Cadeau commun',
-  confidentialite: 'Politique de confidentialité', mentions: 'Mentions légales',
+  confidentialite: 'Politique de confidentialité', mentions: 'Mentions légales', envies: 'Ma liste d’envies', liste: 'Liste d’envies',
 };
 
 export function App() {
@@ -44,7 +46,7 @@ export function App() {
   }, [route.page]);
 
   // La page d'une cagnotte partagée et les pages légales s'ouvrent sans compte.
-  const publique = route.page === 'publique';
+  const publique = route.page === 'publique' || route.page === 'liste';
   const legale = route.page === 'confidentialite' || route.page === 'mentions';
   const connecte = compte !== null;
 
@@ -82,7 +84,8 @@ export function App() {
       </header>
 
       <main id="contenu" ref={principal} className={styles.contenu} tabIndex={-1}>
-        {publique ? <CagnottePublique code={route.code} />
+        {route.page === 'publique' ? <CagnottePublique code={route.code} />
+          : route.page === 'liste' ? <ListeEnviesPublique code={route.code} />
           : legale ? <Legal page={route.page === 'mentions' ? MENTIONS_LEGALES : CONFIDENTIALITE} />
           : !pret ? <p className={styles.chargement}>Chargement…</p>
           : !connecte ? <Accueil />
@@ -107,6 +110,7 @@ function Page({ route }: { route: Route }) {
     case 'occasion': return <OccasionDetail id={route.id} />;
     case 'proches': return <Proches />;
     case 'idees': return <Idees />;
+    case 'envies': return <MesEnvies />;
     case 'cagnottes': return <Cagnottes />;
     case 'cagnotte': return <CagnotteOrganisateur id={route.id} />;
     case 'bilan': return <Bilan />;

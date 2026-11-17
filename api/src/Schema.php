@@ -12,7 +12,7 @@ namespace Cadeaux;
 final class Schema
 {
     /** À augmenter à chaque changement des tables. */
-    public const VERSION = 3;
+    public const VERSION = 4;
 
     public static function installer(\PDO $pdo): void
     {
@@ -103,6 +103,34 @@ final class Schema
                 FOREIGN KEY (compte_id) REFERENCES comptes(id) ON DELETE CASCADE,
                 FOREIGN KEY (occasion_id) REFERENCES occasions(id) ON DELETE CASCADE,
                 FOREIGN KEY (personne_id) REFERENCES personnes(id) ON DELETE CASCADE
+            )",
+            "listes (
+                id $id,
+                compte_id $ref NOT NULL UNIQUE,
+                code CHAR(16) NOT NULL UNIQUE,
+                message VARCHAR(500) NULL,
+                cree_le VARCHAR(19) NOT NULL,
+                FOREIGN KEY (compte_id) REFERENCES comptes(id) ON DELETE CASCADE
+            )",
+            "envies (
+                id $id,
+                compte_id $ref NOT NULL,
+                titre VARCHAR(200) NOT NULL,
+                lien VARCHAR(1000) NULL,
+                image VARCHAR(1000) NULL,
+                prix INT NULL,
+                note VARCHAR(500) NULL,
+                priorite INT NOT NULL DEFAULT 0,
+                cree_le VARCHAR(19) NOT NULL,
+                FOREIGN KEY (compte_id) REFERENCES comptes(id) ON DELETE CASCADE
+            )",
+            "reservations (
+                id $id,
+                envie_id $ref NOT NULL UNIQUE,
+                nom VARCHAR(80) NOT NULL,
+                cle CHAR(64) NOT NULL,
+                cree_le VARCHAR(19) NOT NULL,
+                FOREIGN KEY (envie_id) REFERENCES envies(id) ON DELETE CASCADE
             )",
             "participations (
                 id $id,

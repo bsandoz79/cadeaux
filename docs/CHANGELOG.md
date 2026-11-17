@@ -2,6 +2,12 @@
 
 ## [Non publié]
 
+### Ajouté
+- « M'envoyer un e-mail de test » dans Mon compte (3 par quart d'heure).
+
+### Modifié (appli)
+- L'appli installée efface d'elle-même les fichiers des anciennes versions du site à chaque mise à jour.
+
 ### Ajouté (compte)
 - Confirmation de l'adresse e-mail à l'inscription (lien valable 7 jours, « Renvoyer l'e-mail » sur l'accueil) ; les rappels ne partent qu'à une adresse confirmée.
 - Mot de passe oublié : lien valable 1 heure, toutes les connexions fermées après le changement.

@@ -1,18 +1,37 @@
 // Service de l'appli installée : l'écran s'ouvre même sans réseau (dernière version connue du site),
 // les données viennent toujours du serveur (rien n'est gardé hors ligne). Les appels à /api ne passent pas par ici.
-const CACHE = 'cadeaux-v1';
+const CACHE = 'cadeaux-v2';
 
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (e) => {
   e.waitUntil(caches.keys().then((cles) => Promise.all(cles.filter((c) => c !== CACHE).map((c) => caches.delete(c)))).then(() => self.clients.claim()));
 });
 
+/**
+ * Nouvelle page d'accueil reçue : elle est gardée, et les fichiers de /assets/ qu'elle n'utilise plus (versions
+ * précédentes du site) sont effacés, pour ne pas encombrer le téléphone.
+ */
+async function garderVersion(reponse) {
+  const html = await reponse.clone().text();
+  const utiles = new Set([...html.matchAll(/\/assets\/[^"'\s)]+/g)].map((m) => m[0]));
+  const cache = await caches.open(CACHE);
+  await cache.put('/', reponse);
+  for (const requete of await cache.keys()) {
+    const chemin = new URL(requete.url).pathname;
+    // Les fichiers chargés par d'autres fichiers (pages chargées à la demande) se retrouvent au besoin.
+    if (chemin.startsWith('/assets/') && !utiles.has(chemin)) await cache.delete(requete);
+  }
+}
+
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== location.origin || url.pathname.startsWith('/api/')) return;
   // Pages : le réseau d'abord, la dernière version gardée sinon.
   if (e.request.mode === 'navigate') {
-    e.respondWith(fetch(e.request).then((r) => { const copie = r.clone(); caches.open(CACHE).then((c) => c.put('/', copie)); return r; }).catch(() => caches.match('/')));
+    e.respondWith(fetch(e.request).then((r) => {
+      if (r.ok && url.pathname === '/') e.waitUntil(garderVersion(r.clone()));
+      return r;
+    }).catch(() => caches.match('/')));
     return;
   }
   // Fichiers du site (noms qui changent à chaque version) : gardés après le premier chargement.

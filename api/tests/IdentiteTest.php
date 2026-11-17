@@ -46,6 +46,19 @@ final class IdentiteTest extends ApiTestCase
         self::assertSame(200, $this->appel('POST', '/email/confirmer', ['jeton' => $dernier])->statut);
     }
 
+    public function testEmailDeTest(): void
+    {
+        $jeton = $this->inscrire();
+        $this->courriels = [];
+        $r = $this->appel('POST', '/moi/email-test', [], $jeton);
+        self::assertSame('E-mail de test envoyé à baptiste@example.com.', $r->donnees['message']);
+        self::assertSame(['baptiste@example.com', 'E-mail de test'], [$this->courriels[0]['a'], $this->courriels[0]['sujet']]);
+        $this->appel('POST', '/moi/email-test', [], $jeton);
+        $this->appel('POST', '/moi/email-test', [], $jeton);
+        self::assertSame(429, $this->appel('POST', '/moi/email-test', [], $jeton)->statut);
+        self::assertSame(401, $this->appel('POST', '/moi/email-test')->statut);
+    }
+
     public function testMotDePasseOublie(): void
     {
         $ancien = $this->inscrire();

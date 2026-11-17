@@ -3,6 +3,9 @@
 ## [Non publié]
 
 ### Ajouté (RGPD)
+- Comptes inactifs : e-mail d'avertissement après près de 3 ans sans activité, puis suppression du compte et de toutes ses données 30 jours plus tard si l'utilisateur ne revient pas. Tâche quotidienne `api/bin/menage.php`, qui efface aussi les connexions expirées.
+
+### Ajouté (RGPD)
 - « Télécharger mes données » dans Mon compte : un fichier JSON avec le compte, les proches, les occasions, les cadeaux et les cagnottes avec leurs participations.
 
 ### Sécurité

@@ -7,7 +7,7 @@ Hébergement : o2switch (France).
 
 | Donnée | Personnes concernées | Finalité | Base légale | Conservation | Qui y accède |
 |---|---|---|---|---|---|
-| E-mail, prénom, mot de passe haché | Utilisateur | Compte et connexion | Contrat (conditions d'utilisation) | Jusqu'à la suppression du compte | L'utilisateur |
+| E-mail, prénom, mot de passe haché | Utilisateur | Compte et connexion | Contrat (conditions d'utilisation) | Jusqu'à la suppression du compte, au plus 3 ans sans activité | L'utilisateur |
 | Empreinte des jetons de connexion, date de dernière utilisation | Utilisateur | Rester connecté | Contrat | 90 jours sans utilisation, ou jusqu'à la déconnexion | Personne (empreinte seulement) |
 | Date de dernière activité du compte | Utilisateur | Supprimer les comptes inactifs | Intérêt légitime (minimisation) | Comme le compte | Personne |
 | Adresse IP et adresse e-mail des essais de connexion ratés ; adresse IP des parts ajoutées par lien | Utilisateur, tiers | Sécurité (force brute, abus) | Intérêt légitime | 15 minutes | Personne |
@@ -20,11 +20,11 @@ Hébergement : o2switch (France).
 ## Ce qui est en place
 - Aucun cookie, aucun traceur, aucune mesure d'audience, aucun service tiers : rien qui demande un bandeau de consentement. Le jeton de connexion est gardé dans le navigateur (strictement nécessaire).
 - Suppression du compte par l'utilisateur, qui efface toutes ses données et ses cagnottes.
+- Comptes inactifs : e-mail d'avertissement après près de 3 ans sans activité, suppression complète 30 jours plus tard si l'utilisateur ne revient pas (tâche quotidienne `api/bin/menage.php`).
 - Export de toutes les données du compte en un fichier JSON (« Mon compte », droit d'accès et de portabilité).
 - Participants à une cagnotte : prénom seulement, pas de compte, part modifiable et retirable par eux.
 - Pas de paiement : aucune donnée bancaire.
 
 ## Points à traiter
 - Page « Politique de confidentialité » et « Mentions légales » sur le site (obligatoires).
-- Durée de conservation des comptes inactifs (proposition : suppression après 3 ans sans connexion, avec un e-mail d'avertissement).
 - Information des participants sur la page de cagnotte : qui voit leur prénom et comment le retirer.

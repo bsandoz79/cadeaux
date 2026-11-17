@@ -12,7 +12,7 @@ namespace Cadeaux;
 final class Schema
 {
     /** À augmenter à chaque changement des tables. */
-    public const VERSION = 1;
+    public const VERSION = 2;
 
     public static function installer(\PDO $pdo): void
     {
@@ -27,13 +27,16 @@ final class Schema
                 email VARCHAR(190) NOT NULL UNIQUE,
                 nom VARCHAR(80) NOT NULL,
                 mot_de_passe VARCHAR(255) NOT NULL,
-                cree_le VARCHAR(19) NOT NULL
+                cree_le VARCHAR(19) NOT NULL,
+                derniere_activite VARCHAR(19) NULL,
+                averti_le VARCHAR(19) NULL
             )",
             "jetons (
                 id $id,
                 compte_id $ref NOT NULL,
                 empreinte CHAR(64) NOT NULL UNIQUE,
                 cree_le VARCHAR(19) NOT NULL,
+                utilise_le VARCHAR(19) NULL,
                 FOREIGN KEY (compte_id) REFERENCES comptes(id) ON DELETE CASCADE
             )",
             "tentatives (
@@ -106,5 +109,24 @@ final class Schema
         foreach ($tables as $table) {
             $pdo->exec("CREATE TABLE IF NOT EXISTS $table$fin");
         }
+
+        // Colonnes ajoutées après la première version : ajoutées aux bases déjà en ligne.
+        $ajouts = [
+            ['comptes', 'derniere_activite', 'VARCHAR(19) NULL'], // v2
+            ['comptes', 'averti_le', 'VARCHAR(19) NULL'],         // v2
+            ['jetons', 'utilise_le', 'VARCHAR(19) NULL'],         // v2
+        ];
+        foreach ($ajouts as [$table, $colonne, $type]) {
+            if (!self::colonneExiste($pdo, $table, $colonne, $mysql)) {
+                $pdo->exec("ALTER TABLE $table ADD COLUMN $colonne $type");
+            }
+        }
+    }
+
+    private static function colonneExiste(\PDO $pdo, string $table, string $colonne, bool $mysql): bool
+    {
+        $lignes = $pdo->query($mysql ? "SHOW COLUMNS FROM $table" : "PRAGMA table_info($table)")->fetchAll(\PDO::FETCH_ASSOC);
+
+        return in_array($colonne, array_column($lignes, $mysql ? 'Field' : 'name'), true);
     }
 }

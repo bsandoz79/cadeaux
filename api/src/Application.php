@@ -125,7 +125,7 @@ final class Application
 
         // Lien partagé, sans compte
         $r->ajouter('GET', '/c/{code}', fn (Requete $q, string $code) => Reponse::ok($this->cagnottes->publique($code)));
-        $r->ajouter('POST', '/c/{code}/participations', fn (Requete $q, string $code) => Reponse::cree($this->cagnottes->participer($code, $q->corps)));
+        $r->ajouter('POST', '/c/{code}/participations', fn (Requete $q, string $code) => Reponse::cree($this->cagnottes->participer($code, $q->corps, $q->ip)));
         $r->ajouter('PATCH', '/c/{code}/participations/{pid}', fn (Requete $q, string $code, string $pid) => Reponse::ok(
             $this->cagnottes->modifierSaPart($code, (int) $pid, $q->entete('x-cle-participation'), $q->corps),
         ));

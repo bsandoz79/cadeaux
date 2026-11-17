@@ -2,6 +2,11 @@
 
 ## [Non publié]
 
+### Sécurité
+- Une connexion inutilisée pendant 90 jours expire ; chaque visite la prolonge et note la dernière activité du compte.
+- Lien de cagnotte protégé contre les abus : 10 parts par adresse IP et par quart d'heure, 100 parts au plus par cagnotte.
+- Mise à jour automatique d'une base déjà en ligne (colonnes ajoutées au premier appel).
+
 ### Documentation
 - Sécurité (`docs/securite.md`) : mesures en place, permissions de l'extension, points à traiter.
 - RGPD (`docs/rgpd.md`) : registre des traitements (données, finalité, base légale, conservation, accès) et points à traiter.

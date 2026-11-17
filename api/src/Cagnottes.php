@@ -14,10 +14,18 @@ use Cadeaux\Http\ErreurHttp;
  */
 final class Cagnottes
 {
+    /** Parts ajoutées depuis le lien par une même adresse IP, par quart d'heure. */
+    public const PARTS_PAR_IP = 10;
+    /** Parts au plus dans une cagnotte. */
+    public const PARTS_MAX = 100;
+
+    private readonly Limiteur $limiteur;
+
     public function __construct(
         private readonly \PDO $pdo,
         private readonly Horloge $horloge,
     ) {
+        $this->limiteur = new Limiteur($pdo, $horloge);
     }
 
     /** @return array<string, mixed> cagnotte vue par les participants */
@@ -48,13 +56,18 @@ final class Cagnottes
      *
      * @return array{participation: array<string, mixed>, cle: string}
      */
-    public function participer(string $code, array $donnees): array
+    public function participer(string $code, array $donnees, string $ip): array
     {
         $c = $this->parCode($code);
         if ($c['close']) {
             throw new ErreurHttp(409, 'Cette cagnotte est close.');
         }
+        if ($this->limiteur->depasse('part:' . $ip, self::PARTS_PAR_IP)) {
+            throw new ErreurHttp(429, 'Trop de parts ajoutées d’un coup. Réessayez dans un quart d’heure.');
+        }
+        $this->verifierPlace((int) $c['id']);
         [$nom, $montant] = $this->validerPart($donnees);
+        $this->limiteur->noter('part:' . $ip);
         $cle = bin2hex(random_bytes(32));
         $id = $this->inserer((int) $c['id'], $nom, $montant, false, hash('sha256', $cle));
 
@@ -107,6 +120,7 @@ final class Cagnottes
     public function ajouterParOrganisateur(int $compteId, int $cagnotteId, array $donnees): array
     {
         $this->cagnotteDuCompte($compteId, $cagnotteId);
+        $this->verifierPlace($cagnotteId);
         [$nom, $montant] = $this->validerPart($donnees);
         $id = $this->inserer($cagnotteId, $nom, $montant, (bool) ($donnees['paye'] ?? false), null, (bool) ($donnees['organisateur'] ?? false));
 
@@ -135,6 +149,15 @@ final class Cagnottes
         $this->cagnotteDuCompte($compteId, $cagnotteId);
         $this->participation($cagnotteId, $id);
         $this->pdo->prepare('DELETE FROM participations WHERE id = ?')->execute([$id]);
+    }
+
+    private function verifierPlace(int $cagnotteId): void
+    {
+        $requete = $this->pdo->prepare('SELECT COUNT(*) FROM participations WHERE cagnotte_id = ?');
+        $requete->execute([$cagnotteId]);
+        if ((int) $requete->fetchColumn() >= self::PARTS_MAX) {
+            throw new ErreurHttp(409, sprintf('Cette cagnotte a atteint %d participations.', self::PARTS_MAX));
+        }
     }
 
     public static function nouveauCode(): string

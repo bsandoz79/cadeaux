@@ -108,6 +108,21 @@ describe('mot de passe et adresse', () => {
   });
 });
 
+describe('proches', () => {
+  it('« Cadeau d’anniversaire » crée l’occasion du prochain anniversaire et ouvre le formulaire pour ce proche', async () => {
+    etat.personnes = [{ id: 7, nom: 'Léa', dateNaissance: '1996-12-24', note: null }];
+    preparer('/proches');
+    const { appels } = installerFausseApi(etat);
+    ouvrir();
+    const u = userEvent.setup();
+    await u.click(await screen.findByRole('button', { name: 'Cadeau d’anniversaire' }));
+    const creation = appels.find((a) => a.methode === 'POST' && a.chemin === '/occasions');
+    expect(creation?.corps).toMatchObject({ type: 'anniversaire', titre: expect.stringMatching(/^Anniversaire de Léa \(\d+ ans\)$/), date: expect.stringMatching(/-12-24$/) });
+    expect((await screen.findAllByLabelText('Pour qui'))[0]).toHaveValue('7');
+    expect(screen.getByRole('button', { name: 'Ajouter' })).toBeInTheDocument();
+  });
+});
+
 describe('occasion', () => {
   beforeEach(() => {
     etat.personnes = [{ id: 7, nom: 'Papa', dateNaissance: null, note: null }];

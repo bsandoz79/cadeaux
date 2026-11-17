@@ -5,7 +5,7 @@ import { euros } from '../calculs/argent';
 import { aujourdhui, bilanAnnee, dateLisible, delai, prochainsAnniversaires } from '../calculs/bilan';
 import { Chiffre, Jauge, Lien } from '../components/commun';
 import { useDonnees } from '../donnees/contexte';
-import { aller } from '../navigation';
+import { usePreparerAnniversaire } from '../donnees/usePreparerAnniversaire';
 import styles from './pages.module.css';
 
 /** Accueil du compte : budget de l'année, anniversaires et occasions à venir, cagnottes en cours. */
@@ -17,21 +17,7 @@ export function TableauDeBord() {
   const anniversaires = prochainsAnniversaires(d.personnes, jour);
   const aVenir = d.occasions.filter((o) => o.date >= jour).sort((a, b) => a.date.localeCompare(b.date)).slice(0, 5);
   const cagnottes = d.cagnottes.filter((c) => !c.close);
-  const [prepare, setPrepare] = useState<number | null>(null);
-
-  /** Crée l'occasion « Anniversaire de … » à la bonne date, ou ouvre celle qui existe déjà. */
-  const preparer = async (personneId: number, nom: string, date: string, age: number) => {
-    const titre = `Anniversaire de ${nom} (${age} ans)`;
-    const existante = d.occasions.find((o) => o.type === 'anniversaire' && o.date === date && o.titre.startsWith(`Anniversaire de ${nom}`));
-    if (existante) return aller(`/occasions/${existante.id}`);
-    setPrepare(personneId);
-    try {
-      const o = await d.ajouter('occasions', { type: 'anniversaire', titre, date });
-      aller(`/occasions/${o.id}?pour=${personneId}`);
-    } finally {
-      setPrepare(null);
-    }
-  };
+  const { preparer, enCours: prepare } = usePreparerAnniversaire();
 
   return (
     <div className={styles.pile}>
@@ -68,7 +54,7 @@ export function TableauDeBord() {
                     <div className={styles.discret}>{dateLisible(a.date, true)}, {delai(a.dans)}</div>
                   </div>
                   <button type="button" className="btn btn--petit btn--contour" disabled={prepare === a.personne.id}
-                    onClick={() => preparer(a.personne.id, a.personne.nom, a.date, a.age)}>
+                    onClick={() => preparer(a.personne)}>
                     Préparer
                   </button>
                 </li>

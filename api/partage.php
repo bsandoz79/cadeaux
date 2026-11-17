@@ -40,5 +40,5 @@ if ($g === null) {
     echo $modele;
     exit;
 }
-$site = 'https://' . preg_replace('/[^a-z0-9.\-]/i', '', (string) ($_SERVER['HTTP_HOST'] ?? 'cadeaux.bsandoz.fr'));
+$site = 'https://' . preg_replace('/[^a-z0-9.:\-]/i', '', (string) ($_SERVER['HTTP_HOST'] ?? 'cadeaux.bsandoz.fr'));
 echo Apercu::html($modele, $g, $site);

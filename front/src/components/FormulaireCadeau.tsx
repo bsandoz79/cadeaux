@@ -43,6 +43,7 @@ export function FormulaireCadeau({ cadeau = {}, avecOccasion = false, onFini }: 
       statut: f.get('statut') as Cadeau['statut'],
       lien: String(f.get('lien') ?? '') || null,
       note: String(f.get('note') ?? '') || null,
+      cagnotteId: f.get('cagnotteId') ? Number(f.get('cagnotteId')) : null,
     };
     if (existant) await d.modifier('cadeaux', cadeau.id!, donnees);
     else await d.ajouter('cadeaux', { ...donnees, image: cadeau.image ?? null });
@@ -69,7 +70,7 @@ export function FormulaireCadeau({ cadeau = {}, avecOccasion = false, onFini }: 
           <ul style={{ marginTop: '.5rem', display: 'grid', gap: '.25rem' }}>
             {passes.slice(0, 10).map((p) => (
               <li key={p.cadeau.id}>
-                <strong>{p.cadeau.titre}</strong> · {p.occasion.titre}{coutCadeau(p.cadeau) ? ` · ${euros(coutCadeau(p.cadeau))}` : ''}
+                <strong>{p.cadeau.titre}</strong> · {p.occasion.titre}{coutCadeau(p.cadeau, d.cagnottes) ? ` · ${euros(coutCadeau(p.cadeau, d.cagnottes))}` : ''}
               </li>
             ))}
           </ul>
@@ -93,6 +94,12 @@ export function FormulaireCadeau({ cadeau = {}, avecOccasion = false, onFini }: 
         <div className="formulaire" style={{ marginTop: '.8rem' }}>
           <Champ libelle="Lien vers le produit" nom="lien" type="url" inputMode="url" defaultValue={cadeau.lien ?? ''} placeholder="https://" erreur={champs.lien} />
           <Champ libelle="Note" nom="note" defaultValue={cadeau.note ?? ''} placeholder="Taille, couleur, où l’acheter…" erreur={champs.note} />
+          {d.cagnottes.length > 0 && (
+            <Choix libelle="Payé à plusieurs avec une cagnotte" nom="cagnotteId" defaultValue={cadeau.cagnotteId ?? ''} erreur={champs.cagnotteId}>
+              <option value="">Non</option>
+              {d.cagnottes.map((g) => <option key={g.id} value={g.id}>{g.titre} (pour {g.beneficiaire})</option>)}
+            </Choix>
+          )}
         </div>
       </details>
       {erreur && <p className="erreur" role="alert">{erreur}</p>}

@@ -51,7 +51,7 @@ export function Occasions() {
       <Depliable bouton="Nouvelle occasion">{(fermer) => <FormulaireOccasion onFini={fermer} />}</Depliable>
       {d.occasions.length === 0 && <p className="vide">Pas encore d’occasion. Commencez par Noël ou le prochain anniversaire.</p>}
       {[...parAnnee].map(([annee, occasions]) => {
-        const totalAnnee = occasions.reduce((s, o) => s + d.cadeaux.filter((c) => c.occasionId === o.id).reduce((t, c) => t + coutCadeau(c), 0), 0);
+        const totalAnnee = occasions.reduce((s, o) => s + d.cadeaux.filter((c) => c.occasionId === o.id).reduce((t, c) => t + coutCadeau(c, d.cagnottes), 0), 0);
         return (
           <section key={annee} className={`carte ${styles.section}`} aria-labelledby={`annee-${annee}`}>
             <div className={styles.titreAvecAction}>
@@ -67,7 +67,7 @@ export function Occasions() {
                       <Lien href={`/occasions/${o.id}`}><strong>{o.titre}</strong></Lien>
                       <div className={styles.discret}>{libelleType(o.type)} · {dateLisible(o.date)} · {cadeaux.length} cadeau{cadeaux.length > 1 ? 'x' : ''}</div>
                     </div>
-                    <strong className="chiffre">{euros(cadeaux.reduce((s, c) => s + coutCadeau(c), 0))}</strong>
+                    <strong className="chiffre">{euros(cadeaux.reduce((s, c) => s + coutCadeau(c, d.cagnottes), 0))}</strong>
                   </li>
                 );
               })}

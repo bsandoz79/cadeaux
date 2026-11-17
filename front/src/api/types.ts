@@ -22,6 +22,8 @@ export interface Cadeau {
   lien: string | null;
   image: string | null;
   note: string | null;
+  /** Payé à plusieurs : seule ma part de cette cagnotte compte. */
+  cagnotteId: number | null;
   creeLe: string;
 }
 

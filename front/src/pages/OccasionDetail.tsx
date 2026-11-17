@@ -22,8 +22,8 @@ export function OccasionDetail({ id }: { id: number }) {
   if (!occasion) return <p className="vide">Cette occasion n’existe pas ou a été supprimée. <Lien href="/occasions">Toutes les occasions</Lien></p>;
 
   const cadeaux = d.cadeaux.filter((c) => c.occasionId === id);
-  const depense = cadeaux.filter(estDepense).reduce((s, c) => s + coutCadeau(c), 0);
-  const prevu = cadeaux.filter((c) => !estDepense(c)).reduce((s, c) => s + coutCadeau(c), 0);
+  const depense = cadeaux.filter(estDepense).reduce((s, c) => s + coutCadeau(c, d.cagnottes), 0);
+  const prevu = cadeaux.filter((c) => !estDepense(c)).reduce((s, c) => s + coutCadeau(c, d.cagnottes), 0);
   const pour = Number(new URLSearchParams(window.location.search).get('pour')) || undefined;
 
   // La même occasion l'an dernier (ou la plus récente avant celle-ci), pour reprendre les mêmes personnes et montants.
@@ -37,7 +37,7 @@ export function OccasionDetail({ id }: { id: number }) {
     setOccupe(true);
     try {
       for (const c of d.cadeaux.filter((x) => x.occasionId === precedente.id)) {
-        await d.ajouter('cadeaux', { titre: c.titre, personneId: c.personneId, occasionId: id, montantPrevu: coutCadeau(c) || null, statut: 'prevu' });
+        await d.ajouter('cadeaux', { titre: c.titre, personneId: c.personneId, occasionId: id, montantPrevu: coutCadeau(c, d.cagnottes) || null, statut: 'prevu' });
       }
       for (const b of d.budgets.filter((x) => x.occasionId === precedente.id)) {
         await d.ajouter('budgets', { occasionId: id, personneId: b.personneId, montant: b.montant });
@@ -100,9 +100,9 @@ export function OccasionDetail({ id }: { id: number }) {
 
       {groupes.map((g) => (
         <section key={g.pid ?? 'sans'} className={styles.groupe} aria-label={g.nom}>
-          <h3>{g.nom} · {euros(g.cadeaux.reduce((s, c) => s + coutCadeau(c), 0))}</h3>
+          <h3>{g.nom} · {euros(g.cadeaux.reduce((s, c) => s + coutCadeau(c, d.cagnottes), 0))}</h3>
           {g.pid !== null && (
-            <LigneBudget occasionId={id} personneId={g.pid} nom={g.nom} budget={g.budget} utilise={g.cadeaux.reduce((s, c) => s + coutCadeau(c), 0)} />
+            <LigneBudget occasionId={id} personneId={g.pid} nom={g.nom} budget={g.budget} utilise={g.cadeaux.reduce((s, c) => s + coutCadeau(c, d.cagnottes), 0)} />
           )}
           {g.cadeaux.map((c) => <CarteCadeau key={c.id} cadeau={c} />)}
           {g.cadeaux.length === 0 && <p className={styles.discret}>Pas encore de cadeau pour {g.nom}.</p>}

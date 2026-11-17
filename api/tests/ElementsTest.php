@@ -65,6 +65,21 @@ final class ElementsTest extends ApiTestCase
         self::assertArrayHasKey('personneId', $r->donnees['champs']);
     }
 
+    public function testUnCadeauPayeAvecUneCagnotte(): void
+    {
+        $jeton = $this->inscrire();
+        $g = $this->appel('POST', '/cagnottes', ['titre' => 'Montre', 'beneficiaire' => 'Papa', 'objectif' => 15000], $jeton)->donnees;
+        $c = $this->appel('POST', '/cadeaux', ['titre' => 'Montre', 'statut' => 'achete', 'cagnotteId' => $g['id']], $jeton)->donnees;
+        self::assertSame($g['id'], $c['cagnotteId']);
+
+        $autre = $this->inscrire('autre@example.com', 'Autre');
+        $sienne = $this->appel('POST', '/cagnottes', ['titre' => 'X', 'beneficiaire' => 'Y', 'objectif' => 100], $autre)->donnees;
+        self::assertSame(422, $this->appel('PATCH', '/cadeaux/' . $c['id'], ['cagnotteId' => $sienne['id']], $jeton)->statut);
+
+        $this->appel('DELETE', '/cagnottes/' . $g['id'], [], $jeton);
+        self::assertNull($this->appel('GET', '/cadeaux', [], $jeton)->donnees[0]['cagnotteId']);
+    }
+
     public function testSupprimerUnProcheGardeSesCadeaux(): void
     {
         $jeton = $this->inscrire();

@@ -107,6 +107,10 @@ final class Application
                 if ($chemin === 'envies') {
                     $this->envies->apresSuppression((int) $id);
                 }
+                if ($chemin === 'cagnottes') {
+                    // Le cadeau reste, sans cagnotte (MySQL le ferait seul pour une clé étrangère ; la colonne ajoutée en v5 n'en a pas).
+                    $this->pdo->prepare('UPDATE cadeaux SET cagnotte_id = NULL WHERE cagnotte_id = ?')->execute([(int) $id]);
+                }
 
                 return Reponse::vide();
             });
@@ -256,6 +260,8 @@ final class Application
                 'lien' => ['colonne' => 'lien', 'type' => 'url'],
                 'image' => ['colonne' => 'image', 'type' => 'url'],
                 'note' => ['colonne' => 'note', 'type' => 'texte', 'max' => 500],
+                // Cadeau payé à plusieurs : seule la part de l'organisateur dans cette cagnotte compte dans le bilan.
+                'cagnotteId' => ['colonne' => 'cagnotte_id', 'type' => 'ref', 'table' => 'cagnottes'],
                 'creeLe' => ['colonne' => 'cree_le', 'type' => 'lecture'],
             ], 'id DESC'),
             'envies' => new Collection($pdo, 'envies', [

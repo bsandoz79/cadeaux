@@ -3,6 +3,7 @@
 ## [Non publié]
 
 ### Ajouté
+- Cadeau payé à plusieurs : un cadeau peut être rattaché à une cagnotte (« Payé à plusieurs avec une cagnotte ») ; il coûte alors la part de l'organisateur, comptée au nom du proche et de l'occasion, sans double compte dans le bilan. L'extension rattache automatiquement le cadeau à la cagnotte qu'elle crée.
 - Extension : option « Après mes achats sur Amazon, me demander « C'est un cadeau ? » » (autorisation demandée à l'activation) : le produit commandé est noté acheté pour le proche choisi, puis cagnotte proposée avec envoi par WhatsApp ou SMS. Choix « pour moi » qui ajoute à la liste d'envies. Voir `docs/fonctionnalites/extension-achat-amazon.md`.
 - Liste d'envies partagée par lien : les proches réservent « Je m'en occupe » sans compte, les autres voient que c'est pris, le propriétaire ne voit jamais les réservations. Voir `docs/fonctionnalites/liste-envies.md`.
 - « Déjà offert » : dans le formulaire d'un cadeau, ce qui a déjà été offert au proche choisi, et un avertissement si le cadeau ressemble à un ancien. Voir `docs/fonctionnalites/deja-offert.md`.

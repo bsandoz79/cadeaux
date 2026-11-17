@@ -12,3 +12,4 @@ api/.phpunit.cache
 
 # Notes de travail locales, non publiées
 CLAUDE.md
+api/.phpunit.result.cache

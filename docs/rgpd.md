@@ -20,11 +20,11 @@ Hébergement : o2switch (France).
 ## Ce qui est en place
 - Aucun cookie, aucun traceur, aucune mesure d'audience, aucun service tiers : rien qui demande un bandeau de consentement. Le jeton de connexion est gardé dans le navigateur (strictement nécessaire).
 - Suppression du compte par l'utilisateur, qui efface toutes ses données et ses cagnottes.
+- Export de toutes les données du compte en un fichier JSON (« Mon compte », droit d'accès et de portabilité).
 - Participants à une cagnotte : prénom seulement, pas de compte, part modifiable et retirable par eux.
 - Pas de paiement : aucune donnée bancaire.
 
 ## Points à traiter
 - Page « Politique de confidentialité » et « Mentions légales » sur le site (obligatoires).
-- Export des données du compte (droit d'accès et de portabilité).
 - Durée de conservation des comptes inactifs (proposition : suppression après 3 ans sans connexion, avec un e-mail d'avertissement).
 - Information des participants sur la page de cagnotte : qui voit leur prénom et comment le retirer.

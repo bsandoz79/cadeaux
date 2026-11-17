@@ -2,6 +2,9 @@
 
 ## [Non publié]
 
+### Ajouté (RGPD)
+- « Télécharger mes données » dans Mon compte : un fichier JSON avec le compte, les proches, les occasions, les cadeaux et les cagnottes avec leurs participations.
+
 ### Sécurité
 - Une connexion inutilisée pendant 90 jours expire ; chaque visite la prolonge et note la dernière activité du compte.
 - Lien de cagnotte protégé contre les abus : 10 parts par adresse IP et par quart d'heure, 100 parts au plus par cagnotte.

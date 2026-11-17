@@ -20,6 +20,7 @@
 | Secrets | `config.local.php` jamais versionné, écrit au déploiement depuis les secrets GitHub | `.github/workflows/deploy.yml` |
 | En-têtes | `nosniff`, `Referrer-Policy`, `X-Frame-Options: DENY`, `Permissions-Policy`, `Cache-Control: no-store` sur l'API, HTTPS imposé | `front/public/.htaccess`, `Http/Reponse.php` |
 | Appli installée | `sw.js` ne garde que les fichiers du site (pages et `/assets/`), jamais les réponses de l'API ni les données ; servi sans cache pour que chaque mise à jour soit prise | `front/public/sw.js` |
+| Aperçu des liens | `/c/{code}` est servi par `api/partage.php` : code vérifié (16 caractères hexadécimaux), textes échappés, seulement titre, bénéficiaire, objectif et total (pas les participants) ; image mise en cache 10 minutes | `api/partage.php`, `Apercu.php` |
 | CSP | Site : seul le code du site s'exécute (`script-src 'self'`, aucun script en ligne), styles du site seulement (attributs `style` permis pour les barres), images en https, appels réseau vers le site seulement, pas d'affichage dans un cadre. API : `default-src 'none'`. Vérifié dans Chrome sur 11 pages : aucune violation. | `front/public/.htaccess`, `Http/Reponse.php` |
 
 ## Extension Chrome : permissions

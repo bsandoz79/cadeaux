@@ -80,7 +80,7 @@ final class Comptes
             throw new ErreurHttp(429, 'Trop d’essais. Réessayez dans un quart d’heure.');
         }
 
-        $requete = $this->pdo->prepare('SELECT id, mot_de_passe FROM comptes WHERE email = ?');
+        $requete = $this->pdo->prepare('SELECT id, mot_de_passe, bloque FROM comptes WHERE email = ?');
         $requete->execute([$email]);
         $ligne = $requete->fetch(\PDO::FETCH_ASSOC);
 
@@ -92,6 +92,9 @@ final class Comptes
         }
 
         $id = (int) $ligne['id'];
+        if ((bool) $ligne['bloque']) {
+            throw new ErreurHttp(403, 'Compte bloqué par sécurité : choisissez un nouveau mot de passe avec le lien reçu par e-mail (ou « Mot de passe oublié ? »).');
+        }
         if (password_needs_rehash((string) $ligne['mot_de_passe'], PASSWORD_DEFAULT)) {
             $this->pdo->prepare('UPDATE comptes SET mot_de_passe = ? WHERE id = ?')
                 ->execute([password_hash($motDePasse, PASSWORD_DEFAULT), $id]);
@@ -186,7 +189,7 @@ final class Comptes
     /** Supprime le compte et tout ce qui lui appartient. */
     public function supprimer(int $id): void
     {
-        foreach (['reservations' => 'envie_id IN (SELECT id FROM envies WHERE compte_id = ?)', 'envies' => 'compte_id = ?', 'listes' => 'compte_id = ?', 'rappels_envoyes' => 'compte_id = ?', 'liens' => 'compte_id = ?', 'participations' => 'cagnotte_id IN (SELECT id FROM cagnottes WHERE compte_id = ?)', 'cagnottes' => 'compte_id = ?', 'cadeaux' => 'compte_id = ?', 'budgets' => 'compte_id = ?', 'occasions' => 'compte_id = ?', 'personnes' => 'compte_id = ?', 'jetons' => 'compte_id = ?', 'comptes' => 'id = ?'] as $table => $condition) {
+        foreach (['reservations' => 'envie_id IN (SELECT id FROM envies WHERE compte_id = ?)', 'envies' => 'compte_id = ?', 'listes' => 'compte_id = ?', 'rappels_envoyes' => 'compte_id = ?', 'liens' => 'compte_id = ?', 'changements_email' => 'compte_id = ?', 'appareils' => 'compte_id = ?', 'participations' => 'cagnotte_id IN (SELECT id FROM cagnottes WHERE compte_id = ?)', 'cagnottes' => 'compte_id = ?', 'cadeaux' => 'compte_id = ?', 'budgets' => 'compte_id = ?', 'occasions' => 'compte_id = ?', 'personnes' => 'compte_id = ?', 'jetons' => 'compte_id = ?', 'comptes' => 'id = ?'] as $table => $condition) {
             $this->pdo->prepare("DELETE FROM $table WHERE $condition")->execute([$id]);
         }
     }

@@ -31,12 +31,12 @@ export function NouveauMotDePasse({ jeton }: { jeton: string }) {
 /** Lien de confirmation d'adresse (inscription ou changement d'adresse). */
 export function ConfirmerEmail({ jeton }: { jeton: string }) {
   const d = useDonnees();
-  const [etat, setEtat] = useState<{ ok: true; email: string; type: string } | { ok: false; message: string } | null>(null);
+  const [etat, setEtat] = useState<{ ok: true; email: string; type: string; le?: string | null } | { ok: false; message: string } | null>(null);
   const deja = useRef(false); // un lien ne sert qu'une fois : pas de deuxième appel (mode strict de React)
   useEffect(() => {
     if (deja.current) return;
     deja.current = true;
-    api<{ type: string; email: string }>('POST', '/email/confirmer', { jeton }).then(
+    api<{ type: string; email: string; le?: string | null }>('POST', '/email/confirmer', { jeton }).then(
       (r) => { setEtat({ ok: true, ...r }); if (d.compte) void d.recharger(); },
       (e: Error) => setEtat({ ok: false, message: e.message }),
     );
@@ -48,10 +48,18 @@ export function ConfirmerEmail({ jeton }: { jeton: string }) {
       {!etat ? <p className={styles.discret}>Vérification…</p>
         : etat.ok ? (
           <p style={{ color: 'var(--c-vert)', fontWeight: 600 }}>
-            {etat.type === 'email' ? `C’est fait : votre adresse est maintenant ${etat.email}.` : `Merci, votre adresse ${etat.email} est confirmée.`}
+            {etat.type !== 'email' ? `Merci, votre adresse ${etat.email} est confirmée.`
+              : etat.le ? `Adresse vérifiée. Par sécurité, elle remplacera l’ancienne le ${dateHeure(etat.le)}, sauf si le changement est annulé depuis l’ancienne adresse.`
+              : `C’est fait : votre adresse est maintenant ${etat.email}.`}
           </p>
         ) : <p className="erreur">{etat.message}</p>}
       <p><Lien href="/">Aller à l’accueil</Lien></p>
     </section>
   );
+}
+
+/** « 19 novembre à 10:00 » (heure de l'appareil), depuis « AAAA-MM-JJ HH:MM:SS » UTC. */
+function dateHeure(utc: string): string {
+  const d = new Date(`${utc.replace(' ', 'T')}Z`);
+  return `${d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })} à ${d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
 }

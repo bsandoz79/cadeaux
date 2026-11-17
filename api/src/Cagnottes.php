@@ -47,7 +47,11 @@ final class Cagnottes
             'message' => $c['message'],
             'close' => (bool) $c['close'],
             // RIB : seulement le titulaire ici ; l'IBAN se demande à part (GET /c/{code}/rib).
-            'rib' => !$c['close'] && $c['rib_iban'] !== null ? ['titulaire' => $c['rib_titulaire']] : null,
+            'rib' => !$c['close'] && $c['rib_iban'] !== null ? [
+                'titulaire' => $c['rib_titulaire'],
+                // Ajouté ou changé depuis moins de 48 h : les participants sont invités à vérifier avant de virer.
+                'recent' => $c['rib_le'] !== null && $c['rib_le'] > $this->horloge->maintenant()->modify('-48 hours')->format('Y-m-d H:i:s'),
+            ] : null,
             'organisateur' => (string) $organisateur->fetchColumn(),
             'participations' => $this->participations((int) $c['id']),
         ];

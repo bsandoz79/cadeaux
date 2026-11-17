@@ -28,6 +28,20 @@ export const jeton = {
   },
 };
 
+/** Identifiant aléatoire de ce navigateur, envoyé à la connexion : un appareil inconnu déclenche un e-mail. */
+function appareil(): string {
+  try {
+    let id = localStorage.getItem('cadeaux.appareil');
+    if (!id) {
+      id = crypto.randomUUID();
+      localStorage.setItem('cadeaux.appareil', id);
+    }
+    return id;
+  } catch {
+    return '';
+  }
+}
+
 /** Prévenu quand le jeton n'est plus valable (déconnexion depuis un autre appareil, compte supprimé). */
 let surDeconnexion: () => void = () => {};
 export const quandDeconnecte = (f: () => void) => { surDeconnexion = f; };
@@ -42,6 +56,7 @@ export async function api<T>(methode: string, chemin: string, corps?: unknown, e
         Accept: 'application/json',
         ...(corps === undefined ? {} : { 'Content-Type': 'application/json' }),
         ...(j ? { Authorization: `Bearer ${j}` } : {}),
+        ...(chemin === '/connexion' || chemin === '/comptes' ? { 'X-Appareil': appareil() } : {}),
         ...entetes,
       },
       body: corps === undefined ? undefined : JSON.stringify(corps),

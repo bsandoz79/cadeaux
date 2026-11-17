@@ -94,7 +94,7 @@ export interface CagnottePublique {
   message: string | null;
   close: boolean;
   /** L'organisateur a ajouté son RIB : l'IBAN se demande à part (« Afficher le RIB »). */
-  rib: { titulaire: string } | null;
+  rib: { titulaire: string; recent: boolean } | null;
   organisateur: string;
   participations: Participation[];
 }

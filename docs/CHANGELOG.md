@@ -2,6 +2,12 @@
 
 ## [Non publié]
 
+### Sécurité (vol de compte)
+- Changement d'adresse appliqué 48 heures après la demande ; l'ancienne adresse reçoit « Ce n'est pas moi ».
+- « Ce n'est pas moi » (changement d'adresse, mot de passe changé, RIB ajouté, connexion depuis un nouvel appareil) : connexions fermées, compte bloqué jusqu'à un nouveau mot de passe, RIB effacés, changement d'adresse annulé.
+- RIB : mot de passe demandé, refusé 48 heures après un changement de mot de passe ou d'adresse, e-mail à chaque ajout ; avertissement aux participants si le RIB a moins de 48 heures.
+- E-mail à chaque connexion depuis un nouvel appareil (navigateur et heure).
+
 ### Corrigé (e-mails)
 - Expéditeur technique des e-mails (enveloppe) aligné sur `cadeaux@bsandoz.fr`, en-têtes `Reply-To` et `Date` : SPF et DMARC vérifient le même domaine, les e-mails ne sont plus refusés ou classés en indésirables pour cette raison.
 

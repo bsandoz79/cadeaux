@@ -12,7 +12,8 @@ use Cadeaux\Http\Routeur;
 /**
  * Les routes de l'API (toutes sous /api) :
  *   POST   /comptes, /connexion, /deconnexion · GET|PATCH|DELETE /moi (PATCH : prénom, rappels)
- *   POST   /email/confirmer, /email/renvoyer, /motdepasse/oubli, /motdepasse/nouveau, /moi/motdepasse, /moi/email · GET /moi/export (toutes les données du compte)
+ *   POST   /email/confirmer, /email/renvoyer, /motdepasse/oubli, /motdepasse/nouveau, /moi/motdepasse, /moi/email
+ *   POST   /securite/bloquer (« Ce n'est pas moi », depuis un lien reçu par e-mail) · GET /moi/export (toutes les données du compte)
  *   GET|POST /personnes · PATCH|DELETE /personnes/{id}       (idem /occasions, /cadeaux, /budgets, /cagnottes)
  *   GET    /cagnottes/{id}  (avec les participations)
  *   POST   /cagnottes/{id}/participations · PATCH|DELETE /cagnottes/{id}/participations/{pid}   (organisateur)
@@ -101,6 +102,7 @@ final class Application
         $r->ajouter('POST', '/comptes', function (Requete $q) {
             $session = $this->comptes->inscrire($q->corps);
             $this->identite->envoyerConfirmation($session['compte']['id']);
+            $this->identite->nouvelleConnexion($session['compte']['id'], $q->entete('x-appareil'), '', false);
 
             return Reponse::cree($session);
         });
@@ -127,16 +129,31 @@ final class Application
         $r->ajouter('POST', '/moi/email', function (Requete $q) {
             $this->identite->demanderChangementEmail($this->compte($q), (string) ($q->corps['email'] ?? ''), (string) ($q->corps['motDePasse'] ?? ''));
 
-            return Reponse::ok(['message' => 'Un lien vient de partir à la nouvelle adresse.']);
+            return Reponse::ok(['message' => sprintf('Un lien vient de partir à la nouvelle adresse. Par sécurité, l’adresse changera %d heures après votre demande.', Identite::DELAI_SECURITE_HEURES)]);
         });
-        $r->ajouter('POST', '/connexion', fn (Requete $q) => Reponse::ok($this->comptes->connecter($q->corps, $q->ip)));
+        $r->ajouter('POST', '/connexion', function (Requete $q) {
+            $session = $this->comptes->connecter($q->corps, $q->ip);
+            $this->identite->nouvelleConnexion($session['compte']['id'], $q->entete('x-appareil'), (string) $q->entete('user-agent'));
+
+            return Reponse::ok($session);
+        });
+        $r->ajouter('POST', '/securite/bloquer', function (Requete $q) {
+            $this->identite->bloquer((string) ($q->corps['jeton'] ?? ''));
+
+            return Reponse::ok(['message' => 'Votre compte est bloqué. Un e-mail vient de partir pour choisir un nouveau mot de passe.']);
+        });
         $r->ajouter('POST', '/deconnexion', function (Requete $q) {
             $this->compte($q);
             $this->comptes->deconnecter((string) $q->jeton());
 
             return Reponse::vide();
         });
-        $r->ajouter('GET', '/moi', fn (Requete $q) => Reponse::ok($this->comptes->compte($this->compte($q))));
+        $r->ajouter('GET', '/moi', function (Requete $q) {
+            $compte = $this->compte($q);
+            $this->identite->appliquerChangementsEchus($compte);
+
+            return Reponse::ok($this->comptes->compte($compte));
+        });
         $r->ajouter('PATCH', '/moi', fn (Requete $q) => Reponse::ok($this->comptes->regler($this->compte($q), $q->corps)));
         $r->ajouter('GET', '/moi/export', fn (Requete $q) => Reponse::ok($this->export($this->compte($q))));
         $r->ajouter('DELETE', '/moi', function (Requete $q) {
@@ -182,7 +199,14 @@ final class Application
         });
 
         // RIB de l'organisateur (virements des participants)
-        $r->ajouter('PUT', '/cagnottes/{id}/rib', fn (Requete $q, string $id) => Reponse::ok($this->ribs->enregistrer($this->compte($q), (int) $id, $q->corps)));
+        $r->ajouter('PUT', '/cagnottes/{id}/rib', function (Requete $q, string $id) {
+            $compte = $this->compte($q);
+            $this->identite->autoriserRib($compte, (string) ($q->corps['motDePasse'] ?? ''));
+            $rib = $this->ribs->enregistrer($compte, (int) $id, $q->corps);
+            $this->identite->alerterRib($compte, $rib['cagnotte'], $rib['ibanMasque']);
+
+            return Reponse::ok(['titulaire' => $rib['titulaire'], 'ibanMasque' => $rib['ibanMasque']]);
+        });
         $r->ajouter('DELETE', '/cagnottes/{id}/rib', function (Requete $q, string $id) {
             $this->ribs->effacerPourLeCompte($this->compte($q), (int) $id);
 

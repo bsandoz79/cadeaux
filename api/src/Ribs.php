@@ -17,6 +17,8 @@ final class Ribs
 {
     public const JOURS_MAX = 60;
     public const AFFICHAGES_PAR_IP = 30;
+    /** Un RIB ajouté depuis moins de 48 heures est signalé aux participants. */
+    public const HEURES_RECENT = 48;
 
     private readonly Limiteur $limiteur;
 
@@ -31,17 +33,17 @@ final class Ribs
     /**
      * @param array<string, mixed> $donnees titulaire, iban
      *
-     * @return array{titulaire: string, ibanMasque: string}
+     * @return array{titulaire: string, ibanMasque: string, cagnotte: string}
      */
     public function enregistrer(int $compteId, int $cagnotteId, array $donnees): array
     {
-        $requete = $this->pdo->prepare('SELECT close FROM cagnottes WHERE id = ? AND compte_id = ?');
+        $requete = $this->pdo->prepare('SELECT close, titre FROM cagnottes WHERE id = ? AND compte_id = ?');
         $requete->execute([$cagnotteId, $compteId]);
-        $close = $requete->fetchColumn();
-        if ($close === false) {
+        $ligne = $requete->fetch(\PDO::FETCH_ASSOC);
+        if ($ligne === false) {
             throw ErreurHttp::introuvable();
         }
-        if ((bool) $close) {
+        if ((bool) $ligne['close']) {
             throw new ErreurHttp(409, 'Cette cagnotte est terminée.');
         }
         $titulaire = trim((string) ($donnees['titulaire'] ?? ''));
@@ -60,7 +62,7 @@ final class Ribs
         $this->pdo->prepare('UPDATE cagnottes SET rib_titulaire = ?, rib_iban = ?, rib_masque = ?, rib_le = ? WHERE id = ?')
             ->execute([$titulaire, $this->coffre->chiffrer($iban), $masque, $this->horloge->texte(), $cagnotteId]);
 
-        return ['titulaire' => $titulaire, 'ibanMasque' => $masque];
+        return ['titulaire' => $titulaire, 'ibanMasque' => $masque, 'cagnotte' => (string) $ligne['titre']];
     }
 
     public function effacer(int $cagnotteId): void
@@ -89,14 +91,19 @@ final class Ribs
         return $l === false ? null : ['titulaire' => (string) $l['rib_titulaire'], 'ibanMasque' => (string) $l['rib_masque']];
     }
 
-    /** @return array{titulaire: string, iban: string} RIB complet, pour un participant qui le demande */
+    public function recent(?string $ribLe): bool
+    {
+        return $ribLe !== null && $ribLe > $this->horloge->maintenant()->modify(sprintf('-%d hours', self::HEURES_RECENT))->format('Y-m-d H:i:s');
+    }
+
+    /** @return array{titulaire: string, iban: string, recent: bool} RIB complet, pour un participant qui le demande */
     public function pourParticipant(string $code, string $ip): array
     {
         if ($this->limiteur->depasse('rib:' . $ip, self::AFFICHAGES_PAR_IP)) {
             throw new ErreurHttp(429, 'Trop de demandes. Réessayez dans un quart d’heure.');
         }
         $this->limiteur->noter('rib:' . $ip);
-        $requete = $this->pdo->prepare('SELECT rib_titulaire, rib_iban FROM cagnottes WHERE code = ? AND close = 0 AND rib_iban IS NOT NULL');
+        $requete = $this->pdo->prepare('SELECT rib_titulaire, rib_iban, rib_le FROM cagnottes WHERE code = ? AND close = 0 AND rib_iban IS NOT NULL');
         $requete->execute([$code]);
         $l = $requete->fetch(\PDO::FETCH_ASSOC);
         $iban = $l === false ? null : $this->coffre->dechiffrer((string) $l['rib_iban']);
@@ -104,7 +111,7 @@ final class Ribs
             throw new ErreurHttp(404, 'Pas de RIB pour cette cagnotte.');
         }
 
-        return ['titulaire' => (string) $l['rib_titulaire'], 'iban' => Iban::formater($iban)];
+        return ['titulaire' => (string) $l['rib_titulaire'], 'iban' => Iban::formater($iban), 'recent' => $this->recent($l['rib_le'])];
     }
 
     /** Tâche quotidienne : RIB enregistrés depuis plus de 60 jours. @return int nombre de RIB effacés */

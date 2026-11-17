@@ -52,6 +52,7 @@ export function installerFausseApi(etat: EtatFaux) {
     if (chemin === '/motdepasse/nouveau') return corps.jeton === 'f'.repeat(64) ? json(200, { jeton: 'a'.repeat(64), compte: etat.compte }) : json(410, { message: 'Ce lien n’est plus valable. Refaites une demande.' });
     if (chemin === '/email/confirmer') { etat.compte.emailConfirme = true; return json(200, { type: 'confirmation', email: etat.compte.email }); }
     if (chemin === '/email/renvoyer') return json(204);
+    if (chemin === '/securite/bloquer') return json(200, { message: 'Votre compte est bloqué. Un e-mail vient de partir pour choisir un nouveau mot de passe.' });
     if (chemin === '/liste') return json(200, { code: null, message: null });
 
     for (const nom of COLLECTIONS) {
@@ -70,7 +71,7 @@ export function installerFausseApi(etat: EtatFaux) {
     }
 
     if ((m = /^\/c\/([a-f0-9]{16})\/rib$/.exec(chemin))) {
-      return json(200, { titulaire: 'Baptiste Sandoz', iban: 'FR76 3000 6000 0112 3456 7890 189' });
+      return json(200, { titulaire: 'Baptiste Sandoz', iban: 'FR76 3000 6000 0112 3456 7890 189', recent: true });
     }
     if ((m = /^\/c\/([a-f0-9]{16})$/.exec(chemin))) {
       const c = etat.cagnottes.find((g) => g.code === m![1]);

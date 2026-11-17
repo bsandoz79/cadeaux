@@ -37,6 +37,13 @@ $('ajout').addEventListener('change', () => {
   for (const el of document.querySelectorAll('[data-autre]')) el.hidden = moi;
 });
 
+/** Identifiant de cette extension, envoyé à la connexion : un appareil inconnu déclenche un e-mail. */
+async function appareil() {
+  let { appareil: id } = await chrome.storage.local.get('appareil');
+  if (!id) { id = crypto.randomUUID(); await chrome.storage.local.set({ appareil: id }); }
+  return id;
+}
+
 async function jeton() {
   return (await chrome.storage.local.get('jeton')).jeton ?? null;
 }
@@ -45,7 +52,7 @@ async function api(methode, chemin, corps) {
   const j = await jeton();
   const r = await fetch(API + chemin, {
     method: methode,
-    headers: { Accept: 'application/json', ...(corps ? { 'Content-Type': 'application/json' } : {}), ...(j ? { Authorization: `Bearer ${j}` } : {}) },
+    headers: { Accept: 'application/json', ...(corps ? { 'Content-Type': 'application/json' } : {}), ...(j ? { Authorization: `Bearer ${j}` } : {}), ...(chemin === '/connexion' ? { 'X-Appareil': await appareil() } : {}) },
     body: corps ? JSON.stringify(corps) : undefined,
   });
   if (r.status === 204) return null;

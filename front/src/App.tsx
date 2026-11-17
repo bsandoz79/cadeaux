@@ -14,6 +14,7 @@ import { ListeEnviesPublique } from './pages/ListeEnviesPublique';
 import { MesEnvies } from './pages/MesEnvies';
 import { Legal } from './pages/Legal';
 import { ConfirmerEmail, NouveauMotDePasse } from './pages/LiensEmail';
+import { Securite } from './pages/Securite';
 import { CONFIDENTIALITE, MENTIONS_LEGALES } from './donnees/legal';
 import { OccasionDetail } from './pages/OccasionDetail';
 import { Occasions } from './pages/Occasions';
@@ -32,7 +33,7 @@ const MENU: { href: string; libelle: string; pages: Route['page'][] }[] = [
 const TITRES: Partial<Record<Route['page'], string>> = {
   occasions: 'Occasions', occasion: 'Occasion', proches: 'Proches', idees: 'Idées de cadeaux', cagnottes: 'Cagnottes',
   cagnotte: 'Cagnotte', bilan: 'Bilan de l’année', compte: 'Mon compte', publique: 'Cadeau commun',
-  confidentialite: 'Politique de confidentialité', mentions: 'Mentions légales', motdepasse: 'Nouveau mot de passe', confirmer: 'Adresse e-mail', envies: 'Ma liste d’envies', liste: 'Liste d’envies',
+  confidentialite: 'Politique de confidentialité', mentions: 'Mentions légales', motdepasse: 'Nouveau mot de passe', confirmer: 'Adresse e-mail', securite: 'Ce n’est pas vous ?', envies: 'Ma liste d’envies', liste: 'Liste d’envies',
 };
 
 export function App() {
@@ -90,6 +91,7 @@ export function App() {
           : legale ? <Legal page={route.page === 'mentions' ? MENTIONS_LEGALES : CONFIDENTIALITE} />
           : route.page === 'motdepasse' ? <NouveauMotDePasse jeton={route.jeton} />
           : route.page === 'confirmer' ? <ConfirmerEmail jeton={route.jeton} />
+          : route.page === 'securite' ? <Securite jeton={route.jeton} />
           : !pret ? <p className={styles.chargement}>Chargement…</p>
           : !connecte ? <Accueil />
           : <Page route={route} />}

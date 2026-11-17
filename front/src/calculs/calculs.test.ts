@@ -177,5 +177,6 @@ describe('partage d’une cagnotte', () => {
     expect(l.texte).toBe('On se cotise pour Julie (Montre) ? Mets ta part ici : https://cadeaux.bsandoz.fr/c/0123456789abcdef');
     expect(decodeURIComponent(l.whatsapp.replace('https://wa.me/?text=', ''))).toBe(l.texte);
     expect(decodeURIComponent(l.sms.replace('sms:?&body=', ''))).toBe(l.texte);
+    expect(l.snapchat).toBe('https://www.snapchat.com/share?link=https%3A%2F%2Fcadeaux.bsandoz.fr%2Fc%2F0123456789abcdef');
   });
 });

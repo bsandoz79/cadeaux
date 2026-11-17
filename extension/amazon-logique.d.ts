@@ -6,4 +6,4 @@ export function estPageMerci(url: string, texte?: string): boolean;
 export function estFicheProduit(url: string): boolean;
 export function ajouterVu(vus: ProduitVu[], produit: Produit | null | undefined, maintenant: number): ProduitVu[];
 export function produitsRecents(vus: ProduitVu[], maintenant: number, heures?: number): ProduitVu[];
-export function liensPartage(url: string, beneficiaire: string, titre: string): { texte: string; whatsapp: string; sms: string };
+export function liensPartage(url: string, beneficiaire: string, titre: string): { texte: string; whatsapp: string; snapchat: string; sms: string };

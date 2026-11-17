@@ -144,8 +144,10 @@ describe('liens partagés, sans compte', () => {
     await u.click(await screen.findByRole('button', { name: 'On se cotise' }));
     await u.click(screen.getByRole('button', { name: 'Lancer la cagnotte' }));
     expect(await screen.findByText('Cagnotte lancée ! Envoyez le lien aux autres :')).toBeInTheDocument();
-    const whatsapp = screen.getByRole('link', { name: 'WhatsApp' });
+    const whatsapp = screen.getByRole('link', { name: 'Envoyer sur WhatsApp' });
+    expect(screen.getByRole('link', { name: 'Envoyer sur Snapchat' })).toHaveAttribute('href', `https://www.snapchat.com/share?link=${encodeURIComponent('http://localhost:3000/c/fedcbafedcbafedc')}`);
     expect(decodeURIComponent(whatsapp.getAttribute('href')!)).toContain('On se cotise pour Julie (Montre) ? Mets ta part ici : http://localhost:3000/c/fedcbafedcbafedc');
-    expect(screen.getByRole('link', { name: 'SMS' }).getAttribute('href')).toMatch(/^sms:\?&body=/);
+    expect(screen.getByRole('button', { name: 'Copier le lien' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Envoyer par SMS' }).getAttribute('href')).toMatch(/^sms:\?&body=/);
   });
 });

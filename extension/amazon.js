@@ -8,6 +8,14 @@
   const { lireProduit } = await import(chrome.runtime.getURL('produit.js'));
   const L = await import(chrome.runtime.getURL('amazon-logique.js'));
   const maintenant = Date.now();
+  const ICONES = {
+    whatsapp: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.3 2.2 2.2 0 0 0 .1-1.3c0-.1-.2-.2-.5-.3Z" /></svg>',
+    snapchat: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width=".6" stroke-linejoin="round" d="M12 2.5c2.9 0 5 2.2 5 5v2.4l1.4-.5c.6-.2 1.1.5.7 1l-1.6 1c-.3.2-.4.5-.3.8.7 1.8 2 3 3.6 3.4.4.1.5.6.1.8-.8.4-1.8.6-2.2.8-.2.4-.2 1-.6 1.1-.8.2-1.8-.2-2.8.3-1 .6-1.8 1.7-3.3 1.7s-2.3-1.1-3.3-1.7c-1-.5-2-.1-2.8-.3-.4-.1-.4-.7-.6-1.1-.4-.2-1.4-.4-2.2-.8-.4-.2-.3-.7.1-.8 1.6-.4 2.9-1.6 3.6-3.4.1-.3 0-.6-.3-.8l-1.6-1c-.4-.5.1-1.2.7-1l1.4.5V7.5c0-2.8 2.1-5 5-5Z" /></svg>',
+    sms: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M4 5h16v11H9l-5 4V5Z" /><path fill="currentColor" d="M8 10h2v2H8zm3 0h2v2h-2zm3 0h2v2h-2z" /></svg>',
+    partager: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 15V3m0 0L7.5 7.5M12 3l4.5 4.5M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" /></svg>',
+    copier: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2" /><path fill="none" stroke="currentColor" stroke-width="2" d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" /></svg>',
+    copie: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="m5 12 5 5L20 7" /></svg>',
+  };
 
   if (L.estFicheProduit(location.href)) {
     const produit = lireProduit();
@@ -48,6 +56,12 @@
     a { color: #9e1f2b; }
     .ok { color: #1d6b4a; font-weight: 700; }
     :focus-visible { outline: 3px solid #c7922b; outline-offset: 2px; }
+    .logos { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+    .logo { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; border: 1px solid #d6c8ba; background: #fff; color: #24161a; padding: 0; cursor: pointer; }
+    .logo svg { width: 22px; height: 22px; }
+    .wa { background: #1f8f4e; border-color: #1f8f4e; color: #fff; }
+    .snap { background: #fffc00; border-color: #e6e300; color: #111; }
+    .sms { background: #2563c9; border-color: #2563c9; color: #fff; }
   </style><section class="boite" role="region" aria-label="Cadeaux : c'est un cadeau ?"></section>`;
   const boite = racine.querySelector('.boite');
   const fermer = () => hote.remove();
@@ -137,17 +151,18 @@
   function partager(url, beneficiaire, titre, id) {
     const p = L.liensPartage(url, beneficiaire, titre.slice(0, 60));
     boite.innerHTML = `${entete}<p class="ok">Cagnotte créée !</p><p>Envoyez le lien à ceux qui veulent participer :</p>
-      <div class="actions">
-        <a class="bouton" href="${p.whatsapp}" target="_blank" rel="noopener">WhatsApp</a>
-        <a class="bouton second" href="${p.sms}">SMS</a>
-        ${navigator.share ? '<button type="button" class="second" data-partager>Autre…</button>' : ''}
-        <button type="button" class="second" data-copier>Copier le lien</button>
+      <div class="logos">
+        <a class="logo wa" href="${p.whatsapp}" target="_blank" rel="noopener" aria-label="Envoyer sur WhatsApp" title="WhatsApp">${ICONES.whatsapp}</a>
+        <a class="logo snap" href="${p.snapchat}" target="_blank" rel="noopener" aria-label="Envoyer sur Snapchat" title="Snapchat">${ICONES.snapchat}</a>
+        <a class="logo sms" href="${p.sms}" aria-label="Envoyer par SMS" title="SMS">${ICONES.sms}</a>
+        ${navigator.share ? `<button type="button" class="logo" data-partager aria-label="Partager avec une autre appli" title="Partager">${ICONES.partager}</button>` : ''}
+        <button type="button" class="logo" data-copier aria-label="Copier le lien" title="Copier le lien">${ICONES.copier}</button>
       </div>
       <p style="margin-top:10px">Dans votre bilan, seule votre part comptera : notez-la dans la cagnotte (« Je complète le reste »). <a href="https://cadeaux.bsandoz.fr/cagnottes/${id}" target="_blank" rel="noopener">Suivre la cagnotte</a></p>
       <div class="actions"><button type="button" class="lien" data-fermer>Fermer</button></div>`;
     boite.querySelector('[data-fermer]').onclick = fermer;
     boite.querySelector('[data-copier]').onclick = async (e) => {
-      try { await navigator.clipboard.writeText(url); e.target.textContent = 'Lien copié'; } catch { e.target.textContent = url; }
+      try { await navigator.clipboard.writeText(url); e.currentTarget.innerHTML = ICONES.copie; e.currentTarget.setAttribute('aria-label', 'Lien copié'); } catch { /* lien visible dans « Suivre la cagnotte » */ }
     };
     boite.querySelector('[data-partager]')?.addEventListener('click', () => navigator.share({ title: 'Cagnotte', text: p.texte, url }).catch(() => {}));
   }

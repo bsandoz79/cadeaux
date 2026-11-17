@@ -5,10 +5,12 @@ import type { Cadeau, Cagnotte, Occasion, Personne } from '../api/types';
  * - Un cadeau acheté ou offert compte pour ce qui a été dépensé (ou, à défaut, ce qui était prévu).
  * - Un cadeau prévu, ou une idée rattachée à une occasion, compte pour ce qui reste à dépenser.
  * - Une idée sans occasion ne compte pas : ce n'est qu'une idée.
- * - Dans une cagnotte, seule votre part compte.
+ * - Dans une cagnotte, seule votre part compte. Un cadeau payé avec une cagnotte coûte votre part de cette cagnotte
+ *   (et la cagnotte n'est pas comptée une deuxième fois à part).
  * L'année est celle de l'occasion (ou de la date limite de la cagnotte, sinon de sa création).
  */
-export function coutCadeau(c: Cadeau): number {
+export function coutCadeau(c: Cadeau, cagnottes: Cagnotte[] = []): number {
+  if (c.cagnotteId !== null && c.cagnotteId !== undefined) return cagnottes.find((g) => g.id === c.cagnotteId)?.maPart ?? 0;
   return c.montantDepense ?? c.montantPrevu ?? 0;
 }
 
@@ -38,10 +40,10 @@ export function cadeauxDeLAnnee(cadeaux: Cadeau[], occasions: Occasion[], annee:
   return cadeaux.filter((c) => c.occasionId !== null && ids.has(c.occasionId));
 }
 
-function ajouter(lignes: Map<string, Ligne>, cle: string, libelle: string, c: Cadeau) {
+function ajouter(lignes: Map<string, Ligne>, cle: string, libelle: string, c: Cadeau, cagnottes: Cagnotte[]) {
   const l = lignes.get(cle) ?? { cle, libelle, depense: 0, prevu: 0, total: 0, nombre: 0 };
-  if (estDepense(c)) l.depense += coutCadeau(c);
-  else l.prevu += coutCadeau(c);
+  if (estDepense(c)) l.depense += coutCadeau(c, cagnottes);
+  else l.prevu += coutCadeau(c, cagnottes);
   l.total = l.depense + l.prevu;
   l.nombre += 1;
   lignes.set(cle, l);
@@ -59,14 +61,16 @@ export function bilanAnnee(annee: number, donnees: { cadeaux: Cadeau[]; occasion
   const parPersonne = new Map<string, Ligne>();
   for (const c of cadeaux) {
     const o = occasionsParId.get(c.occasionId!)!;
-    ajouter(parOccasion, `o${o.id}`, o.titre, c);
+    ajouter(parOccasion, `o${o.id}`, o.titre, c, cagnottes);
     const p = c.personneId === null ? undefined : personnesParId.get(c.personneId);
-    ajouter(parPersonne, p ? `p${p.id}` : 'sans', p ? p.nom : 'Sans destinataire', c);
+    ajouter(parPersonne, p ? `p${p.id}` : 'sans', p ? p.nom : 'Sans destinataire', c, cagnottes);
   }
 
-  const depense = cadeaux.filter(estDepense).reduce((s, c) => s + coutCadeau(c), 0);
-  const prevu = cadeaux.filter((c) => !estDepense(c)).reduce((s, c) => s + coutCadeau(c), 0);
-  const parts = cagnottes.filter((c) => anneeCagnotte(c) === annee).reduce((s, c) => s + (c.maPart ?? 0), 0);
+  const depense = cadeaux.filter(estDepense).reduce((s, c) => s + coutCadeau(c, cagnottes), 0);
+  const prevu = cadeaux.filter((c) => !estDepense(c)).reduce((s, c) => s + coutCadeau(c, cagnottes), 0);
+  // Cagnottes non rattachées à un cadeau : la part de l'organisateur compte à part.
+  const rattachees = new Set(donnees.cadeaux.map((c) => c.cagnotteId).filter((id) => id !== null && id !== undefined));
+  const parts = cagnottes.filter((c) => !rattachees.has(c.id) && anneeCagnotte(c) === annee).reduce((s, c) => s + (c.maPart ?? 0), 0);
 
   return { annee, depense, prevu, cagnottes: parts, total: depense + prevu + parts, parOccasion: parTotal(parOccasion), parPersonne: parTotal(parPersonne) };
 }

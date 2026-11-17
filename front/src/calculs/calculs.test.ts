@@ -7,7 +7,7 @@ import { etatCagnotte, partConseillee, partsEgales } from './cagnotte';
 
 const cadeau = (c: Partial<Cadeau>): Cadeau => ({
   id: 1, titre: 'Cadeau', occasionId: null, personneId: null, montantPrevu: null, montantDepense: null,
-  statut: 'prevu', lien: null, image: null, note: null, creeLe: '2026-01-01 00:00:00', ...c,
+  statut: 'prevu', lien: null, image: null, note: null, cagnotteId: null, creeLe: '2026-01-01 00:00:00', ...c,
 });
 const cagnotte = (c: Partial<Cagnotte>): Cagnotte => ({
   id: 1, code: 'x', titre: 'Montre', beneficiaire: 'Julie', objectif: 15000, mode: 'libre', nombreParts: null,
@@ -153,5 +153,19 @@ describe('déjà offert', () => {
     expect(ressemblance('Un LIVRE', passes)?.cadeau.id).toBe(2);
     expect(ressemblance('Parfum', passes)).toBeUndefined();
     expect(ressemblance('un', passes)).toBeUndefined();
+  });
+});
+
+describe('cadeau payé avec une cagnotte', () => {
+  it('coûte ma part de la cagnotte, comptée au nom du proche, sans double compte', () => {
+    const occasions: Occasion[] = [{ id: 1, type: 'anniversaire', titre: 'Anniversaire de Papa', date: '2026-06-01' }];
+    const personnes: Personne[] = [{ id: 7, nom: 'Papa', dateNaissance: null, note: null }];
+    const cagnottes = [cagnotte({ id: 3, objectif: 15000, maPart: 10000 }), cagnotte({ id: 4, maPart: 2000 })];
+    const cadeaux = [cadeau({ id: 1, occasionId: 1, personneId: 7, statut: 'achete', cagnotteId: 3 })];
+    const b = bilanAnnee(2026, { cadeaux, occasions, personnes, cagnottes });
+    expect(b.depense).toBe(10000);
+    expect(b.cagnottes).toBe(2000);
+    expect(b.total).toBe(12000);
+    expect(b.parPersonne[0]).toMatchObject({ libelle: 'Papa', total: 10000 });
   });
 });

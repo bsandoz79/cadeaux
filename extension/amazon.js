@@ -128,7 +128,7 @@
       const r = await api('POST', '/cagnottes', { titre: titre.slice(0, 200), beneficiaire: f.beneficiaire.value.trim(), objectif, mode: 'libre', lien });
       if (r.statut !== 201) { err.textContent = r.donnees?.message ?? 'Une erreur est survenue.'; err.hidden = false; return; }
       // Le prix ne doit pas compter deux fois dans le bilan : seule la part de l'organisateur dans la cagnotte comptera.
-      await api('PATCH', `/cadeaux/${cadeauId}`, { montantPrevu: null, montantDepense: null, note: 'Cadeau commun : voir la cagnotte' });
+      await api('PATCH', `/cadeaux/${cadeauId}`, { montantPrevu: null, montantDepense: null, cagnotteId: r.donnees.id });
       partager(`https://cadeaux.bsandoz.fr/c/${r.donnees.code}`, f.beneficiaire.value.trim(), titre, r.donnees.id);
     };
   }

@@ -3,6 +3,9 @@
 ## [Non publié]
 
 ### Ajouté (cagnottes)
+- Aperçu du lien d'une cagnotte dans Snapchat, WhatsApp, Messenger… : titre « Cagnotte pour Julie : Montre », « 100 € sur 150 € · il manque 50 € », et une image avec le pourcentage, la barre d'avancement et les montants (dessinée en PHP, sans extension graphique). Les participants n'y figurent pas.
+
+### Ajouté (cagnottes)
 - Page d'une cagnotte : montants en un geste (part égale, 10, 20, 30 €, « Tout le reste », « Autre »).
 
 ### Modifié (partage)

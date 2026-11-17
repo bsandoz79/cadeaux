@@ -44,6 +44,12 @@ final class Application
     /** Connexion à la base décrite dans config.local.php (non versionné), tables créées si besoin. */
     public static function depuisConfig(string $fichier): self
     {
+        return new self(self::base($fichier));
+    }
+
+    /** Connexion seule (page d'aperçu des cagnottes, tâche quotidienne). */
+    public static function base(string $fichier): \PDO
+    {
         /** @var array{dsn: string, utilisateur?: string, motDePasse?: string} $config */
         $config = require $fichier;
         $pdo = new \PDO($config['dsn'], $config['utilisateur'] ?? null, $config['motDePasse'] ?? null, [
@@ -57,7 +63,7 @@ final class Application
             touch($marque);
         }
 
-        return new self($pdo);
+        return $pdo;
     }
 
     public function traiter(Requete $requete): Reponse

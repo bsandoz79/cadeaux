@@ -7,6 +7,10 @@ RewriteCond %{HTTPS} off
 RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
 RewriteRule ^index\.html$ - [L]
+
+# Lien d'une cagnotte : page servie par PHP avec l'aperçu (titre, avancement, image) pour Snapchat, WhatsApp…
+RewriteRule ^c/([a-f0-9]{16})/apercu\.png$ api/partage.php?code=$1&image=1 [L]
+RewriteRule ^c/([a-f0-9]{16})/?$ api/partage.php?code=$1 [L]
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule . /index.html [L]

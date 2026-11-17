@@ -12,7 +12,7 @@ use Cadeaux\Http\Routeur;
 /**
  * Les routes de l'API (toutes sous /api) :
  *   POST   /comptes, /connexion, /deconnexion · GET|PATCH|DELETE /moi (PATCH : prénom, rappels)
- *   POST   /email/confirmer, /email/renvoyer, /motdepasse/oubli, /motdepasse/nouveau, /moi/motdepasse, /moi/email
+ *   POST   /email/confirmer, /email/renvoyer, /motdepasse/oubli, /motdepasse/nouveau, /moi/motdepasse, /motdepasse/confirmer, /moi/email
  *   POST   /securite/bloquer (« Ce n'est pas moi », depuis un lien reçu par e-mail) · GET /moi/export (toutes les données du compte)
  *   GET|POST /personnes · PATCH|DELETE /personnes/{id}       (idem /occasions, /cadeaux, /budgets, /cagnottes)
  *   GET    /cagnottes/{id}  (avec les participations)
@@ -122,9 +122,14 @@ final class Application
         ));
         $r->ajouter('POST', '/moi/email-test', fn (Requete $q) => Reponse::ok(['message' => 'E-mail de test envoyé à ' . $this->identite->envoyerTest($this->compte($q)) . '.']));
         $r->ajouter('POST', '/moi/motdepasse', function (Requete $q) {
-            $this->identite->changerMotDePasse($this->compte($q), (string) ($q->corps['actuel'] ?? ''), (string) ($q->corps['nouveau'] ?? ''), $q->jeton());
+            $this->identite->demanderChangementMotDePasse($this->compte($q), (string) ($q->corps['actuel'] ?? ''), (string) ($q->corps['nouveau'] ?? ''));
 
-            return Reponse::vide();
+            return Reponse::ok(['message' => 'Un lien vient de partir à votre adresse : le nouveau mot de passe s’appliquera quand vous l’aurez ouvert (1 heure).']);
+        });
+        $r->ajouter('POST', '/motdepasse/confirmer', function (Requete $q) {
+            $this->identite->confirmerChangementMotDePasse((string) ($q->corps['jeton'] ?? ''));
+
+            return Reponse::ok(['message' => 'Votre nouveau mot de passe est enregistré. Toutes vos connexions ont été fermées : reconnectez-vous.']);
         });
         $r->ajouter('POST', '/moi/email', function (Requete $q) {
             $this->identite->demanderChangementEmail($this->compte($q), (string) ($q->corps['email'] ?? ''), (string) ($q->corps['motDePasse'] ?? ''));

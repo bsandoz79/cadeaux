@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { api } from '../api/client';
+import { api, jeton as jetonLocal } from '../api/client';
 import type { Compte } from '../api/types';
 import { Champ, Lien } from '../components/commun';
 import { useEnvoi } from '../components/formulaire';
@@ -62,4 +62,35 @@ export function ConfirmerEmail({ jeton }: { jeton: string }) {
 function dateHeure(utc: string): string {
   const d = new Date(`${utc.replace(' ', 'T')}Z`);
   return `${d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })} à ${d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
+}
+
+/** Lien de confirmation d'un changement de mot de passe : bouton à cliquer (les antivirus des messageries ouvrent les liens). */
+export function ConfirmerMotDePasse({ jeton }: { jeton: string }) {
+  const d = useDonnees();
+  const [etat, setEtat] = useState<'pret' | 'occupe' | { ok: boolean; message: string }>('pret');
+  const confirmer = async () => {
+    setEtat('occupe');
+    try {
+      const r = await api<{ message: string }>('POST', '/motdepasse/confirmer', { jeton });
+      jetonLocal.ecrire(null);
+      await d.deconnecter().catch(() => {});
+      setEtat({ ok: true, message: r.message });
+    } catch (e) {
+      setEtat({ ok: false, message: e instanceof Error ? e.message : 'Une erreur est survenue.' });
+    }
+  };
+  return (
+    <section className={`carte ${styles.pile}`} style={{ maxWidth: '32rem' }} aria-labelledby="titre-confirmer-mdp">
+      <h1 id="titre-confirmer-mdp">Nouveau mot de passe</h1>
+      {typeof etat === 'object' ? (
+        <p role="status" className={etat.ok ? undefined : 'erreur'} style={etat.ok ? { color: 'var(--c-vert)', fontWeight: 600 } : undefined}>{etat.message}</p>
+      ) : (
+        <>
+          <p>Confirmez le changement de votre mot de passe. Toutes vos connexions seront fermées : vous vous reconnecterez avec le nouveau.</p>
+          <div><button type="button" className="btn" onClick={confirmer} disabled={etat === 'occupe'}>Confirmer</button></div>
+        </>
+      )}
+      <p><Lien href="/">Aller à l’accueil</Lien></p>
+    </section>
+  );
 }

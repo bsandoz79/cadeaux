@@ -8,7 +8,7 @@ Prénom, adresse, mot de passe, et une case **non cochée** « M'envoyer un rapp
 
 ## Mon compte → Mes informations
 - **Prénom**.
-- **Mot de passe** : l'actuel est demandé ; les autres appareils sont déconnectés.
+- **Mot de passe** : l'actuel est demandé ; le nouveau ne s'applique qu'après un clic sur le lien envoyé à l'adresse du compte (page `/motdepasse/confirmer/<lien>`, bouton « Confirmer », 1 heure) ; toutes les connexions sont alors fermées.
 - **Adresse e-mail** : mot de passe demandé ; lien envoyé à la nouvelle adresse (24 heures), l'ancienne est prévenue ; l'adresse ne change qu'à l'ouverture du lien.
 
 ## API

@@ -12,7 +12,7 @@ namespace Cadeaux;
 final class Schema
 {
     /** À augmenter à chaque changement des tables. */
-    public const VERSION = 10;
+    public const VERSION = 11;
 
     public static function installer(\PDO $pdo): void
     {
@@ -57,6 +57,7 @@ final class Schema
                 type VARCHAR(20) NOT NULL,
                 empreinte CHAR(64) NOT NULL UNIQUE,
                 nouvel_email VARCHAR(190) NULL,
+                donnee VARCHAR(255) NULL,
                 expire_le VARCHAR(19) NOT NULL,
                 FOREIGN KEY (compte_id) REFERENCES comptes(id) ON DELETE CASCADE
             )",
@@ -207,6 +208,7 @@ final class Schema
             ['comptes', 'email_confirme', 'INT NOT NULL DEFAULT 0'], // v9
             ['comptes', 'bloque', 'INT NOT NULL DEFAULT 0'],       // v10
             ['comptes', 'securite_le', 'VARCHAR(19) NULL'],        // v10
+            ['liens', 'donnee', 'VARCHAR(255) NULL'],              // v11
         ];
         foreach ($ajouts as [$table, $colonne, $type]) {
             if (!self::colonneExiste($pdo, $table, $colonne, $mysql)) {

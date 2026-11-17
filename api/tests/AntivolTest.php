@@ -63,7 +63,9 @@ final class AntivolTest extends ApiTestCase
 
         // Juste après un changement de mot de passe : refusé pendant 48 h.
         $this->appel('POST', '/moi/motdepasse', ['actuel' => 'un-bon-mot-de-passe', 'nouveau' => 'nouveau-mot-de-passe'], $jeton);
+        $this->appel('POST', '/motdepasse/confirmer', ['jeton' => $this->lien('motdepasse/confirmer')]);
         self::assertStringContainsString('/securite/', (string) end($this->courriels)['texte'], 'e-mail « mot de passe changé » avec « Ce n’est pas moi »');
+        $jeton = $this->appel('POST', '/connexion', ['email' => 'baptiste@example.com', 'motDePasse' => 'nouveau-mot-de-passe'])->donnees['jeton'];
         self::assertSame(423, $this->appel('PUT', $chemin, ['titulaire' => 'B', 'iban' => self::IBAN, 'motDePasse' => 'nouveau-mot-de-passe'], $jeton)->statut);
 
         $this->horloge->instant = '2026-11-19 10:01:00';

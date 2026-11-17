@@ -66,6 +66,7 @@ jobs:
             "dsn" => "mysql:host=localhost;dbname=" . trim(getenv("DB_NAME")) . ";charset=utf8mb4",
             "utilisateur" => trim(getenv("DB_USER")),
             "motDePasse" => rtrim(getenv("DB_PASSWORD"), "\r\n"),
+            "expediteur" => "Cadeaux <cadeaux@bsandoz.fr>",
           ], true) . ";\n");'
 
       - name: Envoi FTPS vers o2switch

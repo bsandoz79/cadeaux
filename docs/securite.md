@@ -15,6 +15,7 @@
 | Évolution de la base | Tables et colonnes ajoutées automatiquement au premier appel après une mise à jour (version du schéma) | `Schema.php` |
 | Erreurs | Message générique au navigateur, détail dans le journal du serveur | `Application.php` |
 | Fichiers du serveur | `.htaccess` de l'API : code, dépendances, tests et configuration inaccessibles ; listes de dossiers coupées | `api/.htaccess` |
+| Tâche planifiée | `bin/menage.php` refuse de s'exécuter hors ligne de commande, dossier `bin` inaccessible par le web ; e-mails sans en-tête injectable | `bin/menage.php`, `CourrierPhp.php` |
 | Secrets | `config.local.php` jamais versionné, écrit au déploiement depuis les secrets GitHub | `.github/workflows/deploy.yml` |
 | En-têtes | `nosniff`, `Referrer-Policy`, `Cache-Control: no-store` sur l'API, HTTPS imposé | `front/public/.htaccess`, `Http/Reponse.php` |
 

@@ -152,4 +152,18 @@ describe('liens partagés, sans compte', () => {
     expect(screen.getByRole('button', { name: 'Copier le lien' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Envoyer par SMS' }).getAttribute('href')).toMatch(/^sms:\?&body=/);
   });
+
+  it('cagnotte : le RIB de l’organisateur s’affiche seulement sur demande', async () => {
+    etat.cagnottes = [{ id: 3, code: 'abcdefabcdefabcd', titre: 'Montre', beneficiaire: 'Julie', objectif: 15000, mode: 'libre', nombreParts: null, dateLimite: null, lien: null, message: null, close: false, creeLe: '', rib: { titulaire: 'Baptiste Sandoz' } }];
+    preparer('/c/abcdefabcdefabcd', false);
+    const { appels } = installerFausseApi(etat);
+    ouvrir();
+    const u = userEvent.setup();
+    expect(await screen.findByRole('heading', { name: 'Payer par virement' })).toBeInTheDocument();
+    expect(screen.queryByText(/FR76/)).not.toBeInTheDocument();
+    expect(appels.some((a) => a.chemin.endsWith('/rib'))).toBe(false);
+    await u.click(screen.getByRole('button', { name: 'Afficher le RIB' }));
+    expect(await screen.findByText('FR76 3000 6000 0112 3456 7890 189')).toBeInTheDocument();
+    expect(screen.getByText('Cadeau Julie')).toBeInTheDocument();
+  });
 });

@@ -9,7 +9,8 @@ namespace Cadeaux;
  * - un compte sans activité depuis 3 ans moins 30 jours reçoit un e-mail d'avertissement ;
  * - 30 jours après l'avertissement, s'il n'y a eu aucune visite, le compte et toutes ses données sont supprimés
  *   (une visite annule l'avertissement, voir Comptes::depuisJeton) ;
- * - les connexions expirées et les traces de limite d'abus sont effacées.
+ * - les connexions expirées et les traces de limite d'abus sont effacées ;
+ * - les RIB d'organisateurs gardés depuis plus de 60 jours sont effacés.
  */
 final class Menage
 {
@@ -24,7 +25,7 @@ final class Menage
     ) {
     }
 
-    /** @return array{avertis: int, supprimes: int, jetons: int} */
+    /** @return array{avertis: int, supprimes: int, jetons: int, ribs: int} */
     public function lancer(): array
     {
         $maintenant = $this->horloge->maintenant();
@@ -61,7 +62,16 @@ final class Menage
         $this->pdo->prepare('DELETE FROM tentatives WHERE le < ?')
             ->execute([$maintenant->modify(sprintf('-%d minutes', Limiteur::FENETRE_MINUTES))->format($format)]);
 
-        return ['avertis' => $avertis, 'supprimes' => $supprimes, 'jetons' => $jetons->rowCount()];
+        // 4. RIB d'organisateurs gardés depuis plus de 60 jours.
+        $ribs = $this->coffreInutile();
+
+        return ['avertis' => $avertis, 'supprimes' => $supprimes, 'jetons' => $jetons->rowCount(), 'ribs' => $ribs];
+    }
+
+    private function coffreInutile(): int
+    {
+        // La purge n'a pas besoin de la clé de chiffrement : elle ne fait qu'effacer.
+        return (new Ribs($this->pdo, $this->horloge, new Coffre('')))->purger();
     }
 
     private function texteAvertissement(string $nom): string

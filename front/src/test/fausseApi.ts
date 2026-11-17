@@ -65,9 +65,12 @@ export function installerFausseApi(etat: EtatFaux) {
       }
     }
 
+    if ((m = /^\/c\/([a-f0-9]{16})\/rib$/.exec(chemin))) {
+      return json(200, { titulaire: 'Baptiste Sandoz', iban: 'FR76 3000 6000 0112 3456 7890 189' });
+    }
     if ((m = /^\/c\/([a-f0-9]{16})$/.exec(chemin))) {
       const c = etat.cagnottes.find((g) => g.code === m![1]);
-      return c ? json(200, { ...c, organisateur: etat.compte.nom, participations: etat.participations[m[1]] ?? [] }) : json(404, { message: 'Introuvable.' });
+      return c ? json(200, { rib: null, ...c, organisateur: etat.compte.nom, participations: etat.participations[m[1]] ?? [] }) : json(404, { message: 'Introuvable.' });
     }
     if ((m = /^\/c\/([a-f0-9]{16})\/participations$/.exec(chemin)) && methode === 'POST') {
       if (!corps.nom) return json(422, { message: 'Certains champs sont à corriger.', champs: { nom: 'Indiquez votre prénom (80 caractères au plus).' } });

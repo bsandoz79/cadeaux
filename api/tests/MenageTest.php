@@ -43,7 +43,7 @@ final class MenageTest extends ApiTestCase
     {
         $this->inscrire();
         $this->horloge->instant = '2029-06-01 04:00:00'; // 2 ans et demi plus tard
-        self::assertSame(['avertis' => 0, 'supprimes' => 0, 'jetons' => 1], $this->menage()->lancer());
+        self::assertSame(['avertis' => 0, 'supprimes' => 0, 'jetons' => 1, 'ribs' => 0], $this->menage()->lancer());
         self::assertSame([], $this->envoyes);
     }
 

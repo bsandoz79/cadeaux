@@ -15,6 +15,7 @@ use Cadeaux\Http\Routeur;
  *   GET|POST /personnes · PATCH|DELETE /personnes/{id}       (idem /occasions, /cadeaux, /budgets, /cagnottes)
  *   GET    /cagnottes/{id}  (avec les participations)
  *   POST   /cagnottes/{id}/participations · PATCH|DELETE /cagnottes/{id}/participations/{pid}   (organisateur)
+ *   PUT|DELETE /cagnottes/{id}/rib (RIB de l'organisateur) · GET /c/{code}/rib (RIB complet, sur demande)
  *   GET    /c/{code} · POST /c/{code}/participations · PATCH|DELETE /c/{code}/participations/{pid}  (lien partagé)
  *   GET|POST|DELETE /liste (lien de ma liste d'envies) · GET|POST /envies · PATCH|DELETE /envies/{id}
  *   GET    /l/{code} · POST|DELETE /l/{code}/envies/{id}/reservation  (liste d'envies partagée, sans compte)
@@ -29,11 +30,13 @@ final class Application
     private readonly Comptes $comptes;
     private readonly Cagnottes $cagnottes;
     private readonly Envies $envies;
+    private readonly Ribs $ribs;
     /** @var array<string, Collection>|null */
     private ?array $collections = null;
 
-    public function __construct(private readonly \PDO $pdo, private readonly Horloge $horloge = new Horloge())
+    public function __construct(private readonly \PDO $pdo, private readonly Horloge $horloge = new Horloge(), ?Coffre $coffre = null)
     {
+        $this->ribs = new Ribs($pdo, $horloge, $coffre ?? new Coffre(dirname(__DIR__) . '/var/cle-coffre'));
         $this->comptes = new Comptes($pdo, $horloge);
         $this->cagnottes = new Cagnottes($pdo, $horloge);
         $this->envies = new Envies($pdo, $horloge);
@@ -109,7 +112,14 @@ final class Application
             $r->ajouter('POST', "/$chemin", fn (Requete $q) => Reponse::cree(
                 $collection->ajouter($this->compte($q), $q->corps, $this->colonnesALaCreation($chemin)),
             ));
-            $r->ajouter('PATCH', "/$chemin/{id}", fn (Requete $q, string $id) => Reponse::ok($collection->modifier($this->compte($q), (int) $id, $q->corps)));
+            $r->ajouter('PATCH', "/$chemin/{id}", function (Requete $q, string $id) use ($collection, $chemin) {
+                $modifie = $collection->modifier($this->compte($q), (int) $id, $q->corps);
+                if ($chemin === 'cagnottes' && $modifie['close']) {
+                    $this->ribs->effacer((int) $id); // cagnotte terminée : le RIB n'a plus à être gardé
+                }
+
+                return Reponse::ok($chemin === 'cagnottes' ? $this->avecTotaux($modifie) : $modifie);
+            });
             $r->ajouter('DELETE', "/$chemin/{id}", function (Requete $q, string $id) use ($collection, $chemin) {
                 $collection->supprimer($this->compte($q), (int) $id);
                 if ($chemin === 'envies') {
@@ -127,8 +137,17 @@ final class Application
         $r->ajouter('GET', '/cagnottes/{id}', function (Requete $q, string $id) use ($cagnottes) {
             $compte = $this->compte($q);
 
-            return Reponse::ok($cagnottes->lire($compte, (int) $id) + ['participations' => $this->cagnottes->participations((int) $id)]);
+            return Reponse::ok($cagnottes->lire($compte, (int) $id) + ['participations' => $this->cagnottes->participations((int) $id), 'rib' => $this->ribs->resume((int) $id)]);
         });
+
+        // RIB de l'organisateur (virements des participants)
+        $r->ajouter('PUT', '/cagnottes/{id}/rib', fn (Requete $q, string $id) => Reponse::ok($this->ribs->enregistrer($this->compte($q), (int) $id, $q->corps)));
+        $r->ajouter('DELETE', '/cagnottes/{id}/rib', function (Requete $q, string $id) {
+            $this->ribs->effacerPourLeCompte($this->compte($q), (int) $id);
+
+            return Reponse::vide();
+        });
+        $r->ajouter('GET', '/c/{code}/rib', fn (Requete $q, string $code) => Reponse::ok($this->ribs->pourParticipant($code, $q->ip)));
 
         // Parts, côté organisateur
         $r->ajouter('POST', '/cagnottes/{id}/participations', fn (Requete $q, string $id) => Reponse::cree(
@@ -213,6 +232,7 @@ final class Application
             'totalPaye' => $somme(static fn (array $p): bool => $p['paye']),
             'maPart' => $somme(static fn (array $p): bool => $p['organisateur']),
             'nombreParticipations' => count($parts),
+            'rib' => $this->ribs->resume($cagnotte['id']),
         ];
     }
 

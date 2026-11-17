@@ -3,6 +3,7 @@ import { euros, lireMontant, saisieDepuis } from './argent';
 import { anneesDisponibles, aujourdhui, bilanAnnee, dateLisible, delai, prochainsAnniversaires } from './bilan';
 import { etatBudget } from './budget';
 import { dejaOffert, ressemblance } from './historique';
+import { ibanValide, normaliserIban } from './iban';
 import { liensPartage } from './partage';
 import { etatCagnotte, montantsProposes, partConseillee, partsEgales } from './cagnotte';
 
@@ -186,5 +187,15 @@ describe('montants proposés pour une part', () => {
     expect(montantsProposes(2143, 10000).map((m) => m.libelle)).toEqual(['Ma part : 21,43 €', '10 €', '20 €', '30 €', 'Tout le reste : 100 €']);
     expect(montantsProposes(null, 2000).map((m) => m.centimes)).toEqual([1000, 2000, 3000]);
     expect(montantsProposes(2000, 0).map((m) => m.centimes)).toEqual([2000, 1000, 3000]);
+  });
+});
+
+describe('IBAN', () => {
+  it('nettoie et contrôle la clé, comme le serveur', () => {
+    expect(normaliserIban('fr76 3000-6000 0112 3456 7890 189')).toBe('FR7630006000011234567890189');
+    expect(ibanValide('FR7630006000011234567890189')).toBe(true);
+    expect(ibanValide('DE89370400440532013000')).toBe(true);
+    expect(ibanValide('FR7630006000011234567890188')).toBe(false);
+    expect(ibanValide('FR76')).toBe(false);
   });
 });

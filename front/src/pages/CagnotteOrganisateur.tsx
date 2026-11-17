@@ -7,6 +7,7 @@ import { etatCagnotte, partConseillee } from '../calculs/cagnotte';
 import { Champ, ChampMontant, Chiffre, EnTete, Jauge, Lien } from '../components/commun';
 import { FormulaireCagnotte } from '../components/FormulaireCagnotte';
 import { Partage } from '../components/Partage';
+import { RibOrganisateur } from '../components/Rib';
 import { erreurChamps, montantDuFormulaire, useEnvoi } from '../components/formulaire';
 import { useDonnees } from '../donnees/contexte';
 import { useChargement } from '../donnees/useChargement';
@@ -73,6 +74,8 @@ export function CagnotteOrganisateur({ id }: { id: number }) {
           <Partage url={lien} beneficiaire={cagnotte.beneficiaire} titre={cagnotte.titre} />
         </section>
       )}
+
+      {!cagnotte.close && <RibOrganisateur cagnotte={cagnotte} onChange={apres} />}
 
       <section className={`carte ${styles.objectif}`} aria-label="Avancement">
         <div className={styles.objectifChiffres}>

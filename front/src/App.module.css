@@ -17,7 +17,9 @@
 .contenu { flex: 1; width: 100%; max-width: var(--largeur); margin: 0 auto; padding: 1.75rem 1rem 3rem; outline: none; }
 .chargement { color: var(--c-texte-doux); }
 
-.pied { border-top: 1px solid var(--c-bord); padding: 1.25rem 1rem; text-align: center; color: var(--c-texte-doux); font-size: .85rem; }
+.pied { border-top: 1px solid var(--c-bord); padding: 1.25rem 1rem; text-align: center; color: var(--c-texte-doux); font-size: .85rem; display: grid; gap: .4rem; }
+.liensPied { display: flex; justify-content: center; gap: 1.2rem; }
+.liensPied a { color: inherit; }
 
 /* Téléphone : le menu devient une barre fixe en bas de l'écran, à portée de pouce. */
 @media (max-width: 640px) {

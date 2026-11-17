@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 /**
  * Navigation sans rechargement : les liens internes changent l'adresse, l'application affiche la bonne page.
  *   /  /occasions  /occasions/<id>  /proches  /bilan  /idees  /cagnottes  /cagnottes/<id>  /c/<code>
+ *   /compte  /confidentialite  /mentions-legales
  */
 export type Route =
   | { page: 'accueil' }
@@ -15,6 +16,8 @@ export type Route =
   | { page: 'cagnotte'; id: number }
   | { page: 'publique'; code: string }
   | { page: 'compte' }
+  | { page: 'confidentialite' }
+  | { page: 'mentions' }
   | { page: 'introuvable' };
 
 export function lireRoute(chemin: string): Route {
@@ -30,6 +33,8 @@ export function lireRoute(chemin: string): Route {
   if ((m = /^\/cagnottes\/(\d+)$/.exec(c))) return { page: 'cagnotte', id: Number(m[1]) };
   if ((m = /^\/c\/([a-f0-9]{16})$/.exec(c))) return { page: 'publique', code: m[1] };
   if (c === '/compte') return { page: 'compte' };
+  if (c === '/confidentialite') return { page: 'confidentialite' };
+  if (c === '/mentions-legales') return { page: 'mentions' };
   return { page: 'introuvable' };
 }
 

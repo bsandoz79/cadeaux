@@ -69,6 +69,7 @@ export function MonCompte() {
           <input type="checkbox" checked={d.compte?.rappels ?? false} disabled={reglage} onChange={(e) => basculerRappels(e.target.checked)} />
           M’envoyer un e-mail 7 jours avant l’anniversaire d’un proche, et 2 jours avant la date limite d’une cagnotte qui n’est pas complète.
         </label>
+        <EmailDeTest />
         <p className={styles.discret}>
           Au plus un e-mail par jour, à {d.compte?.email}.{d.compte && !d.compte.emailConfirme && ' Confirmez d’abord votre adresse (lien reçu par e-mail) : sinon, rien ne part.'}
         </p>
@@ -151,5 +152,28 @@ function ReglagesCompte() {
         </form>
       </details>
     </section>
+  );
+}
+
+/** S'envoyer un e-mail de test, pour vérifier qu'il arrive (et pas dans les indésirables). */
+function EmailDeTest() {
+  const [etat, setEtat] = useState<{ ok: boolean; texte: string } | null>(null);
+  const [occupe, setOccupe] = useState(false);
+  const envoyer = async () => {
+    setOccupe(true);
+    try {
+      const r = await api<{ message: string }>('POST', '/moi/email-test');
+      setEtat({ ok: true, texte: `${r.message} Regardez aussi dans les indésirables.` });
+    } catch (e) {
+      setEtat({ ok: false, texte: e instanceof Error ? e.message : 'Une erreur est survenue.' });
+    } finally {
+      setOccupe(false);
+    }
+  };
+  return (
+    <div className="formulaire" style={{ gap: '.4rem' }}>
+      <div><button type="button" className="btn btn--petit btn--contour" onClick={envoyer} disabled={occupe}>M’envoyer un e-mail de test</button></div>
+      {etat && <p role="status" className={etat.ok ? undefined : 'erreur'} style={etat.ok ? { color: 'var(--c-vert)', fontWeight: 600 } : undefined}>{etat.texte}</p>}
+    </div>
   );
 }

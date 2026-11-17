@@ -118,6 +118,7 @@ final class Application
         $r->ajouter('POST', '/motdepasse/nouveau', fn (Requete $q) => Reponse::ok(
             $this->identite->reinitialiser((string) ($q->corps['jeton'] ?? ''), (string) ($q->corps['motDePasse'] ?? '')),
         ));
+        $r->ajouter('POST', '/moi/email-test', fn (Requete $q) => Reponse::ok(['message' => 'E-mail de test envoyé à ' . $this->identite->envoyerTest($this->compte($q)) . '.']));
         $r->ajouter('POST', '/moi/motdepasse', function (Requete $q) {
             $this->identite->changerMotDePasse($this->compte($q), (string) ($q->corps['actuel'] ?? ''), (string) ($q->corps['nouveau'] ?? ''), $q->jeton());
 

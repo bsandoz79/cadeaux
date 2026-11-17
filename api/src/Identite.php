@@ -54,6 +54,29 @@ final class Identite
             TXT);
     }
 
+    /** E-mail de test (« Mon compte ») : vérifier qu'il arrive, et pas dans les indésirables. */
+    public function envoyerTest(int $compteId): string
+    {
+        if ($this->limiteur->depasse('test:' . $compteId, 3)) {
+            throw new ErreurHttp(429, 'Déjà 3 e-mails de test : réessayez dans un quart d’heure.');
+        }
+        $this->limiteur->noter('test:' . $compteId);
+        $compte = $this->comptes->compte($compteId);
+        $parti = $this->courrier->envoyer((string) $compte['email'], 'E-mail de test', <<<TXT
+            Bonjour {$compte['nom']},
+
+            Ceci est un e-mail de test : s'il est arrivé dans votre boîte de réception, les rappels arriveront aussi.
+            S'il est dans les indésirables, marquez-le « Pas un spam ».
+
+            Cadeaux
+            TXT);
+        if (!$parti) {
+            throw new ErreurHttp(502, 'L’e-mail n’a pas pu partir. Réessayez plus tard.');
+        }
+
+        return (string) $compte['email'];
+    }
+
     public function demanderReinitialisation(string $email, string $ip): void
     {
         $email = mb_strtolower(trim($email));

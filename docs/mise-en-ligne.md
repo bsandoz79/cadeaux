@@ -41,6 +41,8 @@ php /home/<compte>/cadeaux.bsandoz.fr/api/bin/menage.php
 
 Les e-mails partent de `cadeaux@bsandoz.fr` : créer cette adresse (ou une redirection) dans cPanel → « Comptes de messagerie » pour recevoir les éventuelles réponses.
 
+Pour qu'ils n'arrivent pas dans les indésirables, le domaine doit avoir des enregistrements **SPF**, **DKIM** et **DMARC** : cPanel → « Délivrabilité des e-mails » → « Réparer » sur bsandoz.fr. Vérification le 17/11/2026 : DKIM et DMARC présents, **SPF absent**. Test : « Mon compte » → « M'envoyer un e-mail de test ».
+
 ### 4. Premier envoi
 
 Envoyer sur `main` (ou relancer le workflow dans l'onglet Actions). Les tables de la base sont créées au premier appel de l'API, sans rien lancer sur le serveur.

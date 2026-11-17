@@ -11,7 +11,7 @@ use Cadeaux\Http\Routeur;
 
 /**
  * Les routes de l'API (toutes sous /api) :
- *   POST   /comptes, /connexion, /deconnexion · GET /moi · DELETE /moi
+ *   POST   /comptes, /connexion, /deconnexion · GET /moi · DELETE /moi · GET /moi/export (toutes les données du compte)
  *   GET|POST /personnes · PATCH|DELETE /personnes/{id}       (idem /occasions, /cadeaux, /cagnottes)
  *   GET    /cagnottes/{id}  (avec les participations)
  *   POST   /cagnottes/{id}/participations · PATCH|DELETE /cagnottes/{id}/participations/{pid}   (organisateur)
@@ -82,6 +82,7 @@ final class Application
             return Reponse::vide();
         });
         $r->ajouter('GET', '/moi', fn (Requete $q) => Reponse::ok($this->comptes->compte($this->compte($q))));
+        $r->ajouter('GET', '/moi/export', fn (Requete $q) => Reponse::ok($this->export($this->compte($q))));
         $r->ajouter('DELETE', '/moi', function (Requete $q) {
             $this->comptes->supprimer($this->compte($q));
 
@@ -153,6 +154,31 @@ final class Application
             'totalPaye' => $somme(static fn (array $p): bool => $p['paye']),
             'maPart' => $somme(static fn (array $p): bool => $p['organisateur']),
             'nombreParticipations' => count($parts),
+        ];
+    }
+
+    /**
+     * Droit d'accès et de portabilité : tout ce que le compte contient, dans un format lisible (JSON).
+     *
+     * @return array<string, mixed>
+     */
+    private function export(int $compteId): array
+    {
+        $c = $this->collections();
+        $compte = $this->pdo->prepare('SELECT email, nom, cree_le, derniere_activite FROM comptes WHERE id = ?');
+        $compte->execute([$compteId]);
+        $ligne = $compte->fetch(\PDO::FETCH_ASSOC) ?: throw ErreurHttp::introuvable();
+
+        return [
+            'exporteLe' => $this->horloge->texte(),
+            'compte' => ['email' => $ligne['email'], 'nom' => $ligne['nom'], 'creeLe' => $ligne['cree_le'], 'derniereActivite' => $ligne['derniere_activite']],
+            'proches' => $c['personnes']->lister($compteId),
+            'occasions' => $c['occasions']->lister($compteId),
+            'cadeaux' => $c['cadeaux']->lister($compteId),
+            'cagnottes' => array_map(
+                fn (array $g): array => $g + ['participations' => $this->cagnottes->participations($g['id'])],
+                $c['cagnottes']->lister($compteId),
+            ),
         ];
     }
 

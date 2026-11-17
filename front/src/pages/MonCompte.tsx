@@ -1,13 +1,29 @@
+import { useState } from 'react';
 import { api, jeton } from '../api/client';
+import { aujourdhui } from '../calculs/bilan';
 import { EnTete } from '../components/commun';
 import { useDonnees } from '../donnees/contexte';
 import { aller } from '../navigation';
 import styles from './pages.module.css';
 
-/** Compte : déconnexion, extension Chrome, suppression du compte. */
+/** Compte : déconnexion, extension Chrome, export des données, suppression du compte. */
 export function MonCompte() {
   const d = useDonnees();
+  const [export_, setExport] = useState<'pret' | 'en-cours' | 'erreur'>('pret');
   const deconnecter = async () => { await d.deconnecter(); aller('/'); };
+  const telecharger = async () => {
+    setExport('en-cours');
+    try {
+      const donnees = await api<unknown>('GET', '/moi/export');
+      const url = URL.createObjectURL(new Blob([JSON.stringify(donnees, null, 2)], { type: 'application/json' }));
+      const a = Object.assign(document.createElement('a'), { href: url, download: `cadeaux-mes-donnees-${aujourdhui()}.json` });
+      a.click();
+      URL.revokeObjectURL(url);
+      setExport('pret');
+    } catch {
+      setExport('erreur');
+    }
+  };
   const supprimer = async () => {
     if (!window.confirm('Supprimer votre compte et toutes vos données (proches, occasions, cadeaux, cagnottes) ? C’est définitif.')) return;
     await api('DELETE', '/moi');
@@ -30,6 +46,13 @@ export function MonCompte() {
           <li>Cliquez sur l’icône du cadeau, puis connectez-vous avec la même adresse et le même mot de passe qu’ici.</li>
           <li>Sur un produit, cliquez sur l’icône, vérifiez le prix, choisissez pour qui, et ajoutez.</li>
         </ol>
+      </section>
+
+      <section className="carte formulaire" aria-labelledby="titre-export">
+        <h2 id="titre-export">Mes données</h2>
+        <p className={styles.discret}>Téléchargez tout ce que contient votre compte (proches, occasions, cadeaux, cagnottes et leurs participations), dans un fichier que vous pouvez garder ou importer ailleurs.</p>
+        <div><button type="button" className="btn btn--contour" onClick={telecharger} disabled={export_ === 'en-cours'}>Télécharger mes données</button></div>
+        {export_ === 'erreur' && <p className="erreur" role="alert">Le téléchargement n’a pas abouti. Réessayez.</p>}
       </section>
 
       <section className="carte formulaire" aria-labelledby="titre-supprimer">

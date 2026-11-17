@@ -54,6 +54,28 @@ final class ComptesTest extends ApiTestCase
         self::assertSame(401, $this->appel('GET', '/moi', [], $jeton)->statut);
     }
 
+    public function testExportDeToutesLesDonneesDuCompte(): void
+    {
+        $jeton = $this->inscrire();
+        $autre = $this->inscrire('autre@example.com', 'Autre');
+        $this->appel('POST', '/personnes', ['nom' => 'Pas à moi'], $autre);
+        $maman = $this->appel('POST', '/personnes', ['nom' => 'Maman'], $jeton)->donnees;
+        $this->appel('POST', '/cadeaux', ['titre' => 'Écharpe', 'personneId' => $maman['id'], 'montantPrevu' => 3000], $jeton);
+        $c = $this->appel('POST', '/cagnottes', ['titre' => 'Montre', 'beneficiaire' => 'Julie', 'objectif' => 15000], $jeton)->donnees;
+        $this->appel('POST', '/c/' . $c['code'] . '/participations', ['nom' => 'Tom', 'montant' => 2000]);
+
+        $export = $this->appel('GET', '/moi/export', [], $jeton);
+        self::assertSame(200, $export->statut);
+        $d = $export->donnees;
+        self::assertSame(['exporteLe', 'compte', 'proches', 'occasions', 'cadeaux', 'cagnottes'], array_keys($d));
+        self::assertSame('baptiste@example.com', $d['compte']['email']);
+        self::assertArrayNotHasKey('mot_de_passe', $d['compte']);
+        self::assertSame(['Maman'], array_column($d['proches'], 'nom'));
+        self::assertSame('Écharpe', $d['cadeaux'][0]['titre']);
+        self::assertSame('Tom', $d['cagnottes'][0]['participations'][0]['nom']);
+        self::assertSame(401, $this->appel('GET', '/moi/export')->statut);
+    }
+
     public function testSuppressionDuCompteEfface(): void
     {
         $jeton = $this->inscrire();

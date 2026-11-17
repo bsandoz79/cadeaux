@@ -2,6 +2,9 @@
 
 ## [Non publié]
 
+### Ajouté (appli)
+- Le site s'installe comme une appli sur le téléphone (manifeste, icônes, plein écran) : bouton « Installer l'appli » dans Mon compte sur Android et Chrome, explication pour iPhone. L'écran s'ouvre même sans réseau (dernière version connue), les données restent sur le serveur.
+
 ### Ajouté (cagnottes)
 - « On se cotise » sur une liste d'envies : un proche connecté lance une cagnotte pour l'envie (prix repris, ou demandé), l'envie est réservée au nom du groupe, les autres voient « Cagnotte lancée par Léa · Participer » ; le propriétaire ne voit toujours rien. Sans compte, invitation à se connecter puis retour sur la liste.
 - Envoi du lien d'une cagnotte par WhatsApp, SMS, menu de partage ou copie, sur la page de la cagnotte et après « On se cotise ».

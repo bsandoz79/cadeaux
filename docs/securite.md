@@ -19,6 +19,7 @@
 | Tâche planifiée | `bin/menage.php` refuse de s'exécuter hors ligne de commande, dossier `bin` inaccessible par le web ; e-mails sans en-tête injectable | `bin/menage.php`, `CourrierPhp.php` |
 | Secrets | `config.local.php` jamais versionné, écrit au déploiement depuis les secrets GitHub | `.github/workflows/deploy.yml` |
 | En-têtes | `nosniff`, `Referrer-Policy`, `X-Frame-Options: DENY`, `Permissions-Policy`, `Cache-Control: no-store` sur l'API, HTTPS imposé | `front/public/.htaccess`, `Http/Reponse.php` |
+| Appli installée | `sw.js` ne garde que les fichiers du site (pages et `/assets/`), jamais les réponses de l'API ni les données ; servi sans cache pour que chaque mise à jour soit prise | `front/public/sw.js` |
 | CSP | Site : seul le code du site s'exécute (`script-src 'self'`, aucun script en ligne), styles du site seulement (attributs `style` permis pour les barres), images en https, appels réseau vers le site seulement, pas d'affichage dans un cadre. API : `default-src 'none'`. Vérifié dans Chrome sur 11 pages : aucune violation. | `front/public/.htaccess`, `Http/Reponse.php` |
 
 ## Extension Chrome : permissions

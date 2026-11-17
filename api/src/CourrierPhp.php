@@ -18,7 +18,9 @@ final class CourrierPhp implements Courrier
             return false;
         }
 
-        return mail(
+        // « @ » : un serveur d'envoi injoignable ne doit pas glisser d'avertissement dans la réponse JSON ;
+        // l'échec est signalé par la valeur renvoyée (false).
+        return @mail(
             $destinataire,
             mb_encode_mimeheader($sujet, 'UTF-8'),
             $texte,

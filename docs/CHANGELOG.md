@@ -2,6 +2,9 @@
 
 ## [Non publié]
 
+### Corrigé
+- Un envoi d'e-mail en échec n'ajoute plus d'avertissement PHP dans la réponse de l'API (l'inscription restait cassée côté navigateur).
+
 ### Ajouté
 - « M'envoyer un e-mail de test » dans Mon compte (3 par quart d'heure).
 

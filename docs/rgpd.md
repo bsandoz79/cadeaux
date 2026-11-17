@@ -13,7 +13,7 @@ Hébergement : o2switch (France).
 | Date de dernière activité du compte | Utilisateur | Supprimer les comptes inactifs | Intérêt légitime (minimisation) | Comme le compte | Personne |
 | Adresse IP et adresse e-mail des essais de connexion ratés ; adresse IP des parts ajoutées par lien | Utilisateur, tiers | Sécurité (force brute, abus) | Intérêt légitime | 15 minutes | Personne |
 | Proches : prénom ou surnom, date de naissance, note | Tiers (famille, amis) | Organiser ses cadeaux | Intérêt légitime de l'utilisateur, usage privé | Jusqu'à la suppression du proche ou du compte | L'utilisateur seul |
-| Occasions et cadeaux (montants, liens, notes) | Utilisateur, tiers | Suivre ses cadeaux et son budget | Contrat | Jusqu'à la suppression ou celle du compte | L'utilisateur seul |
+| Occasions, cadeaux et budgets par proche (montants, liens, notes) | Utilisateur, tiers | Suivre ses cadeaux et son budget | Contrat | Jusqu'à la suppression ou celle du compte | L'utilisateur seul |
 | Cagnotte : titre, bénéficiaire, objectif, message | Utilisateur, bénéficiaire | Cadeau commun | Contrat | Jusqu'à la suppression ou celle du compte | L'organisateur, et quiconque a le lien |
 | Participation : prénom saisi, montant | Participants (sans compte) | Cadeau commun | Consentement (saisie volontaire) | Jusqu'à son retrait ou la suppression de la cagnotte | L'organisateur, et quiconque a le lien |
 | Produit lu par l'extension (nom, prix, photo, adresse) | Utilisateur | Noter une idée de cadeau | Action volontaire | Comme les cadeaux | L'utilisateur seul |

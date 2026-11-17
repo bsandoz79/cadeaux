@@ -2,10 +2,13 @@ import { useState } from 'react';
 import { TYPES_OCCASION, libelleType, type Occasion, type TypeOccasion } from '../api/types';
 import { euros } from '../calculs/argent';
 import { coutCadeau, dateLisible, estDepense } from '../calculs/bilan';
+import { etatBudget } from '../calculs/budget';
 import { CarteCadeau } from '../components/CarteCadeau';
-import { Champ, Chiffre, Choix, Depliable, EnTete, Lien } from '../components/commun';
+import { Champ, ChampMontant, Chiffre, Choix, Depliable, EnTete, Lien } from '../components/commun';
 import { FormulaireCadeau } from '../components/FormulaireCadeau';
-import { useEnvoi } from '../components/formulaire';
+import { erreurChamps, montantDuFormulaire, useEnvoi } from '../components/formulaire';
+import { saisieDepuis } from '../calculs/argent';
+import type { Budget } from '../api/types';
 import { useDonnees } from '../donnees/contexte';
 import { aller } from '../navigation';
 import styles from './pages.module.css';
@@ -36,6 +39,9 @@ export function OccasionDetail({ id }: { id: number }) {
       for (const c of d.cadeaux.filter((x) => x.occasionId === precedente.id)) {
         await d.ajouter('cadeaux', { titre: c.titre, personneId: c.personneId, occasionId: id, montantPrevu: coutCadeau(c) || null, statut: 'prevu' });
       }
+      for (const b of d.budgets.filter((x) => x.occasionId === precedente.id)) {
+        await d.ajouter('budgets', { occasionId: id, personneId: b.personneId, montant: b.montant });
+      }
     } finally {
       setOccupe(false);
     }
@@ -47,10 +53,17 @@ export function OccasionDetail({ id }: { id: number }) {
     aller('/occasions');
   };
 
-  // Regroupés par personne, dans l'ordre alphabétique ; « sans destinataire » à la fin.
-  const groupes = [...new Set(cadeaux.map((c) => c.personneId))]
-    .map((pid) => ({ pid, nom: d.personnes.find((p) => p.id === pid)?.nom ?? 'Sans destinataire', cadeaux: cadeaux.filter((c) => c.personneId === pid) }))
+  // Regroupés par personne (celles qui ont un cadeau ou un budget), dans l'ordre alphabétique ; « sans destinataire » à la fin.
+  const budgets = d.budgets.filter((b) => b.occasionId === id);
+  const groupes = [...new Set([...cadeaux.map((c) => c.personneId), ...budgets.map((b) => b.personneId)])]
+    .map((pid) => ({
+      pid,
+      nom: d.personnes.find((p) => p.id === pid)?.nom ?? 'Sans destinataire',
+      cadeaux: cadeaux.filter((c) => c.personneId === pid),
+      budget: budgets.find((b) => b.personneId === pid),
+    }))
     .sort((a, b) => (a.pid === null ? 1 : b.pid === null ? -1 : a.nom.localeCompare(b.nom)));
+  const totalBudgets = budgets.reduce((s, b) => s + b.montant, 0);
 
   return (
     <div className={styles.pile}>
@@ -65,6 +78,7 @@ export function OccasionDetail({ id }: { id: number }) {
         <Chiffre libelle="Total" valeur={euros(depense + prevu)} ton="accent" />
         <Chiffre libelle="Déjà dépensé" valeur={euros(depense)} ton="vert" />
         <Chiffre libelle="Encore prévu" valeur={euros(prevu)} ton="or" />
+        {totalBudgets > 0 && <Chiffre libelle="Budget total" valeur={euros(totalBudgets)} />}
       </div>
 
       <Depliable key={pour} bouton="Ajouter un cadeau" ouvertAuDepart={pour !== undefined}>
@@ -87,12 +101,93 @@ export function OccasionDetail({ id }: { id: number }) {
       {groupes.map((g) => (
         <section key={g.pid ?? 'sans'} className={styles.groupe} aria-label={g.nom}>
           <h3>{g.nom} · {euros(g.cadeaux.reduce((s, c) => s + coutCadeau(c), 0))}</h3>
+          {g.pid !== null && (
+            <LigneBudget occasionId={id} personneId={g.pid} nom={g.nom} budget={g.budget} utilise={g.cadeaux.reduce((s, c) => s + coutCadeau(c), 0)} />
+          )}
           {g.cadeaux.map((c) => <CarteCadeau key={c.id} cadeau={c} />)}
+          {g.cadeaux.length === 0 && <p className={styles.discret}>Pas encore de cadeau pour {g.nom}.</p>}
         </section>
       ))}
 
+      {d.personnes.some((p) => !groupes.some((g) => g.pid === p.id)) && <AjouterBudget occasionId={id} exclus={groupes.map((g) => g.pid)} />}
+
       {idees.length > 0 && <AjouterUneIdee occasionId={id} />}
     </div>
+  );
+}
+
+/** Budget d'une personne : barre, reste ou dépassement ; « Budget » pour le fixer ou le changer. */
+function LigneBudget({ occasionId, personneId, nom, budget, utilise }: { occasionId: number; personneId: number; nom: string; budget?: Budget; utilise: number }) {
+  const [edition, setEdition] = useState(false);
+  if (edition) return <FormulaireBudget occasionId={occasionId} personneId={personneId} nom={nom} budget={budget} onFini={() => setEdition(false)} />;
+  if (!budget) {
+    return <p><button type="button" className="btn btn--lien btn--petit" onClick={() => setEdition(true)}>Fixer un budget pour {nom}</button></p>;
+  }
+  const e = etatBudget(budget.montant, utilise);
+  return (
+    <div className={styles.budget}>
+      <div className={styles.barreHorizontale} aria-hidden="true">
+        <span style={{ width: `${e.pourcentage}%`, background: e.depasse ? 'var(--c-erreur)' : undefined }} />
+      </div>
+      <p className={e.depasse ? 'erreur' : styles.discret}>
+        {e.depasse
+          ? `Budget de ${euros(e.budget)} dépassé de ${euros(e.depasse)}`
+          : `${euros(e.utilise)} sur ${euros(e.budget)} de budget, il reste ${euros(e.reste)}`}
+        {' '}<button type="button" className="btn btn--lien btn--petit" onClick={() => setEdition(true)}>Changer</button>
+      </p>
+    </div>
+  );
+}
+
+function FormulaireBudget({ occasionId, personneId, nom, budget, onFini }: { occasionId: number; personneId: number; nom: string; budget?: Budget; onFini: () => void }) {
+  const d = useDonnees();
+  const { envoyer, occupe, erreur, champs } = useEnvoi(async (f) => {
+    const montant = montantDuFormulaire(f, 'montant');
+    if (montant === undefined) throw erreurChamps({ montant: 'Montant invalide (ex. 50).' });
+    if (montant === null || montant === 0) {
+      if (budget) await d.supprimer('budgets', budget.id);
+    } else if (budget) {
+      await d.modifier('budgets', budget.id, { montant });
+    } else {
+      await d.ajouter('budgets', { occasionId, personneId, montant });
+    }
+    onFini();
+  });
+  return (
+    <form className="formulaire carte" onSubmit={envoyer} noValidate>
+      <ChampMontant libelle={`Budget pour ${nom} (€)`} nom="montant" defaultValue={saisieDepuis(budget?.montant)} erreur={champs.montant}
+        aide={budget ? 'Videz le champ pour retirer le budget.' : undefined} autoFocus />
+      {erreur && <p className="erreur" role="alert">{erreur}</p>}
+      <div className="actions">
+        <button className="btn btn--petit" disabled={occupe}>Enregistrer</button>
+        <button type="button" className="btn btn--petit btn--contour" onClick={onFini}>Annuler</button>
+      </div>
+    </form>
+  );
+}
+
+/** Fixer le budget d'un proche qui n'a encore rien pour cette occasion. */
+function AjouterBudget({ occasionId, exclus }: { occasionId: number; exclus: (number | null)[] }) {
+  const d = useDonnees();
+  const libres = d.personnes.filter((p) => !exclus.includes(p.id));
+  const { envoyer, occupe, erreur, champs } = useEnvoi(async (f, form) => {
+    const montant = montantDuFormulaire(f, 'montant');
+    if (!montant) throw erreurChamps({ montant: 'Indiquez un budget (ex. 50).' });
+    await d.ajouter('budgets', { occasionId, personneId: Number(f.get('personneId')), montant });
+    form.reset();
+  });
+  return (
+    <form className="carte formulaire" onSubmit={envoyer} noValidate>
+      <h3>Prévoir un budget pour un proche</h3>
+      <div className="rangee" style={{ alignItems: 'end' }}>
+        <Choix libelle="Pour qui" nom="personneId" defaultValue={libres[0]?.id}>
+          {libres.map((p) => <option key={p.id} value={p.id}>{p.nom}</option>)}
+        </Choix>
+        <ChampMontant libelle="Budget (€)" nom="montant" erreur={champs.montant} />
+        <div><button className="btn btn--contour" disabled={occupe}>Ajouter</button></div>
+      </div>
+      {erreur && !champs.montant && <p className="erreur" role="alert">{erreur}</p>}
+    </form>
   );
 }
 

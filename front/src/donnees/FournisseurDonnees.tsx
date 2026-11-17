@@ -3,7 +3,7 @@ import { api, jeton, quandDeconnecte } from '../api/client';
 import type { Compte } from '../api/types';
 import { ContexteDonnees, type Collections, type Donnees, type NomCollection } from './contexte';
 
-const VIDE: Collections = { personnes: [], occasions: [], cadeaux: [], cagnottes: [] };
+const VIDE: Collections = { personnes: [], occasions: [], cadeaux: [], budgets: [], cagnottes: [] };
 
 /** Charge le compte connecté et ses données, et garde la liste à jour après chaque changement. */
 export function FournisseurDonnees({ children }: { children: ReactNode }) {
@@ -12,15 +12,16 @@ export function FournisseurDonnees({ children }: { children: ReactNode }) {
   const [pret, setPret] = useState(() => !jeton.lire());
 
   const recharger = useCallback(async () => {
-    const [moi, personnes, occasions, cadeaux, cagnottes] = await Promise.all([
+    const [moi, personnes, occasions, cadeaux, budgets, cagnottes] = await Promise.all([
       api<Compte>('GET', '/moi'),
       api<Collections['personnes']>('GET', '/personnes'),
       api<Collections['occasions']>('GET', '/occasions'),
       api<Collections['cadeaux']>('GET', '/cadeaux'),
+      api<Collections['budgets']>('GET', '/budgets'),
       api<Collections['cagnottes']>('GET', '/cagnottes'),
     ]);
     setCompte(moi);
-    setCollections({ personnes, occasions, cadeaux, cagnottes });
+    setCollections({ personnes, occasions, cadeaux, budgets, cagnottes });
   }, []);
 
   useEffect(() => {
@@ -60,7 +61,7 @@ export function FournisseurDonnees({ children }: { children: ReactNode }) {
     },
     supprimer: async (nom: NomCollection, id: number) => {
       await api('DELETE', `/${nom}/${id}`);
-      // Supprimer un proche ou une occasion détache leurs cadeaux : on relit tout.
+      // Supprimer un proche ou une occasion détache leurs cadeaux et efface leurs budgets : on relit tout.
       if (nom === 'personnes' || nom === 'occasions') await recharger();
       else setCollections((c) => ({ ...c, [nom]: (c[nom] as { id: number }[]).filter((e) => e.id !== id) }));
     },

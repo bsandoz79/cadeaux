@@ -2,6 +2,9 @@
 
 ## [Non publié]
 
+### Ajouté
+- Budget par personne et par occasion : barre « il reste » ou « dépassé de », total des budgets, proches avec un budget mais sans cadeau encore, reprise des budgets de l'an dernier. Voir `docs/fonctionnalites/budget-par-personne.md`.
+
 ### Ajouté (RGPD)
 - Pages « Politique de confidentialité » et « Mentions légales », accessibles sans compte, liées depuis le pied de page, l'inscription, la page de cagnotte et l'extension.
 - Page de cagnotte : information sur la visibilité du prénom et de la part de chaque participant.

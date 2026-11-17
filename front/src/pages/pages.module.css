@@ -63,3 +63,7 @@
 .coche { display: inline-flex; align-items: center; gap: .4rem; cursor: pointer; font-size: .9rem; }
 .coche input { width: 20px; height: 20px; accent-color: var(--c-vert); }
 .moi { background: var(--c-or-doux); }
+
+/* Budget d'une personne */
+.budget { display: grid; gap: .3rem; }
+.budget p { font-size: .9rem; }

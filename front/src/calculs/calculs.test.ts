@@ -1,6 +1,7 @@
 import type { Cadeau, Cagnotte, Occasion, Personne } from '../api/types';
 import { euros, lireMontant, saisieDepuis } from './argent';
 import { anneesDisponibles, aujourdhui, bilanAnnee, dateLisible, delai, prochainsAnniversaires } from './bilan';
+import { etatBudget } from './budget';
 import { etatCagnotte, partConseillee, partsEgales } from './cagnotte';
 
 const cadeau = (c: Partial<Cadeau>): Cadeau => ({
@@ -116,5 +117,13 @@ describe('anniversaires', () => {
     expect(dateLisible('2026-12-25')).toBe('25 décembre 2026');
     expect(dateLisible('2026-12-25', true)).toBe('25 décembre');
     expect(aujourdhui(new Date(2026, 0, 5))).toBe('2026-01-05');
+  });
+});
+
+describe('budget par personne', () => {
+  it('donne le reste, ou le dépassement', () => {
+    expect(etatBudget(5000, 3000)).toEqual({ budget: 5000, utilise: 3000, reste: 2000, depasse: 0, pourcentage: 60 });
+    expect(etatBudget(5000, 6250)).toMatchObject({ reste: 0, depasse: 1250, pourcentage: 100 });
+    expect(etatBudget(5000, 0)).toMatchObject({ reste: 5000, pourcentage: 0 });
   });
 });

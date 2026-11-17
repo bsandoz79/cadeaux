@@ -54,12 +54,20 @@ final class Collection
         $valeurs = $this->valider($compteId, $donnees, true);
         $valeurs = ['compte_id' => $compteId] + $valeurs + $colonnesEnPlus;
         $colonnes = array_keys($valeurs);
-        $this->pdo->prepare(sprintf(
-            'INSERT INTO %s (%s) VALUES (%s)',
-            $this->table,
-            implode(', ', $colonnes),
-            implode(', ', array_fill(0, count($colonnes), '?')),
-        ))->execute(array_values($valeurs));
+        try {
+            $this->pdo->prepare(sprintf(
+                'INSERT INTO %s (%s) VALUES (%s)',
+                $this->table,
+                implode(', ', $colonnes),
+                implode(', ', array_fill(0, count($colonnes), '?')),
+            ))->execute(array_values($valeurs));
+        } catch (\PDOException $e) {
+            // Contrainte d'unicité (ex. un seul budget par personne et par occasion).
+            if ($e->getCode() === '23000') {
+                throw new ErreurHttp(409, 'Cet élément existe déjà.');
+            }
+            throw $e;
+        }
 
         return $this->lire($compteId, (int) $this->pdo->lastInsertId());
     }

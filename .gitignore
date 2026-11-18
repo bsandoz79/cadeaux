@@ -1,5 +1,6 @@
 node_modules
 dist
+front/dist-seo
 *.tsbuildinfo
 .env.local
 .env.*.local

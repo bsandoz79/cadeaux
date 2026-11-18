@@ -11,6 +11,10 @@ RewriteRule ^index\.html$ - [L]
 # Lien d'une cagnotte : page servie par PHP avec l'aperçu (titre, avancement, image) pour Snapchat, WhatsApp…
 RewriteRule ^c/([a-f0-9]{16})/apercu\.png$ api/partage.php?code=$1&image=1 [L]
 RewriteRule ^c/([a-f0-9]{16})/?$ api/partage.php?code=$1 [L]
+# Pages de guide écrites à la construction : /liste-de-noel sert liste-de-noel.html.
+RewriteCond %{DOCUMENT_ROOT}/$1.html -f
+RewriteRule ^([a-z-]+)$ $1.html [L]
+
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule . /index.html [L]
@@ -23,7 +27,11 @@ RewriteRule . /index.html [L]
   Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self'; style-src-attr 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
   Header always set X-Frame-Options "DENY"
   Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
-  <FilesMatch "\.(html|webmanifest)$|^sw\.js$">
+  # Pages privées (compte, liens partagés, liens reçus par e-mail) : jamais dans Google. THE_REQUEST garde l'adresse demandée.
+  <If "%{THE_REQUEST} =~ m#^[A-Z]+ /(occasions|proches|bilan|idees|envies|cagnottes|compte|recherche|l/|c/|motdepasse|confirmer|securite|rejoindre)#">
+    Header always set X-Robots-Tag "noindex, nofollow"
+  </If>
+  <FilesMatch "\.(html|webmanifest|xml|txt)$|^sw\.js$">
     Header set Cache-Control "no-cache"
   </FilesMatch>
   <If "%{REQUEST_URI} =~ m#^/assets/#">

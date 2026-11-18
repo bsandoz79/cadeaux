@@ -21,6 +21,13 @@ if (preg_match('#^/c/([a-f0-9]{16})(/apercu\.png)?$#', $uri, $m) === 1) {
 
     return true;
 }
+// Pages de guide écrites à la construction : /liste-de-noel sert liste-de-noel.html.
+if (preg_match('#^/[a-z-]+$#', $uri) === 1 && is_file($_SERVER['DOCUMENT_ROOT'] . $uri . '.html')) {
+    header('Content-Type: text/html; charset=utf-8');
+    readfile($_SERVER['DOCUMENT_ROOT'] . $uri . '.html');
+
+    return true;
+}
 if ($uri !== '/' && is_file($_SERVER['DOCUMENT_ROOT'] . $uri)) {
     return false;
 }

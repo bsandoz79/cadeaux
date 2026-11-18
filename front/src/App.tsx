@@ -29,6 +29,7 @@ const Occasions = page(() => import('./pages/Occasions'), 'Occasions');
 const Proches = page(() => import('./pages/Proches'), 'Proches');
 const Recherche = page(() => import('./pages/Recherche'), 'Recherche');
 const FicheProche = page(() => import('./pages/FicheProche'), 'FicheProche');
+const ConnexionGoogle = page(() => import('./pages/ConnexionGoogle'), 'ConnexionGoogle');
 const NouveauMotDePasse = page(() => import('./pages/LiensEmail'), 'NouveauMotDePasse');
 const ConfirmerEmail = page(() => import('./pages/LiensEmail'), 'ConfirmerEmail');
 const ConfirmerMotDePasse = page(() => import('./pages/LiensEmail'), 'ConfirmerMotDePasse');
@@ -62,7 +63,7 @@ const MENU: { href: string; libelle: string; pages: Route['page'][] }[] = [
 const TITRES: Partial<Record<Route['page'], string>> = {
   occasions: 'Occasions', occasion: 'Occasion', proches: 'Proches', proche: 'Proche', recherche: 'Rechercher', idees: 'Idées de cadeaux', cagnottes: 'Cagnottes',
   cagnotte: 'Cagnotte', bilan: 'Bilan de l’année', compte: 'Mon compte', publique: 'Cadeau commun',
-  confidentialite: 'Politique de confidentialité', mentions: 'Mentions légales', motdepasse: 'Nouveau mot de passe', confirmer: 'Adresse e-mail', securite: 'Ce n’est pas vous ?', confirmerMdp: 'Nouveau mot de passe', rejoindre: 'Invitation', envies: 'Ma liste d’envies', liste: 'Liste d’envies',
+  confidentialite: 'Politique de confidentialité', mentions: 'Mentions légales', motdepasse: 'Nouveau mot de passe', confirmer: 'Adresse e-mail', securite: 'Ce n’est pas vous ?', confirmerMdp: 'Nouveau mot de passe', rejoindre: 'Invitation', google: 'Connexion avec Google', envies: 'Ma liste d’envies', liste: 'Liste d’envies',
 };
 
 export function App() {
@@ -130,6 +131,7 @@ export function App() {
           : route.page === 'securite' ? <Securite jeton={route.jeton} />
           : route.page === 'confirmerMdp' ? <ConfirmerMotDePasse jeton={route.jeton} />
           : route.page === 'rejoindre' ? <Rejoindre jeton={route.jeton} />
+          : route.page === 'google' ? <ConnexionGoogle />
           : !pret ? <p className={styles.chargement}>Chargement…</p>
           : !connecte ? <Accueil />
           : <Page route={route} />}

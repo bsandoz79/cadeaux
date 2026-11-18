@@ -27,6 +27,7 @@ export type Route =
   | { page: 'securite'; jeton: string }
   | { page: 'confirmerMdp'; jeton: string }
   | { page: 'rejoindre'; jeton: string }
+  | { page: 'google' }
   | { page: 'introuvable' };
 
 export function lireRoute(chemin: string): Route {
@@ -53,14 +54,17 @@ export function lireRoute(chemin: string): Route {
   if ((m = /^\/securite\/([a-f0-9]{64})$/.exec(c))) return { page: 'securite', jeton: m[1] };
   if ((m = /^\/motdepasse\/confirmer\/([a-f0-9]{64})$/.exec(c))) return { page: 'confirmerMdp', jeton: m[1] };
   if ((m = /^\/rejoindre\/([a-f0-9]{64})$/.exec(c))) return { page: 'rejoindre', jeton: m[1] };
+  if (c === '/connexion/google') return { page: 'google' };
   return { page: 'introuvable' };
 }
 
 const EVENEMENT = 'cadeaux:navigation';
 
-export function aller(chemin: string) {
-  if (chemin === window.location.pathname) return;
-  window.history.pushState(null, '', chemin);
+/** `remplacer` : la page quittée sort de l'historique (ex. retour de Google, dont le code ne sert qu'une fois). */
+export function aller(chemin: string, remplacer = false) {
+  if (chemin === window.location.pathname && !remplacer) return;
+  if (remplacer) window.history.replaceState(null, '', chemin);
+  else window.history.pushState(null, '', chemin);
   window.dispatchEvent(new Event(EVENEMENT));
   window.scrollTo?.({ top: 0 });
 }

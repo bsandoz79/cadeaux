@@ -1,6 +1,6 @@
 /** Données échangées avec l'API. Montants en centimes, dates « AAAA-MM-JJ ». */
 
-export interface Compte { id: number; email: string; nom: string; rappels: boolean; emailConfirme: boolean; dateNaissance: string | null }
+export interface Compte { id: number; email: string; nom: string; rappels: boolean; emailConfirme: boolean; dateNaissance: string | null; /** Relié à un compte Google. */ google?: boolean }
 
 export interface Personne {
   id: number;

@@ -21,6 +21,8 @@ abstract class ApiTestCase extends TestCase
     protected string $cleCoffre;
     /** @var list<array{a: string, sujet: string, texte: string}> e-mails « envoyés » */
     public array $courriels = [];
+    /** Faux Google, à poser avant `parent::setUp()` pour tester la connexion avec Google. */
+    protected ?\Cadeaux\Google $google = null;
 
     protected function tearDown(): void
     {
@@ -48,7 +50,7 @@ abstract class ApiTestCase extends TestCase
                 return true;
             }
         };
-        $this->app = new Application($this->pdo, $this->horloge, new \Cadeaux\Coffre($this->cleCoffre), $courrier, 'https://cadeaux.test');
+        $this->app = new Application($this->pdo, $this->horloge, new \Cadeaux\Coffre($this->cleCoffre), $courrier, 'https://cadeaux.test', $this->google);
     }
 
     /**

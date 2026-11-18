@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { api } from '../api/client';
 import type { Compte } from '../api/types';
+import { BoutonGoogle } from '../components/BoutonGoogle';
 import { Champ, Lien } from '../components/commun';
 import { useEnvoi } from '../components/formulaire';
 import { useDonnees } from '../donnees/contexte';
@@ -53,6 +54,7 @@ export function Accueil() {
           <button type="button" role="tab" aria-selected={mode !== 'inscription'} onClick={() => setMode('connexion')}>Se connecter</button>
         </div>
         <h2 id="titre-connexion" className="sr-only">{mode === 'inscription' ? 'Créer un compte' : 'Se connecter'}</h2>
+        {mode !== 'oubli' && <BoutonGoogle retour={new URLSearchParams(window.location.search).get('retour')} />}
         {mode === 'oubli' ? (
           <form className="formulaire" onSubmit={oubli.envoyer} noValidate>
             <p>Indiquez votre adresse : vous recevrez un lien pour choisir un nouveau mot de passe.</p>

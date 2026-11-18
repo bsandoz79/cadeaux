@@ -63,6 +63,7 @@ final class Menage
             ->execute([$maintenant->modify(sprintf('-%d minutes', Limiteur::FENETRE_MINUTES))->format($format)]);
 
         $this->pdo->prepare('DELETE FROM liens WHERE expire_le < ?')->execute([$this->horloge->texte()]);
+        $this->pdo->prepare('DELETE FROM google_etats WHERE expire_le < ?')->execute([$this->horloge->texte()]);
 
         // 4. RIB d'organisateurs gardés depuis plus de 60 jours.
         $ribs = $this->coffreInutile();

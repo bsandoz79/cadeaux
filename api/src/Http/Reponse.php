@@ -10,7 +10,14 @@ final class Reponse
     public function __construct(
         public readonly int $statut,
         public readonly mixed $donnees = null,
+        /** Adresse de redirection (302), pour les allers-retours avec Google. */
+        public readonly ?string $redirection = null,
     ) {
+    }
+
+    public static function redirection(string $adresse): self
+    {
+        return new self(302, null, $adresse);
     }
 
     public static function ok(mixed $donnees): self
@@ -31,6 +38,13 @@ final class Reponse
     public function envoyer(): void
     {
         http_response_code($this->statut);
+        if ($this->redirection !== null) {
+            header('Location: ' . $this->redirection);
+            header('Cache-Control: no-store');
+            header('Referrer-Policy: no-referrer');
+
+            return;
+        }
         header('Content-Type: application/json; charset=utf-8');
         header('Cache-Control: no-store');
         header('X-Content-Type-Options: nosniff');

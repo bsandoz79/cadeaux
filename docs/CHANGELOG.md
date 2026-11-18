@@ -2,6 +2,9 @@
 
 ## [Non publié]
 
+### Ajouté (connexion avec Google)
+- « Continuer avec Google » sur l'écran d'accueil : création de compte ou connexion en un clic, compte existant de la même adresse relié sans doublon, retour à la liste d'envies, la cagnotte ou l'invitation de départ. Sans script de Google sur le site (OAuth côté serveur, PKCE). Activé quand les secrets `GOOGLE_CLIENT_ID` et `GOOGLE_CLIENT_SECRET` sont posés.
+
 ### Ajouté (référencement)
 - Quatre pages de guide lisibles par Google sans JavaScript : cagnotte pour un cadeau commun, liste de Noël à partager, budget cadeaux, rappels d'anniversaire ; liées depuis le pied de page.
 - Plan du site (`/sitemap.xml`), `robots.txt`, aperçu et fiche « application web gratuite » sur l'accueil.

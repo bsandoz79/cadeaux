@@ -1,0 +1,35 @@
+/* Bouton blanc à logo, selon les consignes de Google ; séparateur « ou » avant le formulaire. */
+.bouton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .7rem;
+  width: 100%;
+  min-height: 46px;
+  padding: 0 1rem;
+  border: 1px solid var(--c-bord-fort);
+  border-radius: 999px;
+  background: #fff;
+  color: #1f1f1f;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.bouton:hover {
+  background: #f7f7f7;
+}
+
+.ou {
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  color: var(--c-texte-doux);
+  font-size: .9rem;
+}
+
+.ou::before,
+.ou::after {
+  content: '';
+  flex: 1;
+  border-top: 1px solid var(--c-bord);
+}

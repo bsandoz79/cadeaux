@@ -3,6 +3,7 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { App } from './App';
 import { FournisseurDonnees } from './donnees/FournisseurDonnees';
+import { CLE_PREUVE_GOOGLE, sortie } from './components/BoutonGoogle';
 import { etatVide, installerFausseApi, preparer, type EtatFaux } from './test/fausseApi';
 
 const ouvrir = () => render(<FournisseurDonnees><App /></FournisseurDonnees>);
@@ -23,7 +24,7 @@ describe('compte', () => {
     expect(screen.getByRole('link', { name: 'politique de confidentialité' })).toHaveAttribute('href', '/confidentialite');
     await u.click(screen.getByRole('button', { name: 'Créer mon compte' }));
     expect(await screen.findByRole('heading', { name: 'Bonjour Baptiste' })).toBeInTheDocument();
-    expect(appels[0]).toMatchObject({ methode: 'POST', chemin: '/comptes', corps: { nom: 'Baptiste', email: 'baptiste@example.com' } });
+    expect(appels.find((a) => a.methode === 'POST')).toMatchObject({ methode: 'POST', chemin: '/comptes', corps: { nom: 'Baptiste', email: 'baptiste@example.com' } });
     expect(localStorage.getItem('cadeaux.jeton')).toBe('a'.repeat(64));
   });
 
@@ -90,7 +91,7 @@ describe('mot de passe et adresse', () => {
     await u.type(screen.getByLabelText('Mot de passe'), 'motdepasse123');
     await u.click(screen.getByRole('button', { name: 'Me connecter' }));
     await screen.findByRole('heading', { name: 'Bonjour Baptiste' });
-    expect(appels[0].entetes['X-Appareil']).toBe(localStorage.getItem('cadeaux.appareil'));
+    expect(appels.find((a) => a.methode === 'POST')?.entetes['X-Appareil']).toBe(localStorage.getItem('cadeaux.appareil'));
   });
 
   it('les rappels ne sont pas cochés d’office à l’inscription', async () => {
@@ -104,7 +105,7 @@ describe('mot de passe et adresse', () => {
     await u.type(screen.getByLabelText('Mot de passe'), 'motdepasse123');
     await u.click(screen.getByRole('button', { name: 'Créer mon compte' }));
     await screen.findByRole('heading', { name: 'Bonjour Baptiste' });
-    expect(appels[0].corps).toMatchObject({ rappels: false });
+    expect(appels.find((a) => a.methode === 'POST')?.corps).toMatchObject({ rappels: false });
   });
 });
 
@@ -366,5 +367,51 @@ describe('liens partagés, sans compte', () => {
     await u.click(screen.getByRole('button', { name: 'Afficher le RIB' }));
     expect(await screen.findByText('FR76 3000 6000 0112 3456 7890 189')).toBeInTheDocument();
     expect(screen.getByText('Cadeau Julie')).toBeInTheDocument();
+  });
+});
+
+describe('connexion avec Google', () => {
+  it('le bouton n’apparaît que si Google est configuré, et part chez Google avec une preuve gardée dans l’onglet', async () => {
+    preparer('/?retour=/l/0123456789abcdef', false);
+    installerFausseApi(etat);
+    const { unmount } = ouvrir();
+    await screen.findByRole('button', { name: 'Créer mon compte' });
+    expect(screen.queryByRole('button', { name: 'Continuer avec Google' })).not.toBeInTheDocument();
+    unmount();
+
+    etat.google = true;
+    installerFausseApi(etat);
+    const depart = vi.spyOn(sortie, 'vers').mockImplementation(() => {});
+    ouvrir();
+    await userEvent.setup().click(await screen.findByRole('button', { name: 'Continuer avec Google' }));
+    const preuve = sessionStorage.getItem(CLE_PREUVE_GOOGLE) ?? '';
+    expect(preuve).toMatch(/^[a-f0-9]{64}$/);
+    expect(depart).toHaveBeenCalledWith(`/api/google/debut?preuve=${preuve}&retour=%2Fl%2F0123456789abcdef`);
+  });
+
+  it('au retour de Google, le code et la preuve ouvrent la session', async () => {
+    sessionStorage.setItem(CLE_PREUVE_GOOGLE, 'b'.repeat(64));
+    preparer(`/connexion/google?code=${'c'.repeat(64)}`, false);
+    const { appels } = installerFausseApi(etat);
+    ouvrir();
+    await screen.findByRole('heading', { name: 'Bonjour Baptiste' });
+    expect(appels.find((a) => a.chemin === '/google/session')?.corps).toEqual({ code: 'c'.repeat(64), preuve: 'b'.repeat(64) });
+    expect(sessionStorage.getItem(CLE_PREUVE_GOOGLE)).toBeNull();
+    expect(window.location.pathname).toBe('/');
+  });
+
+  it('sans la preuve de l’onglet, la connexion est refusée avec un message', async () => {
+    sessionStorage.removeItem(CLE_PREUVE_GOOGLE);
+    preparer(`/connexion/google?code=${'c'.repeat(64)}`, false);
+    installerFausseApi(etat);
+    ouvrir();
+    expect(await screen.findByRole('alert')).toHaveTextContent('autre navigateur');
+  });
+
+  it('explique un retour annulé', async () => {
+    preparer('/?google=annule', false);
+    installerFausseApi(etat);
+    ouvrir();
+    expect(await screen.findByRole('alert')).toHaveTextContent('Connexion avec Google annulée.');
   });
 });

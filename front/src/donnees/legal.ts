@@ -35,7 +35,7 @@ export const MENTIONS_LEGALES: PageLegale = {
 
 export const CONFIDENTIALITE: PageLegale = {
   titre: 'Politique de confidentialité',
-  miseAJour: '2026-11-17',
+  miseAJour: '2026-11-18',
   intro: 'Ce que Cadeaux garde sur vous et sur vos proches, pourquoi, combien de temps, et comment l’effacer.',
   sections: [
     {
@@ -47,6 +47,7 @@ export const CONFIDENTIALITE: PageLegale = {
       paragraphes: [
         'Votre adresse e-mail, votre prénom et votre mot de passe (enregistré sous une forme illisible, même pour nous) servent à vous connecter.',
         'Votre connexion reste active sur un appareil tant que vous vous en servez ; après 90 jours sans visite, il faut vous reconnecter.',
+        'Si vous choisissez « Continuer avec Google », vous vous identifiez sur la page de Google ; Cadeaux reçoit seulement votre adresse e-mail (vérifiée par Google), votre prénom et un identifiant Google, gardé pour vous reconnaître à la connexion suivante. Aucun script de Google n’est chargé sur le site et Google ne voit pas ce que vous y faites. Le lien avec Google disparaît avec votre compte.',
         'Un e-mail vous est envoyé pour confirmer votre adresse, quand vous demandez un nouveau mot de passe ou un changement d’adresse, quand votre mot de passe change, quand un RIB est ajouté à une cagnotte et quand votre compte est ouvert depuis un nouvel appareil. Ces e-mails contiennent un lien « Ce n’est pas moi » pour bloquer le compte.',
         'Pour reconnaître vos appareils, chaque navigateur reçoit un identifiant au hasard ; seule son empreinte est gardée, avec la date de la dernière connexion, jusqu’à la suppression du compte ou son blocage.',
         'Les rappels par e-mail ne partent que si vous les avez choisis (case à l’inscription, ou « Mon compte ») et que votre adresse est confirmée : au plus un e-mail par jour, 7 jours avant l’anniversaire d’un proche et 2 jours avant la date limite d’une cagnotte incomplète. Vous pouvez les couper à tout moment.',

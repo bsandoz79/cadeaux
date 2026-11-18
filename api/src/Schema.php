@@ -12,7 +12,7 @@ namespace Cadeaux;
 final class Schema
 {
     /** À augmenter à chaque changement des tables. */
-    public const VERSION = 14;
+    public const VERSION = 15;
 
     public static function installer(\PDO $pdo): void
     {
@@ -34,7 +34,8 @@ final class Schema
                 email_confirme INT NOT NULL DEFAULT 0,
                 bloque INT NOT NULL DEFAULT 0,
                 securite_le VARCHAR(19) NULL,
-                date_naissance VARCHAR(10) NULL
+                date_naissance VARCHAR(10) NULL,
+                google_sub VARCHAR(64) NULL UNIQUE
             )",
             "invitations (
                 id $id,
@@ -59,6 +60,14 @@ final class Schema
                 demande_le VARCHAR(19) NOT NULL,
                 confirme INT NOT NULL DEFAULT 0,
                 FOREIGN KEY (compte_id) REFERENCES comptes(id) ON DELETE CASCADE
+            )",
+            "google_etats (
+                id $id,
+                empreinte CHAR(64) NOT NULL UNIQUE,
+                preuve CHAR(64) NOT NULL,
+                verificateur CHAR(64) NOT NULL,
+                retour VARCHAR(90) NULL,
+                expire_le VARCHAR(19) NOT NULL
             )",
             "appareils (
                 id $id,
@@ -247,6 +256,8 @@ final class Schema
             ['personnes', 'compte_lie_id', $mysql ? 'INT UNSIGNED NULL' : 'INTEGER NULL'], // v14
             ['comptes', 'date_naissance', 'VARCHAR(10) NULL'],     // v14
             ['reservations', 'compte_id', $mysql ? 'INT UNSIGNED NULL' : 'INTEGER NULL'], // v14
+            // v15 : compte relié à Google (identifiant Google). SQLite n'ajoute pas d'UNIQUE par ALTER : index à part.
+            ['comptes', 'google_sub', $mysql ? 'VARCHAR(64) NULL UNIQUE' : 'VARCHAR(64) NULL'],
         ];
         foreach ($ajouts as [$table, $colonne, $type]) {
             if (!self::colonneExiste($pdo, $table, $colonne, $mysql)) {
@@ -256,6 +267,9 @@ final class Schema
                     $pdo->exec('UPDATE comptes SET email_confirme = 1');
                 }
             }
+        }
+        if (!$mysql) {
+            $pdo->exec('CREATE UNIQUE INDEX IF NOT EXISTS comptes_google_sub ON comptes (google_sub)');
         }
     }
 

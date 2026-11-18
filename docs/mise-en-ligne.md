@@ -29,7 +29,7 @@ Dépôt `bsandoz79/cadeaux` → Settings → Secrets and variables → Actions �
 
 `FTP_SERVER` (par défaut `muguet.o2switch.net`) et `FTP_DIR` (par défaut la racine du compte FTP) sont facultatifs.
 
-### 3. Tâche planifiée (comptes inactifs)
+### 3. Tâche planifiée (sauvegarde, comptes inactifs, rappels)
 
 cPanel → « Tâches Cron » → ajouter une tâche **une fois par jour** (par exemple à 4 h) avec la commande :
 
@@ -37,7 +37,7 @@ cPanel → « Tâches Cron » → ajouter une tâche **une fois par jour** (par 
 php /home/<compte>/cadeaux.bsandoz.fr/api/bin/menage.php
 ```
 
-(`<compte>` : l'identifiant cPanel, visible dans le gestionnaire de fichiers.) Elle avertit par e-mail les comptes sans activité depuis presque 3 ans, supprime 30 jours plus tard ceux qui ne sont pas revenus, et efface les connexions expirées.
+(`<compte>` : l'identifiant cPanel, visible dans le gestionnaire de fichiers.) Elle fait d'abord une copie de la base dans `/home/<compte>/sauvegardes-cadeaux/` (14 jours gardés, voir [sauvegardes.md](sauvegardes.md)), puis avertit par e-mail les comptes sans activité depuis presque 3 ans, supprime 30 jours plus tard ceux qui ne sont pas revenus, et efface les connexions expirées.
 
 Les e-mails partent de `cadeaux@bsandoz.fr` : créer cette adresse (ou une redirection) dans cPanel → « Comptes de messagerie » pour recevoir les éventuelles réponses.
 

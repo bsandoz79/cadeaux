@@ -7,4 +7,6 @@ return [
     'motDePasse' => 'MOT_DE_PASSE',
     // Expéditeur des e-mails (avertissement avant suppression d'un compte inactif).
     'expediteur' => 'Cadeaux <cadeaux@bsandoz.fr>',
+    // Facultatif : dossier des copies quotidiennes de la base (par défaut, sauvegardes-cadeaux à côté du dossier du site).
+    // 'sauvegardes' => '/home/COMPTE/sauvegardes-cadeaux',
 ];

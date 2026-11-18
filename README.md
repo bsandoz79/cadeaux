@@ -20,7 +20,7 @@ Notez les cadeaux de Noël, d'anniversaire et des autres fêtes, voyez ce qu'ils
 | `front/` | Site React 19, Vite, TypeScript. Calculs (argent, cagnotte, bilan, anniversaires) dans `src/calculs/`, testés. |
 | `api/` | API PHP 8.2+ sans framework, PDO (MySQL en ligne, SQLite pour les tests), PHPUnit. |
 | `extension/` | Extension Chrome (Manifest V3), sans dépendance. |
-| `docs/` | Journal des modifications, mise en ligne. |
+| `docs/` | Journal des modifications, mise en ligne, sécurité, RGPD, sauvegardes. |
 
 ## Commandes
 
@@ -45,4 +45,4 @@ Pour essayer l'API en local, copier `api/config.local.php.dist` en `api/config.l
 - Cagnotte : lien avec un code aléatoire de 16 caractères ; chaque participant reçoit une clé pour modifier ou retirer sa propre part.
 - Aucun secret dans le dépôt : `api/config.local.php` est écrit au déploiement à partir des secrets GitHub.
 
-Mise en ligne : [docs/mise-en-ligne.md](docs/mise-en-ligne.md). Détail de la sécurité : [docs/securite.md](docs/securite.md). Registre RGPD : [docs/rgpd.md](docs/rgpd.md).
+Mise en ligne : [docs/mise-en-ligne.md](docs/mise-en-ligne.md). Détail de la sécurité : [docs/securite.md](docs/securite.md). Registre RGPD : [docs/rgpd.md](docs/rgpd.md). Sauvegardes et restauration : [docs/sauvegardes.md](docs/sauvegardes.md).

@@ -1,6 +1,6 @@
 # Connexion avec Google
 
-« Continuer avec Google » sur l'écran d'accueil (création de compte et connexion).
+« Continuer avec Google » sur l'écran d'accueil (création de compte et connexion), sur une invitation à associer son compte (`/rejoindre/…`) et sur « On se cotise » d'une liste d'envies : on revient sur la page après la connexion.
 
 ## Principe
 OAuth 2.0 avec code d'autorisation, **PKCE** et **état**, fait par le serveur : **aucun script de Google** sur le site (la CSP reste `script-src 'self'`, pas de cookie ni de traceur).

@@ -76,7 +76,13 @@ final class Apercu
             '<meta property="og:image:alt" content="' . $e(self::pourcentage($g['total'], $g['objectif']) . ' % de la cagnotte atteint') . '" />',
             '<meta name="twitter:card" content="summary_large_image" />',
         ]);
-        $sans = preg_replace(['#<title>.*?</title>#s', '#<meta name="description"[^>]*>#'], '', $modele) ?? $modele;
+        // Les balises de la page d'accueil (titre, description, aperçu, adresse de référence, fiche pour Google) sont remplacées.
+        $sans = preg_replace([
+            '#\s*<title>.*?</title>#s',
+            '#\s*<meta (name="description"|property="og:[^"]*"|name="twitter:[^"]*")[^>]*>#',
+            '#\s*<link rel="canonical"[^>]*>#',
+            '#\s*<script type="application/ld\+json">.*?</script>#s',
+        ], '', $modele) ?? $modele;
 
         return str_replace('</head>', "    $balises\n  </head>", $sans);
     }

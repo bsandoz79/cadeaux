@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useRef } from 'react';
 import { Lien } from './components/commun';
 import { useDonnees } from './donnees/contexte';
 import { lireRoute, useChemin, type Route } from './navigation';
+import { LIENS_GUIDES } from './seo/liensGuides';
 import styles from './App.module.css';
 import { Accueil } from './pages/Accueil';
 import { TableauDeBord } from './pages/TableauDeBord';
@@ -35,6 +36,20 @@ const PageLegale = lazy(() => Promise.all([import('./pages/Legal'), import('./do
   default: ({ mentions }: { mentions: boolean }) => <m.Legal page={mentions ? d.MENTIONS_LEGALES : d.CONFIDENTIALITE} />,
 })));
 
+/** Pages que Google peut garder ; les autres (compte, liens partagés ou reçus par e-mail) reçoivent « noindex ». */
+const PAGES_INDEXABLES: Route['page'][] = ['accueil', 'confidentialite', 'mentions'];
+
+function indexable(oui: boolean) {
+  let balise = document.head.querySelector<HTMLMetaElement>('meta[name="robots"]');
+  if (oui) { balise?.remove(); return; }
+  if (!balise) {
+    balise = document.createElement('meta');
+    balise.name = 'robots';
+    document.head.append(balise);
+  }
+  balise.content = 'noindex';
+}
+
 const MENU: { href: string; libelle: string; pages: Route['page'][] }[] = [
   { href: '/', libelle: 'Accueil', pages: ['accueil'] },
   { href: '/occasions', libelle: 'Occasions', pages: ['occasions', 'occasion'] },
@@ -59,6 +74,7 @@ export function App() {
   useEffect(() => {
     const titre = TITRES[route.page];
     document.title = titre ? `${titre} · Cadeaux` : 'Cadeaux : vos cadeaux, votre budget et vos cagnottes communes';
+    indexable(PAGES_INDEXABLES.includes(route.page));
   }, [route.page]);
 
   // La page d'une cagnotte partagée et les pages légales s'ouvrent sans compte.
@@ -126,6 +142,10 @@ export function App() {
           <Lien href="/confidentialite">Confidentialité</Lien>
           <Lien href="/mentions-legales">Mentions légales</Lien>
         </p>
+        <nav aria-label="Guides" className={styles.liensPied}>
+          {/* Pages écrites à part (pas dans l'application) : chargement complet, d'où des liens simples. */}
+          {LIENS_GUIDES.map((g) => <a key={g.chemin} href={g.chemin}>{g.lien}</a>)}
+        </nav>
       </footer>
     </div>
   );

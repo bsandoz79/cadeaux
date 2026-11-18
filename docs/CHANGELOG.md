@@ -2,6 +2,11 @@
 
 ## [Non publié]
 
+### Ajouté (référencement)
+- Quatre pages de guide lisibles par Google sans JavaScript : cagnotte pour un cadeau commun, liste de Noël à partager, budget cadeaux, rappels d'anniversaire ; liées depuis le pied de page.
+- Plan du site (`/sitemap.xml`), `robots.txt`, aperçu et fiche « application web gratuite » sur l'accueil.
+- Pages privées (compte, cagnottes, listes d'envies, liens reçus par e-mail) exclues de Google (`noindex`). Procédure Search Console dans `docs/referencement.md`.
+
 ### Corrigé
 - Mentions légales : identité et adresse complètes de l'hébergeur o2switch (relevées sur o2switch.fr/cgv).
 

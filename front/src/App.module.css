@@ -21,7 +21,7 @@
 .chargement { color: var(--c-texte-doux); }
 
 .pied { border-top: 1px solid var(--c-bord); padding: 1.25rem 1rem; text-align: center; color: var(--c-texte-doux); font-size: .85rem; display: grid; gap: .4rem; }
-.liensPied { display: flex; justify-content: center; gap: 1.2rem; }
+.liensPied { display: flex; flex-wrap: wrap; justify-content: center; gap: .4rem 1.2rem; }
 .liensPied a { color: inherit; }
 
 /* Téléphone : le menu devient une barre fixe en bas de l'écran, à portée de pouce. */

@@ -45,4 +45,4 @@ Pour essayer l'API en local, copier `api/config.local.php.dist` en `api/config.l
 - Cagnotte : lien avec un code aléatoire de 16 caractères ; chaque participant reçoit une clé pour modifier ou retirer sa propre part.
 - Aucun secret dans le dépôt : `api/config.local.php` est écrit au déploiement à partir des secrets GitHub.
 
-Mise en ligne : [docs/mise-en-ligne.md](docs/mise-en-ligne.md). Détail de la sécurité : [docs/securite.md](docs/securite.md). Registre RGPD : [docs/rgpd.md](docs/rgpd.md). Sauvegardes et restauration : [docs/sauvegardes.md](docs/sauvegardes.md).
+Mise en ligne : [docs/mise-en-ligne.md](docs/mise-en-ligne.md). Détail de la sécurité : [docs/securite.md](docs/securite.md). Registre RGPD : [docs/rgpd.md](docs/rgpd.md). Sauvegardes et restauration : [docs/sauvegardes.md](docs/sauvegardes.md). Référencement : [docs/referencement.md](docs/referencement.md).

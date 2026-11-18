@@ -139,3 +139,18 @@ test('pages légales et page inconnue, sans compte', async ({ page }) => {
   await page.goto('/c/0000000000000000');
   await expect(page.getByRole('heading', { name: 'Cagnotte introuvable' })).toBeVisible();
 });
+
+test('Google : guides lisibles sans compte, pages privées exclues', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('meta[name="robots"]')).toHaveCount(0);
+  await page.getByRole('navigation', { name: 'Guides' }).getByRole('link', { name: 'Liste de Noël' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Une liste de Noël à partager, sans cadeaux en double' })).toBeVisible();
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://cadeaux.bsandoz.fr/liste-de-noel');
+  await page.getByRole('link', { name: 'Créer mon compte gratuit' }).click();
+  await expect(page.getByRole('button', { name: 'Créer mon compte' })).toBeVisible();
+
+  await page.goto('/bilan');
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex');
+  const plan = await (await page.request.get('/sitemap.xml')).text();
+  expect(plan).toContain('<loc>https://cadeaux.bsandoz.fr/cagnotte-cadeau-commun</loc>');
+});

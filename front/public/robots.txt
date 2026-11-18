@@ -1,0 +1,5 @@
+# Tout le site public peut être exploré ; les pages privées (comptes, liens partagés) répondent « noindex ».
+User-agent: *
+Disallow: /api/
+
+Sitemap: https://cadeaux.bsandoz.fr/sitemap.xml

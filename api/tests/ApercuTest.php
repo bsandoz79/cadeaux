@@ -31,6 +31,22 @@ final class ApercuTest extends ApiTestCase
         self::assertStringContainsString('<div id="root"></div>', $html);
     }
 
+    public function testLesBalisesDeLaPageDAccueilSontRemplacees(): void
+    {
+        $modele = (string) file_get_contents(dirname(__DIR__, 2) . '/front/index.html');
+        $d = ['code' => '0123456789abcdef', 'titre' => 'Montre', 'beneficiaire' => 'Julie', 'objectif' => 15000, 'total' => 0, 'close' => false];
+
+        $html = Apercu::html($modele, $d, 'https://cadeaux.bsandoz.fr');
+
+        foreach (['<title>', 'og:title', 'og:url', 'og:image"', 'name="description"'] as $balise) {
+            self::assertSame(1, substr_count($html, $balise), "$balise une seule fois");
+        }
+        self::assertStringNotContainsString('rel="canonical"', $html);
+        self::assertStringNotContainsString('application/ld+json', $html);
+        self::assertStringContainsString('<meta property="og:url" content="https://cadeaux.bsandoz.fr/c/0123456789abcdef" />', $html);
+        self::assertStringContainsString('<link rel="manifest"', $html, 'le reste de la page est gardé');
+    }
+
     public function testImagePngValide(): void
     {
         $png = Apercu::png(['objectif' => 15000, 'total' => 10000, 'close' => false]);

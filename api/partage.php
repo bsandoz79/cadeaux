@@ -35,6 +35,7 @@ if ($image) {
 
 header('Content-Type: text/html; charset=utf-8');
 header('Cache-Control: no-cache');
+header('X-Robots-Tag: noindex, nofollow'); // page d'une cagnotte privée : aperçu pour les messageries, jamais dans Google
 if ($g === null) {
     http_response_code(404); // l'application affiche « Cagnotte introuvable »
     echo $modele;

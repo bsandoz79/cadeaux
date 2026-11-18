@@ -51,7 +51,7 @@ describe('mot de passe et adresse', () => {
 
     preparer(`/motdepasse/${'f'.repeat(64)}`, false);
     ouvrir();
-    await u.type(screen.getByLabelText('Choisissez votre mot de passe'), 'nouveau-mot-de-passe');
+    await u.type(await screen.findByLabelText('Choisissez votre mot de passe'), 'nouveau-mot-de-passe');
     await u.click(screen.getByRole('button', { name: 'Enregistrer et me connecter' }));
     expect(await screen.findByRole('heading', { name: 'Bonjour Baptiste' })).toBeInTheDocument();
     expect(appels.find((a) => a.chemin === '/motdepasse/nouveau')?.corps).toEqual({ jeton: 'f'.repeat(64), motDePasse: 'nouveau-mot-de-passe' });

@@ -2,6 +2,10 @@
 
 ## [Non publié]
 
+### Performances
+- Pages chargées à la demande : le premier chargement passe de 361 à 243 Ko (106 à 77 Ko compressés), chaque autre page se télécharge quand on l'ouvre (3 à 9 Ko).
+- Appli installée : les fichiers sont nettoyés seulement à l'arrivée d'une nouvelle version, pour garder hors ligne les pages déjà ouvertes.
+
 ### Ajouté
 - « Bien démarrer » sur l'accueil d'un nouveau compte : ajouter sa famille, sa date de naissance, sa première occasion ; les étapes se cochent seules et l'encadré peut être masqué.
 

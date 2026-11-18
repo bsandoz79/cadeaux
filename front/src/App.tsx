@@ -1,28 +1,39 @@
-import { useEffect, useRef } from 'react';
+import { lazy, Suspense, useEffect, useRef } from 'react';
 import { Lien } from './components/commun';
 import { useDonnees } from './donnees/contexte';
 import { lireRoute, useChemin, type Route } from './navigation';
 import styles from './App.module.css';
 import { Accueil } from './pages/Accueil';
-import { Bilan } from './pages/Bilan';
-import { CagnotteOrganisateur } from './pages/CagnotteOrganisateur';
-import { CagnottePublique } from './pages/CagnottePublique';
-import { Cagnottes } from './pages/Cagnottes';
-import { MonCompte } from './pages/MonCompte';
-import { Idees } from './pages/Idees';
-import { ListeEnviesPublique } from './pages/ListeEnviesPublique';
-import { MesEnvies } from './pages/MesEnvies';
-import { Legal } from './pages/Legal';
-import { ConfirmerEmail, ConfirmerMotDePasse, NouveauMotDePasse } from './pages/LiensEmail';
-import { Securite } from './pages/Securite';
-import { Rejoindre } from './pages/Rejoindre';
-import { CONFIDENTIALITE, MENTIONS_LEGALES } from './donnees/legal';
-import { OccasionDetail } from './pages/OccasionDetail';
-import { Occasions } from './pages/Occasions';
-import { Proches } from './pages/Proches';
-import { Recherche } from './pages/Recherche';
-import { FicheProche } from './pages/FicheProche';
 import { TableauDeBord } from './pages/TableauDeBord';
+
+/*
+ * Pages chargées à la demande : seul l'essentiel (accueil, tableau de bord) part avec le premier chargement,
+ * chaque autre page se télécharge quand on l'ouvre. Le site s'ouvre ainsi plus vite sur téléphone.
+ */
+function page<M, N extends keyof M>(charger: () => Promise<M>, nom: N): M[N] {
+  return lazy(() => charger().then((m) => ({ default: m[nom] as unknown as React.ComponentType }))) as unknown as M[N];
+}
+const Bilan = page(() => import('./pages/Bilan'), 'Bilan');
+const CagnotteOrganisateur = page(() => import('./pages/CagnotteOrganisateur'), 'CagnotteOrganisateur');
+const CagnottePublique = page(() => import('./pages/CagnottePublique'), 'CagnottePublique');
+const Cagnottes = page(() => import('./pages/Cagnottes'), 'Cagnottes');
+const MonCompte = page(() => import('./pages/MonCompte'), 'MonCompte');
+const Idees = page(() => import('./pages/Idees'), 'Idees');
+const ListeEnviesPublique = page(() => import('./pages/ListeEnviesPublique'), 'ListeEnviesPublique');
+const MesEnvies = page(() => import('./pages/MesEnvies'), 'MesEnvies');
+const Securite = page(() => import('./pages/Securite'), 'Securite');
+const Rejoindre = page(() => import('./pages/Rejoindre'), 'Rejoindre');
+const OccasionDetail = page(() => import('./pages/OccasionDetail'), 'OccasionDetail');
+const Occasions = page(() => import('./pages/Occasions'), 'Occasions');
+const Proches = page(() => import('./pages/Proches'), 'Proches');
+const Recherche = page(() => import('./pages/Recherche'), 'Recherche');
+const FicheProche = page(() => import('./pages/FicheProche'), 'FicheProche');
+const NouveauMotDePasse = page(() => import('./pages/LiensEmail'), 'NouveauMotDePasse');
+const ConfirmerEmail = page(() => import('./pages/LiensEmail'), 'ConfirmerEmail');
+const ConfirmerMotDePasse = page(() => import('./pages/LiensEmail'), 'ConfirmerMotDePasse');
+const PageLegale = lazy(() => Promise.all([import('./pages/Legal'), import('./donnees/legal')]).then(([m, d]) => ({
+  default: ({ mentions }: { mentions: boolean }) => <m.Legal page={mentions ? d.MENTIONS_LEGALES : d.CONFIDENTIALITE} />,
+})));
 
 const MENU: { href: string; libelle: string; pages: Route['page'][] }[] = [
   { href: '/', libelle: 'Accueil', pages: ['accueil'] },
@@ -94,9 +105,10 @@ export function App() {
       </header>
 
       <main id="contenu" ref={principal} className={styles.contenu} tabIndex={-1}>
+        <Suspense fallback={<p className={styles.chargement}>Chargement…</p>}>
         {route.page === 'publique' ? <CagnottePublique code={route.code} />
           : route.page === 'liste' ? <ListeEnviesPublique code={route.code} />
-          : legale ? <Legal page={route.page === 'mentions' ? MENTIONS_LEGALES : CONFIDENTIALITE} />
+          : legale ? <PageLegale mentions={route.page === 'mentions'} />
           : route.page === 'motdepasse' ? <NouveauMotDePasse jeton={route.jeton} />
           : route.page === 'confirmer' ? <ConfirmerEmail jeton={route.jeton} />
           : route.page === 'securite' ? <Securite jeton={route.jeton} />
@@ -105,6 +117,7 @@ export function App() {
           : !pret ? <p className={styles.chargement}>Chargement…</p>
           : !connecte ? <Accueil />
           : <Page route={route} />}
+        </Suspense>
       </main>
 
       <footer className={styles.pied}>

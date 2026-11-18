@@ -14,7 +14,8 @@ use Cadeaux\Http\Routeur;
  *   POST   /comptes, /connexion, /deconnexion · GET|PATCH|DELETE /moi (PATCH : prénom, rappels)
  *   POST   /email/confirmer, /email/renvoyer, /motdepasse/oubli, /motdepasse/nouveau, /moi/motdepasse, /motdepasse/confirmer, /moi/email
  *   POST   /securite/bloquer (« Ce n'est pas moi », depuis un lien reçu par e-mail) · GET /moi/export (toutes les données du compte)
- *   GET|POST /personnes · PATCH|DELETE /personnes/{id}       (idem /occasions, /cadeaux, /budgets, /cagnottes)
+ *   GET|POST /personnes · PATCH|DELETE /personnes/{id}       (idem /groupes, /occasions, /cadeaux, /budgets, /cagnottes)
+ *            un proche porte ses groupes : « groupeIds » (lu et écrit)
  *   GET    /cagnottes/{id}  (avec les participations)
  *   POST   /cagnottes/{id}/participations · PATCH|DELETE /cagnottes/{id}/participations/{pid}   (organisateur)
  *   PUT|DELETE /cagnottes/{id}/rib (RIB de l'organisateur) · GET /c/{code}/rib (RIB complet, sur demande)
@@ -34,6 +35,7 @@ final class Application
     private readonly Envies $envies;
     private readonly Ribs $ribs;
     private readonly Identite $identite;
+    private readonly Groupes $groupes;
     /** @var array<string, Collection>|null */
     private ?array $collections = null;
 
@@ -46,6 +48,7 @@ final class Application
     ) {
         $this->ribs = new Ribs($pdo, $horloge, $coffre ?? new Coffre(dirname(__DIR__) . '/var/cle-coffre'));
         $this->comptes = new Comptes($pdo, $horloge);
+        $this->groupes = new Groupes($pdo);
         $this->identite = new Identite($pdo, $horloge, $courrier ?? new CourrierPhp('Cadeaux <cadeaux@bsandoz.fr>'), $this->comptes, $site);
         $this->cagnottes = new Cagnottes($pdo, $horloge);
         $this->envies = new Envies($pdo, $horloge);
@@ -169,24 +172,42 @@ final class Application
 
         // Éléments du compte
         foreach ($this->collections() as $chemin => $collection) {
-            $r->ajouter('GET', "/$chemin", fn (Requete $q) => Reponse::ok($chemin === 'cagnottes'
-                ? array_map($this->avecTotaux(...), $collection->lister($this->compte($q)))
-                : $collection->lister($this->compte($q))));
-            $r->ajouter('POST', "/$chemin", fn (Requete $q) => Reponse::cree(
-                $collection->ajouter($this->compte($q), $q->corps, $this->colonnesALaCreation($chemin)),
-            ));
+            $r->ajouter('GET', "/$chemin", function (Requete $q) use ($collection, $chemin) {
+                $compte = $this->compte($q);
+
+                return Reponse::ok(array_map(fn (array $e): array => $this->enrichir($chemin, $compte, $e), $collection->lister($compte)));
+            });
+            $r->ajouter('POST', "/$chemin", function (Requete $q) use ($collection, $chemin) {
+                $compte = $this->compte($q);
+                $cree = $collection->ajouter($compte, $q->corps, $this->colonnesALaCreation($chemin));
+                if ($chemin === 'personnes' && array_key_exists('groupeIds', $q->corps)) {
+                    $this->groupes->definir($compte, $cree['id'], $q->corps['groupeIds']);
+                }
+
+                return Reponse::cree($this->enrichir($chemin, $compte, $cree));
+            });
             $r->ajouter('PATCH', "/$chemin/{id}", function (Requete $q, string $id) use ($collection, $chemin) {
-                $modifie = $collection->modifier($this->compte($q), (int) $id, $q->corps);
+                $compte = $this->compte($q);
+                $modifie = $collection->modifier($compte, (int) $id, $q->corps);
                 if ($chemin === 'cagnottes' && $modifie['close']) {
                     $this->ribs->effacer((int) $id); // cagnotte terminée : le RIB n'a plus à être gardé
                 }
+                if ($chemin === 'personnes' && array_key_exists('groupeIds', $q->corps)) {
+                    $this->groupes->definir($compte, (int) $id, $q->corps['groupeIds']);
+                }
 
-                return Reponse::ok($chemin === 'cagnottes' ? $this->avecTotaux($modifie) : $modifie);
+                return Reponse::ok($this->enrichir($chemin, $compte, $modifie));
             });
             $r->ajouter('DELETE', "/$chemin/{id}", function (Requete $q, string $id) use ($collection, $chemin) {
                 $collection->supprimer($this->compte($q), (int) $id);
                 if ($chemin === 'envies') {
                     $this->envies->apresSuppression((int) $id);
+                }
+                if ($chemin === 'groupes') {
+                    $this->groupes->apresSuppression((int) $id);
+                }
+                if ($chemin === 'personnes') {
+                    $this->pdo->prepare('DELETE FROM personnes_groupes WHERE personne_id = ?')->execute([(int) $id]);
                 }
                 if ($chemin === 'cagnottes') {
                     // Le cadeau reste, sans cagnotte (MySQL le ferait seul pour une clé étrangère ; la colonne ajoutée en v5 n'en a pas).
@@ -286,6 +307,22 @@ final class Application
     }
 
     /**
+     * Élément tel que le reçoit le site : cagnotte avec ses totaux, proche avec ses groupes.
+     *
+     * @param array<string, mixed> $element
+     *
+     * @return array<string, mixed>
+     */
+    private function enrichir(string $chemin, int $compte, array $element): array
+    {
+        return match ($chemin) {
+            'cagnottes' => $this->avecTotaux($element),
+            'personnes' => Groupes::avecGroupes($element, $this->groupes->membres($compte)),
+            default => $element,
+        };
+    }
+
+    /**
      * Cagnotte avec ce qui a été promis (total), payé, et la part de l'organisateur (comptée dans son bilan).
      *
      * @param array<string, mixed> $cagnotte
@@ -321,7 +358,8 @@ final class Application
         return [
             'exporteLe' => $this->horloge->texte(),
             'compte' => ['email' => $ligne['email'], 'nom' => $ligne['nom'], 'creeLe' => $ligne['cree_le'], 'derniereActivite' => $ligne['derniere_activite'], 'rappels' => (bool) $ligne['rappels']],
-            'proches' => $c['personnes']->lister($compteId),
+            'groupes' => $c['groupes']->lister($compteId),
+            'proches' => array_map(fn (array $p): array => Groupes::avecGroupes($p, $this->groupes->membres($compteId)), $c['personnes']->lister($compteId)),
             'occasions' => $c['occasions']->lister($compteId),
             'cadeaux' => $c['cadeaux']->lister($compteId),
             'budgets' => $c['budgets']->lister($compteId),
@@ -360,6 +398,9 @@ final class Application
         $pdo = $this->pdo;
 
         return $this->collections = [
+            'groupes' => new Collection($pdo, 'groupes', [
+                'nom' => ['colonne' => 'nom', 'type' => 'texte', 'requis' => true, 'max' => 40],
+            ], 'nom'),
             'personnes' => new Collection($pdo, 'personnes', [
                 'nom' => ['colonne' => 'nom', 'type' => 'texte', 'requis' => true, 'max' => 80],
                 'dateNaissance' => ['colonne' => 'date_naissance', 'type' => 'date'],

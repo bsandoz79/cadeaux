@@ -2,6 +2,9 @@
 
 ## [Non publié]
 
+### Ajouté (groupes)
+- Groupes de proches (Famille, Amis, Collègues…) : un proche peut être dans plusieurs groupes. Proches filtrés par groupe, gestion des groupes (créer, renommer, supprimer), bilan de l'année par groupe.
+
 ### Ajouté (proches)
 - Proches : « Cadeau d'anniversaire » pour chaque proche qui a une date de naissance (occasion de son prochain anniversaire créée ou retrouvée, formulaire ouvert pour lui) ; « Ajouter un cadeau » pour les autres.
 

@@ -8,6 +8,7 @@ type Element = { id: number } & Record<string, unknown>;
 
 export interface EtatFaux {
   compte: { id: number; email: string; nom: string; rappels: boolean; emailConfirme: boolean };
+  groupes: Element[];
   personnes: Element[];
   occasions: Element[];
   cadeaux: Element[];
@@ -21,12 +22,13 @@ export interface EtatFaux {
 export function etatVide(): EtatFaux {
   return {
     compte: { id: 1, email: 'baptiste@example.com', nom: 'Baptiste', rappels: true, emailConfirme: true },
-    personnes: [], occasions: [], cadeaux: [], budgets: [], envies: [], cagnottes: [], participations: {}, listes: {},
+    groupes: [], personnes: [], occasions: [], cadeaux: [], budgets: [], envies: [], cagnottes: [], participations: {}, listes: {},
   };
 }
 
-const COLLECTIONS = ['personnes', 'occasions', 'cadeaux', 'budgets', 'envies', 'cagnottes'] as const;
+const COLLECTIONS = ['groupes', 'personnes', 'occasions', 'cadeaux', 'budgets', 'envies', 'cagnottes'] as const;
 const DEFAUTS: Record<string, Record<string, unknown>> = {
+  personnes: { dateNaissance: null, note: null, groupeIds: [] },
   cadeaux: { occasionId: null, personneId: null, montantPrevu: null, montantDepense: null, statut: 'idee', lien: null, image: null, note: null, cagnotteId: null, creeLe: '2026-11-17 10:00:00' },
   envies: { lien: null, image: null, prix: null, note: null, priorite: false, creeLe: '2026-11-17 10:00:00' },
   cagnottes: { code: 'abcdefabcdefabcd', mode: 'libre', nombreParts: null, dateLimite: null, lien: null, message: null, close: false, creeLe: '2026-11-17 10:00:00', total: 0, totalPaye: 0, maPart: 0, nombreParticipations: 0 },

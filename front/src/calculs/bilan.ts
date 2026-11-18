@@ -1,4 +1,4 @@
-import type { Cadeau, Cagnotte, Occasion, Personne } from '../api/types';
+import type { Cadeau, Cagnotte, Groupe, Occasion, Personne } from '../api/types';
 
 /**
  * Ce que coûtent les cadeaux.
@@ -125,4 +125,19 @@ const formatDateCourte = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', mont
 export function dateLisible(date: string, sansAnnee = false): string {
   const [a, m, j] = date.split('-').map(Number);
   return (sansAnnee ? formatDateCourte : formatDate).format(new Date(Date.UTC(a, m - 1, j)));
+}
+
+/**
+ * Bilan par groupe, à partir du bilan par personne. Un proche dans plusieurs groupes compte dans chacun :
+ * l'addition des groupes peut donc dépasser le total de l'année.
+ */
+export function bilanParGroupe(parPersonne: Ligne[], personnes: Personne[], groupes: Groupe[]): Ligne[] {
+  const lignes = groupes.map((g) => {
+    const membres = new Set(personnes.filter((p) => p.groupeIds.includes(g.id)).map((p) => `p${p.id}`));
+    const choisies = parPersonne.filter((l) => membres.has(l.cle));
+    const depense = choisies.reduce((s, l) => s + l.depense, 0);
+    const prevu = choisies.reduce((s, l) => s + l.prevu, 0);
+    return { cle: `g${g.id}`, libelle: g.nom, depense, prevu, total: depense + prevu, nombre: choisies.reduce((s, l) => s + l.nombre, 0) };
+  });
+  return lignes.filter((l) => l.nombre > 0).sort((a, b) => b.total - a.total || a.libelle.localeCompare(b.libelle));
 }

@@ -67,7 +67,7 @@ final class ComptesTest extends ApiTestCase
         $export = $this->appel('GET', '/moi/export', [], $jeton);
         self::assertSame(200, $export->statut);
         $d = $export->donnees;
-        self::assertSame(['exporteLe', 'compte', 'proches', 'occasions', 'cadeaux', 'budgets', 'envies', 'lienListeEnvies', 'cagnottes'], array_keys($d));
+        self::assertSame(['exporteLe', 'compte', 'groupes', 'proches', 'occasions', 'cadeaux', 'budgets', 'envies', 'lienListeEnvies', 'cagnottes'], array_keys($d));
         self::assertSame('baptiste@example.com', $d['compte']['email']);
         self::assertArrayNotHasKey('mot_de_passe', $d['compte']);
         self::assertSame(['Maman'], array_column($d['proches'], 'nom'));

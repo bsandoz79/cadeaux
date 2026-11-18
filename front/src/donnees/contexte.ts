@@ -1,7 +1,8 @@
 import { createContext, useContext } from 'react';
-import type { Budget, Cadeau, Cagnotte, Compte, Envie, Occasion, Personne } from '../api/types';
+import type { Budget, Cadeau, Cagnotte, Compte, Envie, Groupe, Occasion, Personne } from '../api/types';
 
 export interface Collections {
+  groupes: Groupe[];
   personnes: Personne[];
   occasions: Occasion[];
   cadeaux: Cadeau[];

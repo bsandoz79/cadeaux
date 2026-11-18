@@ -12,7 +12,7 @@ namespace Cadeaux;
 final class Schema
 {
     /** À augmenter à chaque changement des tables. */
-    public const VERSION = 13;
+    public const VERSION = 14;
 
     public static function installer(\PDO $pdo): void
     {
@@ -33,7 +33,24 @@ final class Schema
                 rappels INT NOT NULL DEFAULT 1,
                 email_confirme INT NOT NULL DEFAULT 0,
                 bloque INT NOT NULL DEFAULT 0,
-                securite_le VARCHAR(19) NULL
+                securite_le VARCHAR(19) NULL,
+                date_naissance VARCHAR(10) NULL
+            )",
+            "invitations (
+                id $id,
+                compte_id $ref NOT NULL,
+                personne_id $ref NOT NULL,
+                empreinte CHAR(64) NOT NULL UNIQUE,
+                expire_le VARCHAR(19) NOT NULL,
+                FOREIGN KEY (compte_id) REFERENCES comptes(id) ON DELETE CASCADE
+            )",
+            "cagnottes_invites (
+                id $id,
+                cagnotte_id $ref NOT NULL,
+                compte_id $ref NOT NULL,
+                invite_le VARCHAR(19) NOT NULL,
+                UNIQUE (cagnotte_id, compte_id),
+                FOREIGN KEY (compte_id) REFERENCES comptes(id) ON DELETE CASCADE
             )",
             "changements_email (
                 id $id,
@@ -89,6 +106,7 @@ final class Schema
                 date_naissance VARCHAR(10) NULL,
                 note VARCHAR(500) NULL,
                 lien VARCHAR(30) NULL,
+                compte_lie_id $ref NULL,
                 FOREIGN KEY (compte_id) REFERENCES comptes(id) ON DELETE CASCADE
             )",
             "groupes (
@@ -189,6 +207,7 @@ final class Schema
                 cle CHAR(64) NOT NULL,
                 cree_le VARCHAR(19) NOT NULL,
                 cagnotte_code CHAR(16) NULL,
+                compte_id $ref NULL,
                 FOREIGN KEY (envie_id) REFERENCES envies(id) ON DELETE CASCADE
             )",
             "participations (
@@ -225,6 +244,9 @@ final class Schema
             ['comptes', 'securite_le', 'VARCHAR(19) NULL'],        // v10
             ['liens', 'donnee', 'VARCHAR(255) NULL'],              // v11
             ['personnes', 'lien', 'VARCHAR(30) NULL'],             // v13
+            ['personnes', 'compte_lie_id', $mysql ? 'INT UNSIGNED NULL' : 'INTEGER NULL'], // v14
+            ['comptes', 'date_naissance', 'VARCHAR(10) NULL'],     // v14
+            ['reservations', 'compte_id', $mysql ? 'INT UNSIGNED NULL' : 'INTEGER NULL'], // v14
         ];
         foreach ($ajouts as [$table, $colonne, $type]) {
             if (!self::colonneExiste($pdo, $table, $colonne, $mysql)) {

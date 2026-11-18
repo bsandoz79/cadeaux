@@ -75,6 +75,8 @@ export function CagnotteOrganisateur({ id }: { id: number }) {
         </section>
       )}
 
+      {!cagnotte.close && <InviterProches cagnotteId={cagnotte.id} />}
+
       {!cagnotte.close && <RibOrganisateur cagnotte={cagnotte} onChange={apres} />}
 
       <section className={`carte ${styles.objectif}`} aria-label="Avancement">
@@ -154,5 +156,31 @@ function AjouterPart({ cagnotte, onAjout }: { cagnotte: Cagnotte; onAjout: () =>
         <button type="button" className="btn btn--petit btn--contour" onClick={() => setOuvert(false)}>Annuler</button>
       </div>
     </form>
+  );
+}
+
+/** Inviter des proches associés à leur compte : ils retrouvent la cagnotte chez eux et reçoivent un e-mail. */
+function InviterProches({ cagnotteId }: { cagnotteId: number }) {
+  const d = useDonnees();
+  const associes = d.personnes.filter((p) => p.compteLie);
+  const [message, setMessage] = useState<string | null>(null);
+  const { envoyer, occupe, erreur } = useEnvoi(async (f) => {
+    const r = await api<{ envoyees: number }>('POST', `/cagnottes/${cagnotteId}/invites`, { personneIds: f.getAll('proches').map(Number) });
+    setMessage(r.envoyees ? `${r.envoyees} invitation(s) envoyée(s).` : 'Déjà invités.');
+  });
+  if (associes.length === 0) return null;
+  return (
+    <section className="carte formulaire" aria-labelledby="titre-inviter">
+      <h2 id="titre-inviter">Inviter des proches</h2>
+      <p className={styles.discret}>Ceux qui ont associé leur compte retrouvent la cagnotte chez eux et reçoivent un e-mail.</p>
+      <form className="formulaire" onSubmit={envoyer}>
+        <div className="actions">
+          {associes.map((p) => <label key={p.id} className={styles.coche}><input type="checkbox" name="proches" value={p.id} /> {p.nom}</label>)}
+        </div>
+        {erreur && <p className="erreur" role="alert">{erreur}</p>}
+        {message && <p role="status" style={{ color: 'var(--c-vert)', fontWeight: 600 }}>{message}</p>}
+        <div><button className="btn btn--petit btn--contour" disabled={occupe}>Inviter</button></div>
+      </form>
+    </section>
   );
 }

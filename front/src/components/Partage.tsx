@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { liensPartage } from '../calculs/partage';
+import { liensMessage, liensPartage } from '../calculs/partage';
 import styles from './Partage.module.css';
 
 /** Icônes dessinées pour le site (simples, sans reprendre les logos officiels). */
@@ -25,9 +25,9 @@ const ICONES = {
 };
 
 /** Envoyer le lien d'une cagnotte : logos seuls (WhatsApp, Snapchat, SMS, partager, copier), nommés pour les lecteurs d'écran. */
-export function Partage({ url, beneficiaire, titre }: { url: string; beneficiaire: string; titre: string }) {
+export function Partage({ url, beneficiaire = '', titre, message }: { url: string; beneficiaire?: string; titre: string; message?: string }) {
   const [copie, setCopie] = useState(false);
-  const l = liensPartage(url, beneficiaire, titre);
+  const l = message ? liensMessage(url, message) : liensPartage(url, beneficiaire, titre);
   const copier = async () => {
     try { await navigator.clipboard.writeText(url); setCopie(true); setTimeout(() => setCopie(false), 2500); } catch { /* le lien reste affiché */ }
   };

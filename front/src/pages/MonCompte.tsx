@@ -4,6 +4,7 @@ import { aujourdhui } from '../calculs/bilan';
 import { dejaInstallee, surIphone, useInstallation } from '../installation';
 import { Champ, EnTete } from '../components/commun';
 import { useEnvoi } from '../components/formulaire';
+import { useChargement } from '../donnees/useChargement';
 import { useDonnees } from '../donnees/contexte';
 import { aller } from '../navigation';
 import styles from './pages.module.css';
@@ -62,6 +63,7 @@ export function MonCompte() {
       )}
 
       <ReglagesCompte />
+      <ComptesAssocies />
 
       <section className="carte formulaire" aria-labelledby="titre-rappels">
         <h2 id="titre-rappels">Rappels par e-mail</h2>
@@ -111,6 +113,11 @@ function ReglagesCompte() {
     await d.recharger();
     setFait('Prénom enregistré.');
   });
+  const naissance = useEnvoi(async (f) => {
+    await api('PATCH', '/moi', { dateNaissance: String(f.get('dateNaissance') ?? '') || null });
+    await d.recharger();
+    setFait('Date de naissance enregistrée.');
+  });
   const motDePasse = useEnvoi(async (f, form) => {
     const r = await api<{ message: string }>('POST', '/moi/motdepasse', { actuel: f.get('actuel'), nouveau: f.get('nouveau') });
     form.reset();
@@ -130,6 +137,14 @@ function ReglagesCompte() {
         <form className="formulaire" onSubmit={prenom.envoyer} noValidate style={{ marginTop: '.8rem' }}>
           <Champ libelle="Prénom" nom="nom" required defaultValue={d.compte?.nom} autoComplete="given-name" erreur={prenom.champs.nom} />
           <div><button className="btn btn--petit" disabled={prenom.occupe}>Enregistrer</button></div>
+        </form>
+      </details>
+      <details>
+        <summary>Date de naissance</summary>
+        <form className="formulaire" onSubmit={naissance.envoyer} noValidate style={{ marginTop: '.8rem' }}>
+          <Champ libelle="Date de naissance" nom="dateNaissance" type="date" defaultValue={d.compte?.dateNaissance ?? ''} erreur={naissance.champs.dateNaissance}
+            aide="Facultatif. Les proches qui ont associé votre compte la voient, pour ne pas oublier votre anniversaire." />
+          <div><button className="btn btn--petit" disabled={naissance.occupe}>Enregistrer</button></div>
         </form>
       </details>
       <details>
@@ -175,5 +190,30 @@ function EmailDeTest() {
       <div><button type="button" className="btn btn--petit btn--contour" onClick={envoyer} disabled={occupe}>M’envoyer un e-mail de test</button></div>
       {etat && <p role="status" className={etat.ok ? undefined : 'erreur'} style={etat.ok ? { color: 'var(--c-vert)', fontWeight: 600 } : undefined}>{etat.texte}</p>}
     </div>
+  );
+}
+
+/** Qui a associé ma fiche à mon compte, et le retirer. */
+function ComptesAssocies() {
+  const { donnees, recharger } = useChargement(() => api<{ personneId: number; inviteur: string; nom: string }[]>('GET', '/moi/associations'), []);
+  if (!donnees || donnees.length === 0) return null;
+  const retirer = async (id: number, inviteur: string) => {
+    if (!window.confirm(`Retirer l’association avec ${inviteur} ? Il ou elle ne verra plus votre liste d’envies ni votre date d’anniversaire.`)) return;
+    await api('DELETE', `/moi/associations/${id}`);
+    await recharger();
+  };
+  return (
+    <section className="carte formulaire" aria-labelledby="titre-associes">
+      <h2 id="titre-associes">Comptes associés</h2>
+      <p className={styles.discret}>Ces personnes voient votre liste d’envies et votre date d’anniversaire, et peuvent vous inviter à leurs cagnottes.</p>
+      <ul className={styles.liste}>
+        {donnees.map((a) => (
+          <li key={a.personneId} className={styles.ligneListe}>
+            <span><strong>{a.inviteur}</strong> <span className={styles.discret}>(vous a nommé « {a.nom} »)</span></span>
+            <button type="button" className="btn btn--lien btn--petit btn--danger" onClick={() => retirer(a.personneId, a.inviteur)}>Retirer</button>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

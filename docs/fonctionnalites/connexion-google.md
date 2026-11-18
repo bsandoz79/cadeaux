@@ -29,6 +29,11 @@ sequenceDiagram
   A-->>N: jeton de connexion
 ```
 
+## Dans « Mon compte »
+- **Relier** (`POST /moi/google/relier`, connecté) : même départ, avec le compte noté dans `google_etats.compte_id`. Au retour, rien n'est créé : lien `googlelier` (2 min) puis `POST /moi/google/relier/fin` depuis le même onglet (preuve) et le même compte. Refusé si ce compte Google est déjà relié à un autre compte (`?google=deja`).
+- **Délier** (`POST /moi/google/delier`) : seulement si un mot de passe existe (`comptes.mot_de_passe_defini`), sinon 409.
+- **Compte créé avec Google** (`mot_de_passe_defini = 0`) : « Recevoir le lien » envoie le lien de « Mot de passe oublié » à l'adresse du compte ; le mot de passe choisi par ce lien rend `mot_de_passe_defini = 1`. Le changement d'adresse, qui demande le mot de passe, attend ce choix. Comptes reliés avant ce réglage : considérés avec mot de passe.
+
 ## Réglages
 `config.local.php` : `'google' => ['id' => …, 'secret' => …]`, écrit au déploiement depuis les secrets `GOOGLE_CLIENT_ID` et `GOOGLE_CLIENT_SECRET`. Sans eux, `GET /google` répond `actif: false` et le bouton est caché. Création du client : `docs/mise-en-ligne.md`.
 
@@ -38,4 +43,5 @@ sequenceDiagram
 
 ## Tests
 - `api/tests/GoogleTest.php` (faux Google) : départ (PKCE, état, empreintes), création, compte existant relié sans doublon, retour par identifiant Google, page de retour sûre, lien volé refusé, code unique et expirant, état inconnu ou expiré, annulation, identités refusées (destinataire, émetteur, expiration, adresse non vérifiée), compte bloqué.
-- `front/src/App.test.tsx` : bouton seulement si actif, départ avec preuve, retour qui ouvre la session, refus sans preuve, message d'annulation.
+- `api/tests/GoogleTest.php` aussi : relier un compte d'adresse différente, refus depuis un autre onglet ou un autre compte, compte Google déjà utilisé, délier seulement avec un mot de passe.
+- `front/src/App.test.tsx` : relier depuis « Mon compte », compte sans mot de passe (pas de « Délier », lien pour choisir un mot de passe), bouton seulement si actif, départ avec preuve, retour qui ouvre la session, refus sans preuve, message d'annulation.

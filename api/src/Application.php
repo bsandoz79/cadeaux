@@ -177,6 +177,21 @@ final class Application
 
             return Reponse::ok($session);
         });
+        $r->ajouter('POST', '/moi/google/relier', fn (Requete $q) => Reponse::ok([
+            'adresse' => $this->google()->debut((string) ($q->corps['preuve'] ?? ''), '', $q->ip, $this->compte($q)),
+        ]));
+        $r->ajouter('POST', '/moi/google/relier/fin', function (Requete $q) {
+            $compte = $this->compte($q);
+            $this->google()->relier($compte, (string) ($q->corps['code'] ?? ''), (string) ($q->corps['preuve'] ?? ''));
+
+            return Reponse::ok($this->comptes->compte($compte));
+        });
+        $r->ajouter('POST', '/moi/google/delier', function (Requete $q) {
+            $compte = $this->compte($q);
+            $this->google()->delier($compte);
+
+            return Reponse::ok($this->comptes->compte($compte));
+        });
         $r->ajouter('POST', '/securite/bloquer', function (Requete $q) {
             $this->identite->bloquer((string) ($q->corps['jeton'] ?? ''));
 

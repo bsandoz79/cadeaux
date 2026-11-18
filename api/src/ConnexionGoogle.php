@@ -41,7 +41,8 @@ final class ConnexionGoogle
     }
 
     /** Adresse de Google où envoyer le navigateur. `$preuve` : 64 caractères hexadécimaux tirés par le site. */
-    public function debut(string $preuve, string $retour, string $ip): string
+    /** `$compteId` : compte connecté qui relie son compte Google (depuis « Mon compte »), sinon null. */
+    public function debut(string $preuve, string $retour, string $ip, ?int $compteId = null): string
     {
         if (preg_match('/^[a-f0-9]{64}$/', $preuve) !== 1) {
             throw new ErreurHttp(400, 'Demande de connexion invalide.');
@@ -52,12 +53,13 @@ final class ConnexionGoogle
         $this->limiteur->noter('google:' . $ip);
         $etat = bin2hex(random_bytes(32));
         $verificateur = bin2hex(random_bytes(32));
-        $this->pdo->prepare('INSERT INTO google_etats (empreinte, preuve, verificateur, retour, expire_le) VALUES (?, ?, ?, ?, ?)')
+        $this->pdo->prepare('INSERT INTO google_etats (empreinte, preuve, verificateur, retour, compte_id, expire_le) VALUES (?, ?, ?, ?, ?, ?)')
             ->execute([
                 hash('sha256', $etat),
                 hash('sha256', $preuve),
                 $verificateur,
                 preg_match(self::RETOUR, $retour) === 1 ? $retour : null,
+                $compteId,
                 $this->horloge->maintenant()->modify('+10 minutes')->format('Y-m-d H:i:s'),
             ]);
 
@@ -92,6 +94,10 @@ final class ConnexionGoogle
             return $this->site . '/?google=annule';
         }
 
+        if ($depart['compte_id'] !== null) {
+            return $this->retourPourRelier((int) $depart['compte_id'], (string) $parametres['code'], $depart);
+        }
+
         try {
             $identite = $this->verifier($this->google->echanger((string) $parametres['code'], (string) $depart['verificateur'], $this->redirection()));
             [$compteId, $nouveau] = $this->compte($identite);
@@ -110,6 +116,77 @@ final class ConnexionGoogle
             ]);
 
         return $this->site . '/connexion/google?code=' . $code;
+    }
+
+    /**
+     * Retour de Google pour relier un compte existant : rien n'est créé ni connecté ici. Le site finit avec
+     * `relier()`, depuis l'onglet où « Relier » a été cliqué (même preuve, même compte connecté).
+     *
+     * @param array<string, mixed> $depart
+     */
+    private function retourPourRelier(int $compteId, string $code, array $depart): string
+    {
+        try {
+            $identite = $this->verifier($this->google->echanger($code, (string) $depart['verificateur'], $this->redirection()));
+        } catch (ErreurHttp) {
+            return $this->site . '/compte?google=erreur';
+        }
+        if ($this->compteDeGoogle($identite['sub'], $compteId) !== null) {
+            return $this->site . '/compte?google=deja';
+        }
+        $lien = bin2hex(random_bytes(32));
+        $this->pdo->prepare('INSERT INTO liens (compte_id, type, empreinte, donnee, expire_le) VALUES (?, ?, ?, ?, ?)')
+            ->execute([
+                $compteId,
+                'googlelier',
+                hash('sha256', $lien),
+                json_encode(['preuve' => $depart['preuve'], 'sub' => $identite['sub']]),
+                $this->horloge->maintenant()->modify('+2 minutes')->format('Y-m-d H:i:s'),
+            ]);
+
+        return $this->site . '/connexion/google?code=' . $lien . '&relier=1';
+    }
+
+    /** Fin de « Relier mon compte Google » : même compte connecté, même onglet, identifiant Google encore libre. */
+    public function relier(int $compteId, string $code, string $preuve): void
+    {
+        $requete = $this->pdo->prepare("SELECT * FROM liens WHERE empreinte = ? AND type = 'googlelier'");
+        $requete->execute([hash('sha256', $code)]);
+        $lien = $requete->fetch(\PDO::FETCH_ASSOC);
+        if ($lien === false || $lien['expire_le'] < $this->horloge->texte() || (int) $lien['compte_id'] !== $compteId) {
+            throw new ErreurHttp(410, 'Cette demande a expiré. Recommencez depuis « Mon compte ».');
+        }
+        $this->pdo->prepare('DELETE FROM liens WHERE id = ?')->execute([$lien['id']]);
+        /** @var array{preuve: string, sub: string} $donnee */
+        $donnee = json_decode((string) $lien['donnee'], true);
+        if (!hash_equals($donnee['preuve'], hash('sha256', $preuve))) {
+            throw new ErreurHttp(403, 'Cette demande a été commencée dans un autre navigateur. Recommencez ici.');
+        }
+        if ($this->compteDeGoogle($donnee['sub'], $compteId) !== null) {
+            throw new ErreurHttp(409, 'Ce compte Google est déjà relié à un autre compte Cadeaux.');
+        }
+        $this->pdo->prepare('UPDATE comptes SET google_sub = ? WHERE id = ?')->execute([$donnee['sub'], $compteId]);
+    }
+
+    /** Délier Google : seulement si un mot de passe permet encore de se connecter. */
+    public function delier(int $compteId): void
+    {
+        $requete = $this->pdo->prepare('SELECT mot_de_passe_defini FROM comptes WHERE id = ?');
+        $requete->execute([$compteId]);
+        if (!(bool) $requete->fetchColumn()) {
+            throw new ErreurHttp(409, 'Choisissez d’abord un mot de passe : sans Google, c’est lui qui vous permettra de vous connecter.');
+        }
+        $this->pdo->prepare('UPDATE comptes SET google_sub = NULL WHERE id = ?')->execute([$compteId]);
+    }
+
+    /** Autre compte déjà relié à cet identifiant Google, ou null. */
+    private function compteDeGoogle(string $sub, int $saufCompte): ?int
+    {
+        $requete = $this->pdo->prepare('SELECT id FROM comptes WHERE google_sub = ? AND id <> ?');
+        $requete->execute([$sub, $saufCompte]);
+        $id = $requete->fetchColumn();
+
+        return $id === false ? null : (int) $id;
     }
 
     /**
@@ -190,7 +267,7 @@ final class ConnexionGoogle
         }
 
         // Nouveau compte : pas de mot de passe connu (« Mot de passe oublié ? » permet d'en choisir un), adresse confirmée.
-        $this->pdo->prepare('INSERT INTO comptes (email, nom, mot_de_passe, cree_le, rappels, email_confirme, google_sub) VALUES (?, ?, ?, ?, 0, 1, ?)')
+        $this->pdo->prepare('INSERT INTO comptes (email, nom, mot_de_passe, cree_le, rappels, email_confirme, google_sub, mot_de_passe_defini) VALUES (?, ?, ?, ?, 0, 1, ?, 0)')
             ->execute([$identite['email'], $identite['prenom'], password_hash(bin2hex(random_bytes(32)), PASSWORD_DEFAULT), $this->horloge->texte(), $identite['sub']]);
 
         return [(int) $this->pdo->lastInsertId(), true];

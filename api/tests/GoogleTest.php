@@ -227,4 +227,72 @@ final class GoogleTest extends ApiTestCase
         self::assertSame('https://cadeaux.test/?google=bloque', $this->get('/google/retour', ['code' => 'x', 'state' => $g['state']])->redirection);
         self::assertNull($this->pdo->query('SELECT google_sub FROM comptes')->fetchColumn(), 'un compte bloqué n’est pas relié');
     }
+
+    /** « Relier mon compte Google » depuis « Mon compte » : départ, retour de Google, fin. Renvoie [réponse de fin, adresse de retour]. */
+    private function relier(string $jeton, string $preuve = '', ?string $preuveFin = null): array
+    {
+        $preuve = $preuve !== '' ? $preuve : str_repeat('ab', 32);
+        $depart = $this->appel('POST', '/moi/google/relier', ['preuve' => $preuve], $jeton);
+        parse_str((string) parse_url($depart->donnees['adresse'], PHP_URL_QUERY), $g);
+        $retour = (string) $this->get('/google/retour', ['code' => 'x', 'state' => $g['state']])->redirection;
+        if (!str_contains($retour, '/connexion/google?code=')) {
+            return [null, $retour];
+        }
+        parse_str((string) parse_url($retour, PHP_URL_QUERY), $s);
+        self::assertSame('1', $s['relier']);
+
+        return [$this->appel('POST', '/moi/google/relier/fin', ['code' => $s['code'], 'preuve' => $preuveFin ?? $preuve], $jeton), $retour];
+    }
+
+    public function testRelierGoogleAUnCompteDAdresseDifferente(): void
+    {
+        $jeton = $this->inscrire('baptiste@example.com');
+        [$fin] = $this->relier($jeton);
+
+        self::assertSame(200, $fin->statut);
+        self::assertTrue($fin->donnees['google']);
+        self::assertTrue($fin->donnees['motDePasse']);
+        // La connexion avec Google ouvre maintenant ce compte, sans en créer un autre.
+        self::assertSame('baptiste@example.com', $this->connecter()->donnees['compte']['email']);
+        self::assertSame(1, (int) $this->pdo->query('SELECT COUNT(*) FROM comptes')->fetchColumn());
+    }
+
+    public function testRelierDepuisUnAutreNavigateurOuUnAutreCompteEstRefuse(): void
+    {
+        $jeton = $this->inscrire('baptiste@example.com');
+        self::assertSame(403, $this->relier($jeton, str_repeat('ab', 32), str_repeat('cd', 32))[0]->statut);
+
+        $autre = $this->inscrire('autre@example.com', 'Autre');
+        $depart = $this->appel('POST', '/moi/google/relier', ['preuve' => str_repeat('ab', 32)], $jeton);
+        parse_str((string) parse_url($depart->donnees['adresse'], PHP_URL_QUERY), $g);
+        parse_str((string) parse_url((string) $this->get('/google/retour', ['code' => 'x', 'state' => $g['state']])->redirection, PHP_URL_QUERY), $s);
+        self::assertSame(410, $this->appel('POST', '/moi/google/relier/fin', ['code' => $s['code'], 'preuve' => str_repeat('ab', 32)], $autre)->statut);
+        self::assertSame(0, (int) $this->pdo->query('SELECT COUNT(*) FROM comptes WHERE google_sub IS NOT NULL')->fetchColumn());
+    }
+
+    public function testUnCompteGoogleDejaUtiliseNeSeRelieePasAUnSecond(): void
+    {
+        $this->connecter();
+        $jeton = $this->inscrire('baptiste@example.com');
+
+        self::assertSame('https://cadeaux.test/compte?google=deja', $this->relier($jeton)[1]);
+    }
+
+    public function testDelierDemandeUnMotDePasse(): void
+    {
+        $jeton = $this->connecter()->donnees['jeton'];
+        self::assertFalse($this->appel('GET', '/moi', [], $jeton)->donnees['motDePasse']);
+        self::assertSame(409, $this->appel('POST', '/moi/google/delier', [], $jeton)->statut);
+
+        // Mot de passe choisi par le lien « oublié » : il compte comme défini, Google peut être délié.
+        $this->appel('POST', '/motdepasse/oubli', ['email' => 'lea.martin@gmail.com']);
+        preg_match('#/motdepasse/([a-f0-9]{64})#', end($this->courriels)['texte'], $m);
+        self::assertSame(200, $this->appel('POST', '/motdepasse/nouveau', ['jeton' => $m[1], 'motDePasse' => 'un-mot-de-passe-solide'])->statut);
+        $jeton = $this->appel('POST', '/connexion', ['email' => 'lea.martin@gmail.com', 'motDePasse' => 'un-mot-de-passe-solide'])->donnees['jeton'];
+
+        $delie = $this->appel('POST', '/moi/google/delier', [], $jeton);
+        self::assertSame(200, $delie->statut);
+        self::assertFalse($delie->donnees['google']);
+        self::assertTrue($delie->donnees['motDePasse']);
+    }
 }

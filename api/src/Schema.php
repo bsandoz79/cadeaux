@@ -12,7 +12,7 @@ namespace Cadeaux;
 final class Schema
 {
     /** À augmenter à chaque changement des tables. */
-    public const VERSION = 15;
+    public const VERSION = 16;
 
     public static function installer(\PDO $pdo): void
     {
@@ -35,7 +35,8 @@ final class Schema
                 bloque INT NOT NULL DEFAULT 0,
                 securite_le VARCHAR(19) NULL,
                 date_naissance VARCHAR(10) NULL,
-                google_sub VARCHAR(64) NULL UNIQUE
+                google_sub VARCHAR(64) NULL UNIQUE,
+                mot_de_passe_defini INT NOT NULL DEFAULT 1
             )",
             "invitations (
                 id $id,
@@ -67,6 +68,7 @@ final class Schema
                 preuve CHAR(64) NOT NULL,
                 verificateur CHAR(64) NOT NULL,
                 retour VARCHAR(90) NULL,
+                compte_id $ref NULL,
                 expire_le VARCHAR(19) NOT NULL
             )",
             "appareils (
@@ -258,6 +260,9 @@ final class Schema
             ['reservations', 'compte_id', $mysql ? 'INT UNSIGNED NULL' : 'INTEGER NULL'], // v14
             // v15 : compte relié à Google (identifiant Google). SQLite n'ajoute pas d'UNIQUE par ALTER : index à part.
             ['comptes', 'google_sub', $mysql ? 'VARCHAR(64) NULL UNIQUE' : 'VARCHAR(64) NULL'],
+            // v16 : compte créé avec Google sans mot de passe choisi ; relier Google depuis « Mon compte ».
+            ['comptes', 'mot_de_passe_defini', 'INT NOT NULL DEFAULT 1'],
+            ['google_etats', 'compte_id', $mysql ? 'INT UNSIGNED NULL' : 'INTEGER NULL'],
         ];
         foreach ($ajouts as [$table, $colonne, $type]) {
             if (!self::colonneExiste($pdo, $table, $colonne, $mysql)) {

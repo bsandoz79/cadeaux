@@ -3,7 +3,7 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { App } from './App';
 import { FournisseurDonnees } from './donnees/FournisseurDonnees';
-import { CLE_PREUVE_GOOGLE, sortie } from './components/BoutonGoogle';
+import { CLE_PREUVE_GOOGLE, sortie } from './donnees/google';
 import { etatVide, installerFausseApi, preparer, type EtatFaux } from './test/fausseApi';
 
 const ouvrir = () => render(<FournisseurDonnees><App /></FournisseurDonnees>);
@@ -416,6 +416,40 @@ describe('connexion avec Google', () => {
     ouvrir();
     await userEvent.setup().click(await screen.findByRole('button', { name: 'Continuer avec Google' }));
     expect(depart.mock.calls[0][0]).toContain(`retour=%2Frejoindre%2F${'9'.repeat(64)}`);
+  });
+
+  it('« Mon compte » : relier Google part chez Google, puis la fin relie le compte', async () => {
+    etat.google = true;
+    preparer('/compte');
+    const { appels } = installerFausseApi(etat);
+    const depart = vi.spyOn(sortie, 'vers').mockImplementation(() => {});
+    const { unmount } = ouvrir();
+    await userEvent.setup().click(await screen.findByRole('button', { name: 'Relier mon compte Google' }));
+    expect(depart).toHaveBeenCalledWith('https://accounts.google.com/o/oauth2/v2/auth?state=x');
+    const preuve = sessionStorage.getItem(CLE_PREUVE_GOOGLE);
+    expect(appels.find((a) => a.chemin === '/moi/google/relier')?.corps).toEqual({ preuve });
+    unmount();
+
+    preparer(`/connexion/google?code=${'c'.repeat(64)}&relier=1`);
+    sessionStorage.setItem(CLE_PREUVE_GOOGLE, 'b'.repeat(64));
+    installerFausseApi(etat);
+    ouvrir();
+    expect(await screen.findByText(/Votre compte Google est relié/)).toBeInTheDocument();
+    expect(window.location.pathname).toBe('/compte');
+  });
+
+  it('« Mon compte » : sans mot de passe, Google ne se délie pas et un lien permet d’en choisir un', async () => {
+    etat.google = true;
+    etat.compte = { ...etat.compte, google: true, motDePasse: false };
+    preparer('/compte');
+    const { appels } = installerFausseApi(etat);
+    ouvrir();
+    expect(await screen.findByText(/Pour délier Google, choisissez d’abord un mot de passe/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Délier Google' })).not.toBeInTheDocument();
+    const u = userEvent.setup();
+    await u.click(screen.getByText('Mot de passe'));
+    await u.click(screen.getByRole('button', { name: 'Recevoir le lien' }));
+    expect(appels.find((a) => a.chemin === '/motdepasse/oubli')?.corps).toEqual({ email: 'baptiste@example.com' });
   });
 
   it('explique un retour annulé', async () => {

@@ -1,9 +1,5 @@
-import { useEffect, useState } from 'react';
-import { api } from '../api/client';
+import { nouvellePreuve, sortie, useGoogleActif } from '../donnees/google';
 import styles from './BoutonGoogle.module.css';
-
-/** Clé de l'onglet où est gardée la preuve tirée au départ (vérifiée au retour : un lien volé ne connecte personne). */
-export const CLE_PREUVE_GOOGLE = 'cadeaux.google';
 
 const MESSAGES: Record<string, string> = {
   annule: 'Connexion avec Google annulée.',
@@ -12,31 +8,16 @@ const MESSAGES: Record<string, string> = {
   erreur: 'Google n’a pas confirmé la connexion. Réessayez, ou utilisez votre e-mail et votre mot de passe.',
 };
 
-/** Départ vers Google (remplaçable dans les tests, où le navigateur ne quitte pas la page). */
-export const sortie = { vers: (adresse: string) => window.location.assign(adresse) };
-
-function preuveAleatoire(): string {
-  const octets = crypto.getRandomValues(new Uint8Array(32));
-  return Array.from(octets, (o) => o.toString(16).padStart(2, '0')).join('');
-}
-
 /**
  * « Continuer avec Google » : le navigateur part sur la page de Google, puis revient sur /connexion/google.
  * Aucun script de Google n'est chargé sur le site. Le bouton n'apparaît que si la connexion Google est configurée.
  */
 export function BoutonGoogle({ retour }: { retour?: string | null }) {
-  const [actif, setActif] = useState(false);
+  const actif = useGoogleActif();
   const motif = new URLSearchParams(window.location.search).get('google');
 
-  useEffect(() => {
-    let vivant = true;
-    api<{ actif: boolean }>('GET', '/google').then((r) => vivant && setActif(r.actif)).catch(() => {});
-    return () => { vivant = false; };
-  }, []);
-
   function partir() {
-    const preuve = preuveAleatoire();
-    try { sessionStorage.setItem(CLE_PREUVE_GOOGLE, preuve); } catch { /* navigation privée stricte : le retour échouera proprement */ }
+    const preuve = nouvellePreuve();
     const parametres = new URLSearchParams({ preuve, ...(retour ? { retour } : {}) });
     sortie.vers(`/api/google/debut?${parametres}`);
   }

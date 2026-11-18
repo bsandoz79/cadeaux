@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { nouvellePreuve, sortie, useGoogleActif } from '../donnees/google';
 import { api, jeton } from '../api/client';
 import { aujourdhui } from '../calculs/bilan';
 import { dejaInstallee, surIphone, useInstallation } from '../installation';
@@ -65,6 +66,8 @@ export function MonCompte() {
       <ReglagesCompte />
       <ComptesAssocies />
 
+      <ConnexionGoogleCompte />
+
       <section className="carte formulaire" aria-labelledby="titre-rappels">
         <h2 id="titre-rappels">Rappels par e-mail</h2>
         <label className={styles.coche}>
@@ -118,6 +121,12 @@ function ReglagesCompte() {
     await d.recharger();
     setFait('Date de naissance enregistrée.');
   });
+  const sansMotDePasse = d.compte?.motDePasse === false;
+  const choisir = useEnvoi(async () => {
+    // Même chemin que « Mot de passe oublié » : le lien part à l'adresse du compte (protège un compte dont la session serait volée).
+    const r = await api<{ message: string }>('POST', '/motdepasse/oubli', { email: d.compte?.email });
+    setFait(`${r.message} Ouvrez-le pour choisir votre mot de passe.`);
+  });
   const motDePasse = useEnvoi(async (f, form) => {
     const r = await api<{ message: string }>('POST', '/moi/motdepasse', { actuel: f.get('actuel'), nouveau: f.get('nouveau') });
     form.reset();
@@ -149,15 +158,26 @@ function ReglagesCompte() {
       </details>
       <details>
         <summary>Mot de passe</summary>
+        {sansMotDePasse ? (
+          <form className="formulaire" onSubmit={choisir.envoyer} noValidate style={{ marginTop: '.8rem' }}>
+            <p className={styles.discret}>Vous vous connectez avec Google. Pour pouvoir aussi vous connecter avec votre adresse et un mot de passe, recevez un lien par e-mail.</p>
+            {choisir.erreur && <p className="erreur" role="alert">{choisir.erreur}</p>}
+            <div><button className="btn btn--petit" disabled={choisir.occupe}>Recevoir le lien</button></div>
+          </form>
+        ) : (
         <form className="formulaire" onSubmit={motDePasse.envoyer} noValidate style={{ marginTop: '.8rem' }}>
           <Champ libelle="Mot de passe actuel" nom="actuel" type="password" autoComplete="current-password" required erreur={motDePasse.champs.actuel} />
           <Champ libelle="Nouveau mot de passe" nom="nouveau" type="password" autoComplete="new-password" required aide="Au moins 8 caractères." erreur={motDePasse.champs.nouveau} />
           {motDePasse.erreur && !Object.keys(motDePasse.champs).length && <p className="erreur" role="alert">{motDePasse.erreur}</p>}
           <div><button className="btn btn--petit" disabled={motDePasse.occupe}>Changer le mot de passe</button></div>
         </form>
+        )}
       </details>
       <details>
         <summary>Adresse e-mail</summary>
+        {sansMotDePasse ? (
+          <p className={styles.discret} style={{ marginTop: '.8rem' }}>Pour changer d’adresse, choisissez d’abord un mot de passe (ci-dessus) : il sera demandé pour confirmer.</p>
+        ) : (
         <form className="formulaire" onSubmit={adresse.envoyer} noValidate style={{ marginTop: '.8rem' }}>
           <Champ libelle="Nouvelle adresse" nom="email" type="email" autoComplete="email" required erreur={adresse.champs.email} />
           <Champ libelle="Mot de passe" nom="motDePasse" type="password" autoComplete="current-password" required erreur={adresse.champs.actuel} />
@@ -165,6 +185,7 @@ function ReglagesCompte() {
           <p className={styles.discret}>Un lien part à la nouvelle adresse ; votre adresse actuelle est prévenue.</p>
           <div><button className="btn btn--petit" disabled={adresse.occupe}>Changer d’adresse</button></div>
         </form>
+        )}
       </details>
     </section>
   );
@@ -214,6 +235,59 @@ function ComptesAssocies() {
           </li>
         ))}
       </ul>
+    </section>
+  );
+}
+
+const MESSAGES_GOOGLE: Record<string, string> = {
+  relie: 'Votre compte Google est relié : vous pouvez vous connecter avec « Continuer avec Google ».',
+  deja: 'Ce compte Google est déjà relié à un autre compte Cadeaux.',
+  erreur: 'Google n’a pas confirmé. Réessayez.',
+  expire: 'La demande a pris trop de temps. Recommencez.',
+  annule: 'Demande annulée.',
+};
+
+/** Relier ou délier son compte Google. Affiché si la connexion Google est configurée, ou si le compte est déjà relié. */
+function ConnexionGoogleCompte() {
+  const d = useDonnees();
+  const actif = useGoogleActif();
+  const motif = new URLSearchParams(window.location.search).get('google');
+  const [message, setMessage] = useState<string | null>(motif ? MESSAGES_GOOGLE[motif] ?? null : null);
+  const relier = useEnvoi(async () => {
+    const r = await api<{ adresse: string }>('POST', '/moi/google/relier', { preuve: nouvellePreuve() });
+    sortie.vers(r.adresse);
+  });
+  const delier = useEnvoi(async () => {
+    await api('POST', '/moi/google/delier');
+    await d.recharger();
+    setMessage('Google n’est plus relié à votre compte.');
+  });
+  if (!actif && !d.compte?.google) return null;
+  const relie = d.compte?.google === true;
+
+  return (
+    <section className="carte formulaire" aria-labelledby="titre-google">
+      <h2 id="titre-google">Connexion avec Google</h2>
+      {message && <p role="status" style={{ fontWeight: 600 }}>{message}</p>}
+      {relie ? (
+        <>
+          <p>Votre compte est relié à Google : « Continuer avec Google » vous connecte directement.</p>
+          {d.compte?.motDePasse === false ? (
+            <p className={styles.discret}>Pour délier Google, choisissez d’abord un mot de passe (« Mes informations » → « Mot de passe »).</p>
+          ) : (
+            <form onSubmit={delier.envoyer} noValidate>
+              {delier.erreur && <p className="erreur" role="alert">{delier.erreur}</p>}
+              <button className="btn btn--petit btn--contour" disabled={delier.occupe}>Délier Google</button>
+            </form>
+          )}
+        </>
+      ) : (
+        <form onSubmit={relier.envoyer} noValidate className="formulaire">
+          <p>Reliez votre compte Google pour vous connecter en un clic, même si son adresse est différente.</p>
+          {relier.erreur && <p className="erreur" role="alert">{relier.erreur}</p>}
+          <div><button className="btn btn--petit" disabled={relier.occupe}>Relier mon compte Google</button></div>
+        </form>
+      )}
     </section>
   );
 }

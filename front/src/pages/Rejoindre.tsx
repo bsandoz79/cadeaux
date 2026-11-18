@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { api } from '../api/client';
+import { BoutonGoogle } from '../components/BoutonGoogle';
 import { Lien } from '../components/commun';
 import { useDonnees } from '../donnees/contexte';
 import { useChargement } from '../donnees/useChargement';
@@ -35,7 +36,10 @@ export function Rejoindre({ jeton }: { jeton: string }) {
                 <button type="button" className="btn btn--contour" onClick={() => repondre(false)}>Refuser</button>
               </div>
             ) : (
-              <p><Lien className="btn" href={`/?retour=${encodeURIComponent(`/rejoindre/${jeton}`)}`}>Me connecter ou créer mon compte</Lien></p>
+              <div className="actions" style={{ display: 'grid', gap: '.6rem', maxWidth: '22rem' }}>
+                <BoutonGoogle retour={`/rejoindre/${jeton}`} />
+                <Lien className="btn" href={`/?retour=${encodeURIComponent(`/rejoindre/${jeton}`)}`}>Me connecter ou créer mon compte</Lien>
+              </div>
             )}
           </>
         )}

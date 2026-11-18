@@ -408,6 +408,16 @@ describe('connexion avec Google', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('autre navigateur');
   });
 
+  it('une invitation propose aussi Google, avec retour sur l’invitation', async () => {
+    etat.google = true;
+    preparer(`/rejoindre/${'9'.repeat(64)}`, false);
+    installerFausseApi(etat);
+    const depart = vi.spyOn(sortie, 'vers').mockImplementation(() => {});
+    ouvrir();
+    await userEvent.setup().click(await screen.findByRole('button', { name: 'Continuer avec Google' }));
+    expect(depart.mock.calls[0][0]).toContain(`retour=%2Frejoindre%2F${'9'.repeat(64)}`);
+  });
+
   it('explique un retour annulé', async () => {
     preparer('/?google=annule', false);
     installerFausseApi(etat);

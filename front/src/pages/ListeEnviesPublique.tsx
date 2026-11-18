@@ -3,6 +3,7 @@ import { useChargement } from '../donnees/useChargement';
 import { api } from '../api/client';
 import type { ListePublique } from '../api/types';
 import { euros } from '../calculs/argent';
+import { BoutonGoogle } from '../components/BoutonGoogle';
 import { Champ, ChampMontant, Lien } from '../components/commun';
 import { Partage } from '../components/Partage';
 import { jeton } from '../api/client';
@@ -126,11 +127,14 @@ export function ListeEnviesPublique({ code }: { code: string }) {
                         </div>
                       </form>
                     ) : (
-                      <p className={styles.discret} style={{ marginTop: '.4rem' }}>
-                        Pour lancer une cagnotte, il faut un compte Cadeaux (gratuit) : vous suivrez qui a mis quoi.{' '}
-                        <Lien href={`/?retour=${encodeURIComponent(`/l/${code}`)}`}>Me connecter ou créer un compte</Lien>{' · '}
-                        <button type="button" className="btn btn--lien btn--petit" onClick={() => setCotise(null)}>Annuler</button>
-                      </p>
+                      <div style={{ display: 'grid', gap: '.5rem', marginTop: '.4rem', maxWidth: '22rem' }}>
+                        <p className={styles.discret}>Pour lancer une cagnotte, il faut un compte Cadeaux (gratuit) : vous suivrez qui a mis quoi.</p>
+                        <BoutonGoogle retour={`/l/${code}`} />
+                        <p className={styles.discret}>
+                          <Lien href={`/?retour=${encodeURIComponent(`/l/${code}`)}`}>Me connecter ou créer un compte</Lien>{' · '}
+                          <button type="button" className="btn btn--lien btn--petit" onClick={() => setCotise(null)}>Annuler</button>
+                        </p>
+                      </div>
                     )
                   ) : choix === e.id ? (
                     <form className="formulaire" onSubmit={reserver.envoyer} noValidate style={{ marginTop: '.4rem' }}>

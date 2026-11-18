@@ -2,6 +2,9 @@
 
 ## [Non publié]
 
+### Ajouté
+- Dates de la fête des mères (dernier dimanche de mai, premier de juin si c'est la Pentecôte) et de la fête des pères (troisième dimanche de juin) calculées : proposées à la création d'une occasion et dans l'arbre de famille.
+
 ### Ajouté (association de comptes)
 - Associer la fiche d'un proche à son vrai compte, avec son accord : lien d'invitation (30 jours) envoyé par WhatsApp, Snap ou SMS ; la personne accepte ou refuse, et peut retirer l'association dans « Mon compte ».
 - Une fois associé : sa liste d'envies sur sa fiche, réservable en un clic (il ou elle ne voit jamais qui réserve) ; sa date de naissance (facultative, dans « Mon compte ») reprise par la fiche ; invitation directe aux cagnottes (« On vous invite » dans Cagnottes, e-mail).

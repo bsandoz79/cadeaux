@@ -5,6 +5,7 @@ import { etatBudget } from './budget';
 import { dejaOffert, ressemblance } from './historique';
 import { ibanValide, normaliserIban } from './iban';
 import { liensPartage } from './partage';
+import { feteDesMeres, feteDesPeres, paques, prochaineFete, suggestion } from './occasions';
 import { arbre, LIENS } from './famille';
 import { etatCagnotte, montantsProposes, partConseillee, partsEgales } from './cagnotte';
 
@@ -220,5 +221,28 @@ describe('arbre de famille', () => {
 
   it('chaque lien est unique', () => {
     expect(new Set(LIENS.map((l) => l.valeur)).size).toBe(LIENS.length);
+  });
+});
+
+describe('fêtes calculées', () => {
+  it('Pâques', () => {
+    expect([paques(2024), paques(2025), paques(2026), paques(2004)]).toEqual(['2024-03-31', '2025-04-20', '2026-04-05', '2004-04-11']);
+  });
+
+  it('fête des mères : dernier dimanche de mai, reportée si c’est la Pentecôte', () => {
+    expect(feteDesMeres(2024)).toBe('2024-05-26');
+    expect(feteDesMeres(2025)).toBe('2025-05-25');
+    expect(feteDesMeres(2026)).toBe('2026-05-31');
+    expect(feteDesMeres(2004)).toBe('2004-06-06'); // Pentecôte le 30 mai 2004
+  });
+
+  it('fête des pères : troisième dimanche de juin', () => {
+    expect([feteDesPeres(2024), feteDesPeres(2025), feteDesPeres(2026)]).toEqual(['2024-06-16', '2025-06-15', '2026-06-21']);
+  });
+
+  it('la prochaine, et la suggestion d’occasion', () => {
+    expect(prochaineFete(feteDesMeres, '2026-11-18')).toBe('2027-05-30');
+    expect(prochaineFete(feteDesMeres, '2026-05-31')).toBe('2026-05-31');
+    expect(suggestion('fete-des-peres', '2026-11-18')).toEqual({ titre: 'Fête des pères 2027', date: '2027-06-20' });
   });
 });

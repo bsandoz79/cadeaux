@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Personne, TypeOccasion } from '../api/types';
-import { dateLisible } from '../calculs/bilan';
+import { aujourdhui, dateLisible } from '../calculs/bilan';
+import { feteDesMeres, feteDesPeres, prochaineFete } from '../calculs/occasions';
 import { arbre, lien, type Case } from '../calculs/famille';
 import { useDonnees } from '../donnees/contexte';
 import { useOccasionPour } from '../donnees/useOccasionPour';
@@ -9,7 +10,6 @@ import styles from './ArbreFamille.module.css';
 /** Choix de l'occasion pour un proche cliqué dans l'arbre. */
 function ChoixOccasion({ personne, onFermer }: { personne: Personne; onFermer: () => void }) {
   const { pour, enCours } = useOccasionPour();
-  const [fete, setFete] = useState('');
   const l = lien(personne.lien);
   const typeFete: TypeOccasion | null = l?.fete === 'meres' ? 'fete-des-meres' : l?.fete === 'peres' ? 'fete-des-peres' : null;
   const occupe = enCours === personne.id;
@@ -30,13 +30,9 @@ function ChoixOccasion({ personne, onFermer }: { personne: Personne; onFermer: (
         <button type="button" className="btn btn--petit btn--lien" disabled={occupe} onClick={() => pour(personne, 'autre')}>Autre occasion…</button>
       </div>
       {typeFete && (
-        <form className="actions" style={{ alignItems: 'end' }} onSubmit={(e) => { e.preventDefault(); void pour(personne, typeFete, fete); }}>
-          <label className="champ">
-            <span>{typeFete === 'fete-des-meres' ? 'Fête des mères, le' : 'Fête des pères, le'}</span>
-            <input type="date" required value={fete} onChange={(e) => setFete(e.target.value)} />
-          </label>
-          <button className="btn btn--petit btn--contour" disabled={occupe || !fete}>{typeFete === 'fete-des-meres' ? 'Fête des mères' : 'Fête des pères'}</button>
-        </form>
+        <div className="actions">
+          {bouton(typeFete, `${typeFete === 'fete-des-meres' ? 'Fête des mères' : 'Fête des pères'} (${dateLisible(prochaineFete(typeFete === 'fete-des-meres' ? feteDesMeres : feteDesPeres, aujourdhui()), true)})`)}
+        </div>
       )}
       <div><button type="button" className="btn btn--lien btn--petit" onClick={onFermer}>Fermer</button></div>
     </section>

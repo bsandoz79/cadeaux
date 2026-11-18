@@ -17,6 +17,8 @@ export interface EtatFaux {
   cagnottes: Element[];
   participations: Record<string, Element[]>;
   listes: Record<string, { proprietaire: string; message: string | null; envies: Element[] }>;
+  /** Connexion avec Google configurée sur le serveur. */
+  google?: boolean;
 }
 
 export function etatVide(): EtatFaux {
@@ -49,6 +51,11 @@ export function installerFausseApi(etat: EtatFaux) {
     let m: RegExpExecArray | null;
 
     if (methode === 'POST' && (chemin === '/comptes' || chemin === '/connexion')) return json(chemin === '/comptes' ? 201 : 200, { jeton: 'a'.repeat(64), compte: etat.compte });
+    if (chemin === '/google') return json(200, { actif: etat.google ?? false });
+    if (methode === 'POST' && chemin === '/google/session') {
+      const c = corps as { code?: string; preuve?: string };
+      return c.code && c.preuve ? json(200, { jeton: 'a'.repeat(64), compte: etat.compte, retour: null, nouveau: false }) : json(403, { message: 'Cette connexion a été commencée dans un autre navigateur. Recommencez ici.' });
+    }
     if (chemin === '/moi') return json(200, etat.compte);
     if (chemin === '/motdepasse/oubli') return json(200, { message: 'Si un compte existe avec cette adresse, un e-mail vient de partir.' });
     if (chemin === '/motdepasse/nouveau') return corps.jeton === 'f'.repeat(64) ? json(200, { jeton: 'a'.repeat(64), compte: etat.compte }) : json(410, { message: 'Ce lien n’est plus valable. Refaites une demande.' });

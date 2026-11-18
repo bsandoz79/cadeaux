@@ -17,7 +17,16 @@ final class Requete
         public readonly array $corps = [],
         public readonly array $entetes = [],
         public readonly string $ip = '',
+        /** Paramètres de l'adresse (?code=…&state=…), pour le retour de Google. */
+        public readonly array $parametres = [],
     ) {
+    }
+
+    public function parametre(string $nom): string
+    {
+        $valeur = $this->parametres[$nom] ?? '';
+
+        return is_string($valeur) ? $valeur : '';
     }
 
     public static function depuisGlobales(): self
@@ -45,6 +54,7 @@ final class Requete
             is_array($corps) ? $corps : [],
             $entetes,
             (string) ($_SERVER['REMOTE_ADDR'] ?? ''),
+            $_GET,
         );
     }
 

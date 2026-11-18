@@ -55,3 +55,14 @@ Envoyer sur `main` (ou relancer le workflow dans l'onglet Actions). Les tables d
 ## Extension Chrome
 
 En attendant une publication sur le Chrome Web Store (compte développeur Google, frais d'inscription uniques), l'extension s'installe depuis l'archive du site : page « Mon compte », puis `chrome://extensions` → Mode développeur → « Charger l'extension non empaquetée ».
+
+## Connexion avec Google (facultatif)
+
+Sans ces réglages, le site marche normalement et le bouton « Continuer avec Google » n'apparaît pas.
+
+1. https://console.cloud.google.com → créer un projet (par exemple « Cadeaux »).
+2. « API et services » → « Écran de consentement OAuth » : type **Externe**, nom « Cadeaux », adresse d'assistance, logo facultatif ; domaine autorisé `bsandoz.fr` ; liens vers https://cadeaux.bsandoz.fr/confidentialite et https://cadeaux.bsandoz.fr/mentions-legales. Champs d'accès : `openid`, `email`, `profile` (pas de validation Google nécessaire pour ceux-là). Puis **Publier l'application** (sinon seuls les comptes de test peuvent se connecter).
+3. « Identifiants » → « Créer des identifiants » → **ID client OAuth** → type **Application Web** :
+   - origine JavaScript autorisée : `https://cadeaux.bsandoz.fr` ;
+   - URI de redirection autorisé : `https://cadeaux.bsandoz.fr/api/google/retour` (exactement).
+4. Copier l'**ID client** et le **code secret** dans deux secrets GitHub : `GOOGLE_CLIENT_ID` et `GOOGLE_CLIENT_SECRET`, puis relancer le déploiement (Actions → « Déploiement o2switch » → Run workflow).

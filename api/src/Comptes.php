@@ -156,11 +156,11 @@ final class Comptes
     /** @return array<string, mixed> */
     public function compte(int $id): array
     {
-        $requete = $this->pdo->prepare('SELECT id, email, nom, rappels, email_confirme, date_naissance FROM comptes WHERE id = ?');
+        $requete = $this->pdo->prepare('SELECT id, email, nom, rappels, email_confirme, date_naissance, google_sub FROM comptes WHERE id = ?');
         $requete->execute([$id]);
         $ligne = $requete->fetch(\PDO::FETCH_ASSOC) ?: throw ErreurHttp::introuvable();
 
-        return ['id' => (int) $ligne['id'], 'email' => $ligne['email'], 'nom' => $ligne['nom'], 'rappels' => (bool) $ligne['rappels'], 'emailConfirme' => (bool) $ligne['email_confirme'], 'dateNaissance' => $ligne['date_naissance']];
+        return ['id' => (int) $ligne['id'], 'email' => $ligne['email'], 'nom' => $ligne['nom'], 'rappels' => (bool) $ligne['rappels'], 'emailConfirme' => (bool) $ligne['email_confirme'], 'dateNaissance' => $ligne['date_naissance'], 'google' => $ligne['google_sub'] !== null];
     }
 
     /**

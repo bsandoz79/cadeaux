@@ -61,6 +61,9 @@ jobs:
           DB_NAME: ${{ secrets.DB_NAME }}
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          # Facultatifs : sans eux, le bouton « Continuer avec Google » n'apparaît pas.
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
         run: |
           manquants=""
           [ -n "$DB_NAME" ] || manquants="$manquants DB_NAME"
@@ -77,6 +80,7 @@ jobs:
             "utilisateur" => trim(getenv("DB_USER")),
             "motDePasse" => rtrim(getenv("DB_PASSWORD"), "\r\n"),
             "expediteur" => "Cadeaux <cadeaux@bsandoz.fr>",
+            "google" => ["id" => trim((string) getenv("GOOGLE_CLIENT_ID")), "secret" => trim((string) getenv("GOOGLE_CLIENT_SECRET"))],
           ], true) . ";\n");'
 
       - name: Envoi FTPS vers o2switch

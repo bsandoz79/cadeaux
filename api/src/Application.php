@@ -42,6 +42,7 @@ final class Application
     private readonly Identite $identite;
     private readonly Groupes $groupes;
     private readonly Associations $associations;
+    private readonly ?ConnexionGoogle $google;
     /** @var array<string, Collection>|null */
     private ?array $collections = null;
 
@@ -51,6 +52,7 @@ final class Application
         ?Coffre $coffre = null,
         ?Courrier $courrier = null,
         string $site = 'https://cadeaux.bsandoz.fr',
+        ?Google $google = null,
     ) {
         $this->ribs = new Ribs($pdo, $horloge, $coffre ?? new Coffre(dirname(__DIR__) . '/var/cle-coffre'));
         $this->comptes = new Comptes($pdo, $horloge);
@@ -59,6 +61,7 @@ final class Application
         $this->cagnottes = new Cagnottes($pdo, $horloge);
         $this->envies = new Envies($pdo, $horloge);
         $this->associations = new Associations($pdo, $horloge, $courrier ?? new CourrierPhp('Cadeaux <cadeaux@bsandoz.fr>'), $this->comptes, $this->envies, $site);
+        $this->google = $google === null ? null : new ConnexionGoogle($pdo, $horloge, $google, $this->comptes, $site);
         $this->routeur = new Routeur();
         $this->routes();
     }
@@ -66,10 +69,14 @@ final class Application
     /** Connexion à la base décrite dans config.local.php (non versionné), tables créées si besoin. */
     public static function depuisConfig(string $fichier): self
     {
-        /** @var array{expediteur?: string, site?: string} $config */
+        /** @var array{expediteur?: string, site?: string, google?: array{id?: string, secret?: string}} $config */
         $config = require $fichier;
+        // Connexion Google : seulement si l'identifiant et le secret du client Google sont configurés.
+        $google = ($config['google']['id'] ?? '') !== '' && ($config['google']['secret'] ?? '') !== ''
+            ? new GoogleHttp($config['google']['id'], $config['google']['secret'])
+            : null;
 
-        return new self(self::base($fichier), new Horloge(), null, new CourrierPhp($config['expediteur'] ?? 'Cadeaux <cadeaux@bsandoz.fr>'), $config['site'] ?? 'https://cadeaux.bsandoz.fr');
+        return new self(self::base($fichier), new Horloge(), null, new CourrierPhp($config['expediteur'] ?? 'Cadeaux <cadeaux@bsandoz.fr>'), $config['site'] ?? 'https://cadeaux.bsandoz.fr', $google);
     }
 
     /** Connexion seule (page d'aperçu des cagnottes, tâche quotidienne). */
@@ -102,6 +109,11 @@ final class Application
 
             return new Reponse(500, ['message' => 'Erreur du serveur. Réessayez dans un instant.']);
         }
+    }
+
+    private function google(): ConnexionGoogle
+    {
+        return $this->google ?? throw ErreurHttp::introuvable();
     }
 
     private function routes(): void
@@ -149,6 +161,19 @@ final class Application
         $r->ajouter('POST', '/connexion', function (Requete $q) {
             $session = $this->comptes->connecter($q->corps, $q->ip);
             $this->identite->nouvelleConnexion($session['compte']['id'], $q->entete('x-appareil'), (string) $q->entete('user-agent'));
+
+            return Reponse::ok($session);
+        });
+        // Connexion avec Google : départ (redirection vers Google), retour (redirection vers le site), puis session.
+        $r->ajouter('GET', '/google', fn () => Reponse::ok(['actif' => $this->google !== null]));
+        $r->ajouter('GET', '/google/debut', fn (Requete $q) => Reponse::redirection(
+            $this->google()->debut($q->parametre('preuve'), $q->parametre('retour'), $q->ip),
+        ));
+        $r->ajouter('GET', '/google/retour', fn (Requete $q) => Reponse::redirection($this->google()->retour($q->parametres)));
+        $r->ajouter('POST', '/google/session', function (Requete $q) {
+            $session = $this->google()->session((string) ($q->corps['code'] ?? ''), (string) ($q->corps['preuve'] ?? ''));
+            // Nouvel appareil : e-mail « Nouvelle connexion », sauf pour un compte qui vient d'être créé.
+            $this->identite->nouvelleConnexion($session['compte']['id'], $q->entete('x-appareil'), (string) $q->entete('user-agent'), !$session['nouveau']);
 
             return Reponse::ok($session);
         });

@@ -56,7 +56,7 @@ export async function api<T>(methode: string, chemin: string, corps?: unknown, e
         Accept: 'application/json',
         ...(corps === undefined ? {} : { 'Content-Type': 'application/json' }),
         ...(j ? { Authorization: `Bearer ${j}` } : {}),
-        ...(chemin === '/connexion' || chemin === '/comptes' ? { 'X-Appareil': appareil() } : {}),
+        ...(chemin === '/connexion' || chemin === '/comptes' || chemin === '/google/session' ? { 'X-Appareil': appareil() } : {}),
         ...entetes,
       },
       body: corps === undefined ? undefined : JSON.stringify(corps),

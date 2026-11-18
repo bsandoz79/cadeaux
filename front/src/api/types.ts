@@ -2,7 +2,10 @@
 
 export interface Compte { id: number; email: string; nom: string; rappels: boolean; emailConfirme: boolean }
 
-export interface Personne { id: number; nom: string; dateNaissance: string | null; note: string | null }
+export interface Personne { id: number; nom: string; dateNaissance: string | null; note: string | null; groupeIds: number[] }
+
+/** Groupe de proches (Famille, Amis, Collègues…) ; un proche peut être dans plusieurs groupes. */
+export interface Groupe { id: number; nom: string }
 
 export type TypeOccasion = 'anniversaire' | 'noel' | 'fete-des-meres' | 'fete-des-peres' | 'mariage' | 'naissance' | 'saint-valentin' | 'autre';
 

@@ -110,7 +110,7 @@ describe('mot de passe et adresse', () => {
 
 describe('proches', () => {
   it('« Cadeau d’anniversaire » crée l’occasion du prochain anniversaire et ouvre le formulaire pour ce proche', async () => {
-    etat.personnes = [{ id: 7, nom: 'Léa', dateNaissance: '1996-12-24', note: null }];
+    etat.personnes = [{ id: 7, nom: 'Léa', dateNaissance: '1996-12-24', note: null, groupeIds: [] }];
     preparer('/proches');
     const { appels } = installerFausseApi(etat);
     ouvrir();
@@ -123,9 +123,31 @@ describe('proches', () => {
   });
 });
 
+describe('groupes', () => {
+  it('filtrer ses proches par groupe, et ajouter un proche dans le groupe affiché', async () => {
+    etat.groupes = [{ id: 1, nom: 'Famille' }, { id: 2, nom: 'Amis' }];
+    etat.personnes = [
+      { id: 7, nom: 'Maman', dateNaissance: null, note: null, groupeIds: [1] },
+      { id: 8, nom: 'Tom', dateNaissance: null, note: null, groupeIds: [2] },
+    ];
+    preparer('/proches');
+    const { appels } = installerFausseApi(etat);
+    ouvrir();
+    const u = userEvent.setup();
+    await u.click(await screen.findByRole('button', { name: 'Famille' }));
+    expect(screen.getByText('Maman')).toBeInTheDocument();
+    expect(screen.queryByText('Tom')).not.toBeInTheDocument();
+    await u.click(screen.getByRole('button', { name: 'Ajouter un proche' }));
+    expect(screen.getByRole('checkbox', { name: 'Famille' })).toBeChecked();
+    await u.type(screen.getByLabelText('Prénom ou surnom'), 'Papi');
+    await u.click(screen.getByRole('button', { name: 'Ajouter' }));
+    expect(appels.find((a) => a.methode === 'POST' && a.chemin === '/personnes')?.corps).toMatchObject({ nom: 'Papi', groupeIds: [1] });
+  });
+});
+
 describe('occasion', () => {
   beforeEach(() => {
-    etat.personnes = [{ id: 7, nom: 'Papa', dateNaissance: null, note: null }];
+    etat.personnes = [{ id: 7, nom: 'Papa', dateNaissance: null, note: null, groupeIds: [] }];
     etat.occasions = [
       { id: 1, type: 'noel', titre: 'Noël 2025', date: '2025-12-25' },
       { id: 2, type: 'noel', titre: 'Noël 2026', date: '2026-12-25' },

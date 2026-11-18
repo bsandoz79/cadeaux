@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { euros } from '../calculs/argent';
-import { anneesDisponibles, aujourdhui, bilanAnnee, type Ligne } from '../calculs/bilan';
+import { anneesDisponibles, aujourdhui, bilanAnnee, bilanParGroupe, type Ligne } from '../calculs/bilan';
 import { Chiffre, EnTete } from '../components/commun';
 import { useDonnees } from '../donnees/contexte';
 import styles from './pages.module.css';
 
-function Tableau({ titre, lignes, total }: { titre: string; lignes: Ligne[]; total: number }) {
+function Tableau({ titre, lignes, total }: { titre: string; lignes: Ligne[]; total: number | null }) {
   const max = Math.max(1, ...lignes.map((l) => l.total));
   return (
     <section className="carte" aria-labelledby={`t-${titre}`}>
@@ -28,9 +28,11 @@ function Tableau({ titre, lignes, total }: { titre: string; lignes: Ligne[]; tot
               </tr>
             ))}
           </tbody>
-          <tfoot>
-            <tr><td colSpan={3}>Total</td><td className={`${styles.nombre} chiffre`}>{euros(total)}</td></tr>
-          </tfoot>
+          {total !== null && (
+            <tfoot>
+              <tr><td colSpan={3}>Total</td><td className={`${styles.nombre} chiffre`}>{euros(total)}</td></tr>
+            </tfoot>
+          )}
         </table>
       )}
     </section>
@@ -68,6 +70,12 @@ export function Bilan() {
       )}
       <Tableau titre="Par occasion" lignes={b.parOccasion} total={totalCadeaux} />
       <Tableau titre="Par personne" lignes={b.parPersonne} total={totalCadeaux} />
+      {d.groupes.length > 0 && (
+        <>
+          <Tableau titre="Par groupe" lignes={bilanParGroupe(b.parPersonne, d.personnes, d.groupes)} total={null} />
+          <p className={styles.discret}>Un proche qui est dans plusieurs groupes compte dans chacun d’eux.</p>
+        </>
+      )}
       {b.cagnottes > 0 && <p className={styles.discret}>Vos parts de cagnottes ({euros(b.cagnottes)}) s’ajoutent à ces tableaux dans le total de l’année.</p>}
     </div>
   );

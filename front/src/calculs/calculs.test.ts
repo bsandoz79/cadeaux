@@ -1,6 +1,6 @@
 import type { Cadeau, Cagnotte, Occasion, Personne } from '../api/types';
 import { euros, lireMontant, saisieDepuis } from './argent';
-import { anneesDisponibles, aujourdhui, bilanAnnee, dateLisible, delai, prochainsAnniversaires } from './bilan';
+import { anneesDisponibles, aujourdhui, bilanAnnee, bilanParGroupe, dateLisible, delai, prochainsAnniversaires } from './bilan';
 import { etatBudget } from './budget';
 import { dejaOffert, ressemblance } from './historique';
 import { ibanValide, normaliserIban } from './iban';
@@ -63,8 +63,8 @@ describe('cagnotte', () => {
 
 describe('bilan de l’année', () => {
   const personnes: Personne[] = [
-    { id: 1, nom: 'Maman', dateNaissance: '1970-03-12', note: null },
-    { id: 2, nom: 'Léa', dateNaissance: '2000-12-01', note: null },
+    { id: 1, nom: 'Maman', dateNaissance: '1970-03-12', note: null, groupeIds: [1] },
+    { id: 2, nom: 'Léa', dateNaissance: '2000-12-01', note: null, groupeIds: [1, 2] },
   ];
   const occasions: Occasion[] = [
     { id: 10, type: 'noel', titre: 'Noël 2026', date: '2026-12-25' },
@@ -94,13 +94,19 @@ describe('bilan de l’année', () => {
     expect(b.parPersonne.map((l) => [l.libelle, l.total])).toEqual([['Maman', 7500], ['Léa', 1800]]);
   });
 
+  it('regroupe par groupe, un proche comptant dans chacun de ses groupes', () => {
+    const b = bilanAnnee(2026, { cadeaux, occasions, personnes, cagnottes });
+    const g = bilanParGroupe(b.parPersonne, personnes, [{ id: 1, nom: 'Famille' }, { id: 2, nom: 'Amis' }, { id: 3, nom: 'Collègues' }]);
+    expect(g.map((l) => [l.libelle, l.total])).toEqual([['Famille', 9300], ['Amis', 1800]]);
+  });
+
   it('liste les années utiles', () => {
     expect(anneesDisponibles(occasions, cagnottes, 2027)).toEqual([2027, 2026, 2025]);
   });
 });
 
 describe('anniversaires', () => {
-  const p = (id: number, nom: string, dateNaissance: string | null): Personne => ({ id, nom, dateNaissance, note: null });
+  const p = (id: number, nom: string, dateNaissance: string | null): Personne => ({ id, nom, dateNaissance, note: null, groupeIds: [] });
 
   it('donne les prochains, avec l’âge, y compris l’an prochain', () => {
     const liste = prochainsAnniversaires([p(1, 'Léa', '2000-12-01'), p(2, 'Tom', '1990-01-05'), p(3, 'Sans date', null), p(4, 'Loin', '1980-06-01')], '2026-11-17');
@@ -161,7 +167,7 @@ describe('déjà offert', () => {
 describe('cadeau payé avec une cagnotte', () => {
   it('coûte ma part de la cagnotte, comptée au nom du proche, sans double compte', () => {
     const occasions: Occasion[] = [{ id: 1, type: 'anniversaire', titre: 'Anniversaire de Papa', date: '2026-06-01' }];
-    const personnes: Personne[] = [{ id: 7, nom: 'Papa', dateNaissance: null, note: null }];
+    const personnes: Personne[] = [{ id: 7, nom: 'Papa', dateNaissance: null, note: null, groupeIds: [] }];
     const cagnottes = [cagnotte({ id: 3, objectif: 15000, maPart: 10000 }), cagnotte({ id: 4, maPart: 2000 })];
     const cadeaux = [cadeau({ id: 1, occasionId: 1, personneId: 7, statut: 'achete', cagnotteId: 3 })];
     const b = bilanAnnee(2026, { cadeaux, occasions, personnes, cagnottes });

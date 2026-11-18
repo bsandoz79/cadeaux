@@ -3,12 +3,13 @@ import { api, jeton, quandDeconnecte } from '../api/client';
 import type { Compte } from '../api/types';
 import { ContexteDonnees, type Collections, type Donnees, type NomCollection } from './contexte';
 
-const VIDE: Collections = { personnes: [], occasions: [], cadeaux: [], budgets: [], envies: [], cagnottes: [] };
+const VIDE: Collections = { groupes: [], personnes: [], occasions: [], cadeaux: [], budgets: [], envies: [], cagnottes: [] };
 
 /** Le compte connecté et toutes ses données, lus en parallèle. */
 async function chargerTout(): Promise<{ moi: Compte; collections: Collections }> {
-  const [moi, personnes, occasions, cadeaux, budgets, envies, cagnottes] = await Promise.all([
+  const [moi, groupes, personnes, occasions, cadeaux, budgets, envies, cagnottes] = await Promise.all([
     api<Compte>('GET', '/moi'),
+    api<Collections['groupes']>('GET', '/groupes'),
     api<Collections['personnes']>('GET', '/personnes'),
     api<Collections['occasions']>('GET', '/occasions'),
     api<Collections['cadeaux']>('GET', '/cadeaux'),
@@ -16,7 +17,7 @@ async function chargerTout(): Promise<{ moi: Compte; collections: Collections }>
     api<Collections['envies']>('GET', '/envies'),
     api<Collections['cagnottes']>('GET', '/cagnottes'),
   ]);
-  return { moi, collections: { personnes, occasions, cadeaux, budgets, envies, cagnottes } };
+  return { moi, collections: { groupes, personnes, occasions, cadeaux, budgets, envies, cagnottes } };
 }
 
 /** Charge le compte connecté et ses données, et garde la liste à jour après chaque changement. */
@@ -74,8 +75,8 @@ export function FournisseurDonnees({ children }: { children: ReactNode }) {
     },
     supprimer: async (nom: NomCollection, id: number) => {
       await api('DELETE', `/${nom}/${id}`);
-      // Supprimer un proche ou une occasion détache leurs cadeaux et efface leurs budgets : on relit tout.
-      if (nom === 'personnes' || nom === 'occasions') await recharger();
+      // Supprimer un proche, une occasion ou un groupe touche d'autres éléments (cadeaux, budgets, groupes des proches) : on relit tout.
+      if (nom === 'personnes' || nom === 'occasions' || nom === 'groupes') await recharger();
       else setCollections((c) => ({ ...c, [nom]: (c[nom] as { id: number }[]).filter((e) => e.id !== id) }));
     },
   }), [collections, compte, pret, recharger]);

@@ -109,13 +109,16 @@ describe('mot de passe et adresse', () => {
 });
 
 describe('proches', () => {
-  it('« Cadeau d’anniversaire » crée l’occasion du prochain anniversaire et ouvre le formulaire pour ce proche', async () => {
+  it('la liste mène à la fiche ; « Son anniversaire » crée l’occasion et ouvre le formulaire pour ce proche', async () => {
     etat.personnes = [{ id: 7, nom: 'Léa', dateNaissance: '1996-12-24', note: null, lien: null, groupeIds: [] }];
     preparer('/proches');
     const { appels } = installerFausseApi(etat);
     ouvrir();
     const u = userEvent.setup();
-    await u.click(await screen.findByRole('button', { name: 'Cadeau d’anniversaire' }));
+    await u.click(await screen.findByRole('link', { name: 'Léa' }));
+    expect(await screen.findByRole('heading', { level: 1, name: 'Léa' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Déjà offert' })).toBeInTheDocument();
+    await u.click(screen.getByRole('button', { name: 'Son anniversaire (24 décembre)' }));
     const creation = appels.find((a) => a.methode === 'POST' && a.chemin === '/occasions');
     expect(creation?.corps).toMatchObject({ type: 'anniversaire', titre: expect.stringMatching(/^Anniversaire de Léa \(\d+ ans\)$/), date: expect.stringMatching(/-12-24$/) });
     expect((await screen.findAllByLabelText('Pour qui'))[0]).toHaveValue('7');
@@ -189,7 +192,7 @@ describe('arbre de famille', () => {
 describe('association de comptes', () => {
   it('inviter un proche : lien envoyé par WhatsApp avec un message', async () => {
     etat.personnes = [{ id: 7, nom: 'Léa', dateNaissance: null, note: null, lien: null, groupeIds: [] }];
-    preparer('/proches');
+    preparer('/proches/7');
     installerFausseApi(etat);
     ouvrir();
     const u = userEvent.setup();

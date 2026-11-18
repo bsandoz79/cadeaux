@@ -10,6 +10,7 @@ export type Route =
   | { page: 'occasions' }
   | { page: 'occasion'; id: number }
   | { page: 'proches' }
+  | { page: 'proche'; id: number }
   | { page: 'bilan' }
   | { page: 'idees' }
   | { page: 'envies' }
@@ -34,6 +35,7 @@ export function lireRoute(chemin: string): Route {
   if (c === '/occasions') return { page: 'occasions' };
   if ((m = /^\/occasions\/(\d+)$/.exec(c))) return { page: 'occasion', id: Number(m[1]) };
   if (c === '/proches') return { page: 'proches' };
+  if ((m = /^\/proches\/(\d+)$/.exec(c))) return { page: 'proche', id: Number(m[1]) };
   if (c === '/bilan') return { page: 'bilan' };
   if (c === '/idees') return { page: 'idees' };
   if (c === '/envies') return { page: 'envies' };

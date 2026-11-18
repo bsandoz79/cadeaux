@@ -22,7 +22,7 @@ export const MENTIONS_LEGALES: PageLegale = {
     },
     {
       titre: 'Hébergeur',
-      paragraphes: ['o2switch, Clermont-Ferrand (France), www.o2switch.fr. Adresse postale : [à compléter].'],
+      paragraphes: ['o2switch, SAS au capital de 100 000 €, RCS Clermont-Ferrand, SIRET 510 909 807 00032. Chemin des Pardiaux, 63000 Clermont-Ferrand (France). Téléphone : 04 44 44 60 40. www.o2switch.fr'],
     },
     {
       titre: 'Fonctionnement',

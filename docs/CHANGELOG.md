@@ -2,6 +2,9 @@
 
 ## [Non publié]
 
+### Corrigé
+- Mentions légales : identité et adresse complètes de l'hébergeur o2switch (relevées sur o2switch.fr/cgv).
+
 ### Ajouté (sauvegardes)
 - Copie de toute la base chaque nuit, avant le ménage, dans `sauvegardes-cadeaux` hors du dossier du site ; les 14 dernières sont gardées. Une copie coupée en route ne remplace jamais celle de la veille.
 - `api/bin/restaurer.php` : recharge une copie dans une base vide (MySQL ou SQLite, pour vérifier une copie sur son ordinateur). Procédure dans `docs/sauvegardes.md`.

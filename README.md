@@ -28,6 +28,7 @@ Notez les cadeaux de Noël, d'anniversaire et des autres fêtes, voyez ce qu'ils
 # Site
 cd front && npm install
 npm run lint && npm run test && npm run build
+npm run e2e   # parcours dans Chrome (téléphone et ordinateur) sur le site construit, base SQLite jetable
 
 # API
 cd api && composer install

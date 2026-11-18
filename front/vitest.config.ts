@@ -7,6 +7,8 @@ export default mergeConfig(viteConfig, defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
+    // Les parcours dans un vrai navigateur (Playwright) se lancent à part : npm run e2e.
+    exclude: ['e2e/**', 'node_modules/**'],
     css: { modules: { classNameStrategy: 'non-scoped' } },
   },
 }));

@@ -13,3 +13,7 @@ api/.phpunit.cache
 # Notes de travail locales, non publiées
 CLAUDE.md
 api/.phpunit.result.cache
+
+# Parcours dans le navigateur (Playwright)
+front/test-results
+front/playwright-report

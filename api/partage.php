@@ -11,7 +11,7 @@ use Cadeaux\Apercu;
 
 $code = (string) ($_GET['code'] ?? '');
 $image = isset($_GET['image']);
-$modele = (string) @file_get_contents(dirname(__DIR__) . '/index.html');
+$modele = (string) @file_get_contents($GLOBALS['modeleIndex'] ?? dirname(__DIR__) . '/index.html'); // tests : index de dist
 
 $g = null;
 if (preg_match('/^[a-f0-9]{16}$/', $code) === 1 && is_file(__DIR__ . '/config.local.php')) {

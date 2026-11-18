@@ -9,7 +9,7 @@ import { aller } from '../navigation';
 import { suggestion } from '../calculs/occasions';
 import styles from './pages.module.css';
 
-function FormulaireOccasion({ onFini }: { onFini: () => void }) {
+function FormulaireOccasion({ onFini, pour }: { onFini: () => void; pour?: number }) {
   const d = useDonnees();
   const jour = aujourdhui();
   const [type, setType] = useState<TypeOccasion>('noel');
@@ -17,7 +17,7 @@ function FormulaireOccasion({ onFini }: { onFini: () => void }) {
   const { envoyer, occupe, erreur, champs } = useEnvoi(async (f) => {
     const o = await d.ajouter('occasions', { type, titre: String(f.get('titre') ?? ''), date: String(f.get('date') ?? '') });
     onFini();
-    aller(`/occasions/${o.id}`);
+    aller(`/occasions/${o.id}${pour ? `?pour=${pour}` : ''}`);
   });
 
   return (
@@ -42,13 +42,15 @@ function FormulaireOccasion({ onFini }: { onFini: () => void }) {
 /** Toutes les occasions, par année, avec ce que chacune coûte. */
 export function Occasions() {
   const d = useDonnees();
+  const pour = Number(new URLSearchParams(window.location.search).get('pour')) || undefined;
   const parAnnee = new Map<string, typeof d.occasions>();
   for (const o of d.occasions) parAnnee.set(o.date.slice(0, 4), [...(parAnnee.get(o.date.slice(0, 4)) ?? []), o]);
 
   return (
     <div className={styles.pile}>
       <EnTete titre="Occasions" sousTitre="Noël, anniversaires, fêtes : une occasion regroupe les cadeaux que vous faites ce jour-là." />
-      <Depliable bouton="Nouvelle occasion">{(fermer) => <FormulaireOccasion onFini={fermer} />}</Depliable>
+      <Depliable bouton="Nouvelle occasion" ouvertAuDepart={pour !== undefined}>{(fermer) => <FormulaireOccasion onFini={fermer} pour={pour} />}</Depliable>
+      {pour !== undefined && <p className={styles.discret}>Créez l’occasion : le formulaire du cadeau s’ouvrira ensuite pour {d.personnes.find((p) => p.id === pour)?.nom ?? 'ce proche'}.</p>}
       {d.occasions.length === 0 && <p className="vide">Pas encore d’occasion. Commencez par Noël ou le prochain anniversaire.</p>}
       {[...parAnnee].map(([annee, occasions]) => {
         const totalAnnee = occasions.reduce((s, o) => s + d.cadeaux.filter((c) => c.occasionId === o.id).reduce((t, c) => t + coutCadeau(c, d.cagnottes), 0), 0);

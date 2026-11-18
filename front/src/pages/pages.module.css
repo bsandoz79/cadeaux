@@ -81,3 +81,7 @@
 /* Cases des groupes d'un proche */
 .groupesCases { border: 0; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .4rem 1.2rem; }
 .groupesCases legend { flex-basis: 100%; font-weight: 600; font-size: .92rem; margin-bottom: .3rem; padding: 0; }
+
+/* Bascule Liste / Arbre (boutons) */
+.ongletsPage button { padding: .45rem 1rem; border-radius: 999px; border: 1px solid var(--c-bord-fort); background: var(--c-surface); color: var(--c-texte); font-weight: 600; font-size: .92rem; cursor: pointer; }
+.ongletsPage button[aria-pressed='true'] { background: var(--c-texte); color: var(--c-fond); border-color: var(--c-texte); }

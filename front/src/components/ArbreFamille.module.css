@@ -1,0 +1,29 @@
+.arbre { display: grid; gap: .9rem; }
+.rangee { display: grid; gap: .45rem; padding-bottom: .9rem; border-bottom: 1px solid var(--c-bord); }
+.rangee:last-of-type { border-bottom: 0; }
+.titre { font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; color: var(--c-texte-doux); }
+
+/* Côtés : papa à gauche, centre, maman à droite ; sur téléphone, les uns sous les autres. */
+.cotes { display: grid; gap: .5rem; grid-template-columns: 1fr; }
+.cote { display: flex; flex-wrap: wrap; gap: .5rem; align-content: flex-start; }
+.centre { justify-content: flex-start; }
+@media (min-width: 760px) {
+  .cotes { grid-template-columns: 1fr auto 1fr auto; align-items: start; }
+  .cote:first-child { justify-content: flex-end; }
+  .centre { justify-content: center; }
+}
+
+.membre, .moi, .vide { display: grid; gap: .1rem; min-width: 7.5rem; padding: .55rem .8rem; border-radius: var(--rayon); text-align: left; font: inherit; color: inherit; }
+.membre { border: 1px solid var(--c-bord-fort); background: var(--c-surface); cursor: pointer; box-shadow: var(--ombre); }
+.membre:hover { border-color: var(--c-accent); }
+.membre[aria-pressed='true'] { border-color: var(--c-accent); outline: 2px solid var(--c-accent); }
+.moi { background: var(--c-accent); color: #fff; border: 1px solid var(--c-accent); }
+.moi .lien { color: rgb(255 255 255 / .85); }
+@media (prefers-color-scheme: dark) { .moi { color: #1a1012; } .moi .lien { color: rgb(26 16 18 / .8); } }
+.vide { border: 1px dashed var(--c-bord-fort); background: transparent; color: var(--c-texte-doux); cursor: pointer; font-weight: 600; font-size: .88rem; }
+.vide:hover { color: var(--c-accent); border-color: var(--c-accent); }
+.lien { font-size: .74rem; color: var(--c-texte-doux); font-weight: 600; }
+.date { font-size: .78rem; color: var(--c-texte-doux); }
+
+.choix { display: grid; gap: .6rem; }
+.discret { color: var(--c-texte-doux); font-size: .88rem; }

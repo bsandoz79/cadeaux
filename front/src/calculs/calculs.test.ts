@@ -5,6 +5,7 @@ import { etatBudget } from './budget';
 import { dejaOffert, ressemblance } from './historique';
 import { ibanValide, normaliserIban } from './iban';
 import { liensPartage } from './partage';
+import { arbre, LIENS } from './famille';
 import { etatCagnotte, montantsProposes, partConseillee, partsEgales } from './cagnotte';
 
 const cadeau = (c: Partial<Cadeau>): Cadeau => ({
@@ -63,8 +64,8 @@ describe('cagnotte', () => {
 
 describe('bilan de l’année', () => {
   const personnes: Personne[] = [
-    { id: 1, nom: 'Maman', dateNaissance: '1970-03-12', note: null, groupeIds: [1] },
-    { id: 2, nom: 'Léa', dateNaissance: '2000-12-01', note: null, groupeIds: [1, 2] },
+    { id: 1, nom: 'Maman', dateNaissance: '1970-03-12', note: null, lien: null, groupeIds: [1] },
+    { id: 2, nom: 'Léa', dateNaissance: '2000-12-01', note: null, lien: null, groupeIds: [1, 2] },
   ];
   const occasions: Occasion[] = [
     { id: 10, type: 'noel', titre: 'Noël 2026', date: '2026-12-25' },
@@ -106,7 +107,7 @@ describe('bilan de l’année', () => {
 });
 
 describe('anniversaires', () => {
-  const p = (id: number, nom: string, dateNaissance: string | null): Personne => ({ id, nom, dateNaissance, note: null, groupeIds: [] });
+  const p = (id: number, nom: string, dateNaissance: string | null): Personne => ({ id, nom, dateNaissance, note: null, lien: null, groupeIds: [] });
 
   it('donne les prochains, avec l’âge, y compris l’an prochain', () => {
     const liste = prochainsAnniversaires([p(1, 'Léa', '2000-12-01'), p(2, 'Tom', '1990-01-05'), p(3, 'Sans date', null), p(4, 'Loin', '1980-06-01')], '2026-11-17');
@@ -167,7 +168,7 @@ describe('déjà offert', () => {
 describe('cadeau payé avec une cagnotte', () => {
   it('coûte ma part de la cagnotte, comptée au nom du proche, sans double compte', () => {
     const occasions: Occasion[] = [{ id: 1, type: 'anniversaire', titre: 'Anniversaire de Papa', date: '2026-06-01' }];
-    const personnes: Personne[] = [{ id: 7, nom: 'Papa', dateNaissance: null, note: null, groupeIds: [] }];
+    const personnes: Personne[] = [{ id: 7, nom: 'Papa', dateNaissance: null, note: null, lien: null, groupeIds: [] }];
     const cagnottes = [cagnotte({ id: 3, objectif: 15000, maPart: 10000 }), cagnotte({ id: 4, maPart: 2000 })];
     const cadeaux = [cadeau({ id: 1, occasionId: 1, personneId: 7, statut: 'achete', cagnotteId: 3 })];
     const b = bilanAnnee(2026, { cadeaux, occasions, personnes, cagnottes });
@@ -203,5 +204,21 @@ describe('IBAN', () => {
     expect(ibanValide('DE89370400440532013000')).toBe(true);
     expect(ibanValide('FR7630006000011234567890188')).toBe(false);
     expect(ibanValide('FR76')).toBe(false);
+  });
+});
+
+describe('arbre de famille', () => {
+  const p = (id: number, nom: string, lien: string | null): Personne => ({ id, nom, dateNaissance: null, note: null, lien, groupeIds: [] });
+
+  it('range par génération et par côté, avec les places de base vides', () => {
+    const r = arbre([p(1, 'Jo', 'grand-mere-maternelle'), p(2, 'Léa', 'soeur'), p(3, 'Max', 'oncle-paternel'), p(4, 'Sans lien', null)]);
+    expect(r.map((x) => x.generation)).toEqual([-2, -1, 0]);
+    expect(r[0].cotes.maman.map((c) => [c.lien.valeur, c.personne?.nom])).toEqual([['grand-pere-maternel', undefined], ['grand-mere-maternelle', 'Jo']]);
+    expect(r[1].cotes.papa.map((c) => c.personne?.nom ?? c.lien.libelle)).toEqual(['Max', 'Papa']);
+    expect(r[2].cotes.centre.map((c) => c.personne?.nom)).toEqual(['Léa']);
+  });
+
+  it('chaque lien est unique', () => {
+    expect(new Set(LIENS.map((l) => l.valeur)).size).toBe(LIENS.length);
   });
 });

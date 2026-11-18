@@ -10,7 +10,7 @@ final class ElementsTest extends ApiTestCase
     {
         $jeton = $this->inscrire();
         $maman = $this->appel('POST', '/personnes', ['nom' => 'Maman', 'dateNaissance' => '1970-03-12'], $jeton)->donnees;
-        self::assertSame(['id' => $maman['id'], 'nom' => 'Maman', 'dateNaissance' => '1970-03-12', 'note' => null, 'groupeIds' => []], $maman);
+        self::assertSame(['id' => $maman['id'], 'nom' => 'Maman', 'dateNaissance' => '1970-03-12', 'note' => null, 'lien' => null, 'groupeIds' => []], $maman);
 
         $noel = $this->appel('POST', '/occasions', ['type' => 'noel', 'titre' => 'Noël 2026', 'date' => '2026-12-25'], $jeton)->donnees;
         $cadeau = $this->appel('POST', '/cadeaux', [
@@ -29,6 +29,16 @@ final class ElementsTest extends ApiTestCase
         self::assertSame(['achete', 2790, 3000, 'Écharpe'], [$achete['statut'], $achete['montantDepense'], $achete['montantPrevu'], $achete['titre']]);
 
         self::assertCount(1, $this->appel('GET', '/cadeaux', [], $jeton)->donnees);
+    }
+
+    public function testLienDeParenteEtNouvellesOccasions(): void
+    {
+        $jeton = $this->inscrire();
+        self::assertSame('grand-mere-maternelle', $this->appel('POST', '/personnes', ['nom' => 'Mamie Jo', 'lien' => 'grand-mere-maternelle'], $jeton)->donnees['lien']);
+        self::assertArrayHasKey('lien', $this->appel('POST', '/personnes', ['nom' => 'X', 'lien' => 'voisin'], $jeton)->donnees['champs']);
+        foreach (['plaisir', 'reussite'] as $type) {
+            self::assertSame(201, $this->appel('POST', '/occasions', ['type' => $type, 'titre' => 'Test', 'date' => '2026-11-18'], $jeton)->statut);
+        }
     }
 
     public function testUneIdeeSansOccasionAvecStatutParDefaut(): void

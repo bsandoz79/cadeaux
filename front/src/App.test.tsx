@@ -110,7 +110,7 @@ describe('mot de passe et adresse', () => {
 
 describe('proches', () => {
   it('« Cadeau d’anniversaire » crée l’occasion du prochain anniversaire et ouvre le formulaire pour ce proche', async () => {
-    etat.personnes = [{ id: 7, nom: 'Léa', dateNaissance: '1996-12-24', note: null, groupeIds: [] }];
+    etat.personnes = [{ id: 7, nom: 'Léa', dateNaissance: '1996-12-24', note: null, lien: null, groupeIds: [] }];
     preparer('/proches');
     const { appels } = installerFausseApi(etat);
     ouvrir();
@@ -127,8 +127,8 @@ describe('groupes', () => {
   it('filtrer ses proches par groupe, et ajouter un proche dans le groupe affiché', async () => {
     etat.groupes = [{ id: 1, nom: 'Famille' }, { id: 2, nom: 'Amis' }];
     etat.personnes = [
-      { id: 7, nom: 'Maman', dateNaissance: null, note: null, groupeIds: [1] },
-      { id: 8, nom: 'Tom', dateNaissance: null, note: null, groupeIds: [2] },
+      { id: 7, nom: 'Maman', dateNaissance: null, note: null, lien: null, groupeIds: [1] },
+      { id: 8, nom: 'Tom', dateNaissance: null, note: null, lien: null, groupeIds: [2] },
     ];
     preparer('/proches');
     const { appels } = installerFausseApi(etat);
@@ -145,9 +145,49 @@ describe('groupes', () => {
   });
 });
 
+describe('arbre de famille', () => {
+  it('place la famille par génération, complète une place vide, et propose les occasions au clic', async () => {
+    etat.groupes = [{ id: 1, nom: 'Famille' }];
+    etat.personnes = [
+      { id: 7, nom: 'Jo', dateNaissance: '1950-05-02', note: null, lien: 'grand-mere-maternelle', groupeIds: [1] },
+      { id: 8, nom: 'Léa', dateNaissance: null, note: null, lien: 'soeur', groupeIds: [1] },
+    ];
+    preparer('/proches');
+    const { appels } = installerFausseApi(etat);
+    ouvrir();
+    const u = userEvent.setup();
+    await u.click(await screen.findByRole('button', { name: 'Arbre de famille' }));
+    const grandsParents = screen.getByRole('region', { name: 'Grands-parents' });
+    expect(within(grandsParents).getByRole('button', { name: /Mamie \(côté maman\)\s*Jo/ })).toBeInTheDocument();
+    expect(within(grandsParents).getByRole('button', { name: '+ Papi (côté papa)' })).toBeInTheDocument();
+
+    // Place vide : formulaire avec le lien déjà choisi.
+    await u.click(screen.getByRole('button', { name: '+ Papa' }));
+    expect(screen.getByLabelText('Lien de parenté')).toHaveValue('pere');
+
+    // Un clic sur Léa : Noël crée l'occasion et ouvre le cadeau pour elle.
+    await u.click(screen.getByRole('button', { name: /Sœur\s*Léa/ }));
+    expect(screen.getByText('Ajoutez sa date de naissance pour son anniversaire.')).toBeInTheDocument();
+    await u.click(screen.getByRole('button', { name: 'Noël' }));
+    expect(appels.find((a) => a.methode === 'POST' && a.chemin === '/occasions')?.corps).toMatchObject({ type: 'noel', titre: expect.stringMatching(/^Noël \d{4}$/) });
+    expect((await screen.findAllByLabelText('Pour qui'))[0]).toHaveValue('8');
+  });
+
+  it('Mamie : fête des mères proposée', async () => {
+    etat.personnes = [{ id: 7, nom: 'Jo', dateNaissance: null, note: null, lien: 'grand-mere-maternelle', groupeIds: [] }];
+    preparer('/proches');
+    installerFausseApi(etat);
+    ouvrir();
+    const u = userEvent.setup();
+    await u.click(await screen.findByRole('button', { name: 'Arbre de famille' }));
+    await u.click(screen.getByRole('button', { name: /Jo/ }));
+    expect(screen.getByRole('button', { name: 'Fête des mères' })).toBeDisabled();
+  });
+});
+
 describe('occasion', () => {
   beforeEach(() => {
-    etat.personnes = [{ id: 7, nom: 'Papa', dateNaissance: null, note: null, groupeIds: [] }];
+    etat.personnes = [{ id: 7, nom: 'Papa', dateNaissance: null, note: null, lien: null, groupeIds: [] }];
     etat.occasions = [
       { id: 1, type: 'noel', titre: 'Noël 2025', date: '2025-12-25' },
       { id: 2, type: 'noel', titre: 'Noël 2026', date: '2026-12-25' },

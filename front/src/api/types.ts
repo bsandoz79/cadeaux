@@ -2,12 +2,20 @@
 
 export interface Compte { id: number; email: string; nom: string; rappels: boolean; emailConfirme: boolean }
 
-export interface Personne { id: number; nom: string; dateNaissance: string | null; note: string | null; groupeIds: number[] }
+export interface Personne {
+  id: number;
+  nom: string;
+  dateNaissance: string | null;
+  note: string | null;
+  /** Lien de parenté (arbre de famille), voir calculs/famille.ts. */
+  lien: string | null;
+  groupeIds: number[];
+}
 
 /** Groupe de proches (Famille, Amis, Collègues…) ; un proche peut être dans plusieurs groupes. */
 export interface Groupe { id: number; nom: string }
 
-export type TypeOccasion = 'anniversaire' | 'noel' | 'fete-des-meres' | 'fete-des-peres' | 'mariage' | 'naissance' | 'saint-valentin' | 'autre';
+export type TypeOccasion = 'anniversaire' | 'noel' | 'fete-des-meres' | 'fete-des-peres' | 'mariage' | 'naissance' | 'saint-valentin' | 'plaisir' | 'reussite' | 'autre';
 
 export interface Occasion { id: number; type: TypeOccasion; titre: string; date: string }
 
@@ -110,6 +118,8 @@ export const TYPES_OCCASION: { valeur: TypeOccasion; libelle: string }[] = [
   { valeur: 'saint-valentin', libelle: 'Saint-Valentin' },
   { valeur: 'mariage', libelle: 'Mariage' },
   { valeur: 'naissance', libelle: 'Naissance' },
+  { valeur: 'plaisir', libelle: 'Pour le plaisir' },
+  { valeur: 'reussite', libelle: 'Réussite (promotion, diplôme…)' },
   { valeur: 'autre', libelle: 'Autre' },
 ];
 

@@ -10,6 +10,8 @@ export function suggestion(type: TypeOccasion, jour: string): { titre: string; d
     case 'fete-des-meres': return { titre: `Fête des mères ${annee}`, date: '' };
     case 'fete-des-peres': return { titre: `Fête des pères ${annee}`, date: '' };
     case 'anniversaire': return { titre: 'Anniversaire de ', date: '' };
+    case 'plaisir': return { titre: `Pour le plaisir ${annee}`, date: jour };
+    case 'reussite': return { titre: 'Réussite de ', date: jour };
     default: return { titre: '', date: '' };
   }
 }

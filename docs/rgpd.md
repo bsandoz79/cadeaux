@@ -40,4 +40,4 @@ Hébergement : o2switch (France).
 - Pas de paiement : aucune donnée bancaire.
 
 ## Points à traiter
-- Mentions légales : adresse postale de l'hébergeur à vérifier sur le site d'o2switch.
+- Aucun pour l'instant. (Adresse de l'hébergeur complétée le 18/11/2026 d'après les conditions générales de vente d'o2switch.)

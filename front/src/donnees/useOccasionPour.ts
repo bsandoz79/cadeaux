@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Personne, TypeOccasion } from '../api/types';
 import { aujourdhui, prochainsAnniversaires } from '../calculs/bilan';
+import { feteDesMeres, feteDesPeres, prochaineFete } from '../calculs/occasions';
 import { aller } from '../navigation';
 import { useDonnees } from './contexte';
 
@@ -11,7 +12,7 @@ import { useDonnees } from './contexte';
  * - noël : le prochain 25 décembre ;
  * - plaisir : une occasion « Pour le plaisir » par année ;
  * - réussite : « Réussite de Léa », datée d'aujourd'hui ;
- * - fêtes des mères et des pères : à la date choisie.
+ * - fêtes des mères et des pères : à leur date française (calculée).
  */
 export function useOccasionPour() {
   const d = useDonnees();
@@ -50,9 +51,10 @@ export function useOccasionPour() {
         return ouvrir(personne, type, `Réussite de ${personne.nom}`, jour, (o) => o.date === jour && o.titre === `Réussite de ${personne.nom}`);
       case 'fete-des-meres':
       case 'fete-des-peres': {
-        if (!dateChoisie) return;
-        const titre = `${type === 'fete-des-meres' ? 'Fête des mères' : 'Fête des pères'} ${dateChoisie.slice(0, 4)}`;
-        return ouvrir(personne, type, titre, dateChoisie, (o) => o.date === dateChoisie);
+        // Date calculée (règles françaises), sauf si une autre est donnée.
+        const date = dateChoisie ?? prochaineFete(type === 'fete-des-meres' ? feteDesMeres : feteDesPeres, jour);
+        const titre = `${type === 'fete-des-meres' ? 'Fête des mères' : 'Fête des pères'} ${date.slice(0, 4)}`;
+        return ouvrir(personne, type, titre, date, (o) => o.date === date);
       }
       default:
         return aller(`/occasions?pour=${personne.id}`);

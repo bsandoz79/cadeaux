@@ -181,7 +181,8 @@ describe('arbre de famille', () => {
     const u = userEvent.setup();
     await u.click(await screen.findByRole('button', { name: 'Arbre de famille' }));
     await u.click(screen.getByRole('button', { name: /Jo/ }));
-    expect(screen.getByRole('button', { name: 'Fête des mères' })).toBeDisabled();
+    const fete = screen.getByRole('button', { name: /^Fête des mères \(\d+ mai|^Fête des mères \(\d+ juin/ });
+    expect(fete).toBeEnabled();
   });
 });
 

@@ -20,6 +20,7 @@ import { CONFIDENTIALITE, MENTIONS_LEGALES } from './donnees/legal';
 import { OccasionDetail } from './pages/OccasionDetail';
 import { Occasions } from './pages/Occasions';
 import { Proches } from './pages/Proches';
+import { Recherche } from './pages/Recherche';
 import { FicheProche } from './pages/FicheProche';
 import { TableauDeBord } from './pages/TableauDeBord';
 
@@ -33,7 +34,7 @@ const MENU: { href: string; libelle: string; pages: Route['page'][] }[] = [
 ];
 
 const TITRES: Partial<Record<Route['page'], string>> = {
-  occasions: 'Occasions', occasion: 'Occasion', proches: 'Proches', proche: 'Proche', idees: 'Idées de cadeaux', cagnottes: 'Cagnottes',
+  occasions: 'Occasions', occasion: 'Occasion', proches: 'Proches', proche: 'Proche', recherche: 'Rechercher', idees: 'Idées de cadeaux', cagnottes: 'Cagnottes',
   cagnotte: 'Cagnotte', bilan: 'Bilan de l’année', compte: 'Mon compte', publique: 'Cadeau commun',
   confidentialite: 'Politique de confidentialité', mentions: 'Mentions légales', motdepasse: 'Nouveau mot de passe', confirmer: 'Adresse e-mail', securite: 'Ce n’est pas vous ?', confirmerMdp: 'Nouveau mot de passe', rejoindre: 'Invitation', envies: 'Ma liste d’envies', liste: 'Liste d’envies',
 };
@@ -69,9 +70,14 @@ export function App() {
             <span>Cadeaux</span>
           </Lien>
           {connecte && (
-            <Lien href="/compte" className={styles.compte} aria-current={route.page === 'compte' ? 'page' : undefined}>
-              {compte.nom}
-            </Lien>
+            <div className={styles.droite}>
+              <Lien href="/recherche" className={styles.loupe} aria-label="Rechercher" title="Rechercher" aria-current={route.page === 'recherche' ? 'page' : undefined}>
+                <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" strokeWidth="2.2" /><path d="m20 20-4.2-4.2" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" /></svg>
+              </Lien>
+              <Lien href="/compte" className={styles.compte} aria-current={route.page === 'compte' ? 'page' : undefined}>
+                {compte.nom}
+              </Lien>
+            </div>
           )}
         </div>
         {connecte && !publique && (
@@ -125,6 +131,7 @@ function Page({ route }: { route: Route }) {
     case 'cagnotte': return <CagnotteOrganisateur id={route.id} />;
     case 'bilan': return <Bilan />;
     case 'compte': return <MonCompte />;
+    case 'recherche': return <Recherche />;
     default: return (
       <div className="vide">
         <p>Cette page n’existe pas.</p>

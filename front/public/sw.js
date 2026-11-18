@@ -1,6 +1,6 @@
 // Service de l'appli installée : l'écran s'ouvre même sans réseau (dernière version connue du site),
 // les données viennent toujours du serveur (rien n'est gardé hors ligne). Les appels à /api ne passent pas par ici.
-const CACHE = 'cadeaux-v2';
+const CACHE = 'cadeaux-v3';
 
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (e) => {
@@ -13,12 +13,16 @@ self.addEventListener('activate', (e) => {
  */
 async function garderVersion(reponse) {
   const html = await reponse.clone().text();
-  const utiles = new Set([...html.matchAll(/\/assets\/[^"'\s)]+/g)].map((m) => m[0]));
   const cache = await caches.open(CACHE);
+  const ancienne = await cache.match('/');
+  const nouvelleVersion = !ancienne || (await ancienne.text()) !== html;
   await cache.put('/', reponse);
+  if (!nouvelleVersion) return;
+  // Nouvelle version du site : les fichiers de l'ancienne sont effacés. Ceux de la nouvelle (y compris les pages
+  // chargées à la demande, qui ne sont pas citées dans la page d'accueil) se rangent ensuite au fil de l'usage.
+  const utiles = new Set([...html.matchAll(/\/assets\/[^"'\s)]+/g)].map((m) => m[0]));
   for (const requete of await cache.keys()) {
     const chemin = new URL(requete.url).pathname;
-    // Les fichiers chargés par d'autres fichiers (pages chargées à la demande) se retrouvent au besoin.
     if (chemin.startsWith('/assets/') && !utiles.has(chemin)) await cache.delete(requete);
   }
 }

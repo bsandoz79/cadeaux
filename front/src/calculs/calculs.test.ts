@@ -5,6 +5,7 @@ import { etatBudget } from './budget';
 import { dejaOffert, ressemblance } from './historique';
 import { ibanValide, normaliserIban } from './iban';
 import { liensPartage } from './partage';
+import { normaliser, rechercher } from './recherche';
 import { feteDesMeres, feteDesPeres, paques, prochaineFete, suggestion } from './occasions';
 import { arbre, LIENS } from './famille';
 import { etatCagnotte, montantsProposes, partConseillee, partsEgales } from './cagnotte';
@@ -244,5 +245,27 @@ describe('fêtes calculées', () => {
     expect(prochaineFete(feteDesMeres, '2026-11-18')).toBe('2027-05-30');
     expect(prochaineFete(feteDesMeres, '2026-05-31')).toBe('2026-05-31');
     expect(suggestion('fete-des-peres', '2026-11-18')).toEqual({ titre: 'Fête des pères 2027', date: '2027-06-20' });
+  });
+});
+
+describe('recherche', () => {
+  const donnees = {
+    personnes: [{ id: 1, nom: 'Léa', dateNaissance: null, note: 'aime le thé', lien: null, groupeIds: [] }, { id: 2, nom: 'Maman', dateNaissance: null, note: null, lien: null, groupeIds: [] }],
+    occasions: [{ id: 10, type: 'noel' as const, titre: 'Noël 2026', date: '2026-12-25' }],
+    cadeaux: [cadeau({ id: 5, titre: 'Écharpe', personneId: 2, occasionId: 10 }), cadeau({ id: 6, titre: 'Montre', occasionId: null, statut: 'idee' })],
+    cagnottes: [cagnotte({ id: 3, titre: 'Montre pour ses 30 ans', beneficiaire: 'Julie' })],
+    envies: [{ id: 9, titre: 'Platine vinyle', lien: null, image: null, prix: null, note: null, priorite: false, creeLe: '' }],
+  };
+
+  it('sans accents ni majuscules, sur tous les types', () => {
+    expect(normaliser('  Noël  Écharpe ')).toBe('noel echarpe');
+    expect(rechercher('LEA', donnees).map((r) => [r.type, r.titre])).toEqual([['proche', 'Léa']]);
+    expect(rechercher('montre', donnees).map((r) => [r.type, r.lien])).toEqual([['cadeau', '/idees'], ['cagnotte', '/cagnottes/3']]);
+    expect(rechercher('the', donnees).map((r) => r.titre)).toEqual(['Léa']);
+  });
+
+  it('plusieurs mots : tous présents (cadeau trouvé par le proche et l’occasion)', () => {
+    expect(rechercher('noel maman', donnees).map((r) => [r.type, r.titre, r.detail])).toEqual([['cadeau', 'Écharpe', 'Maman · Noël 2026']]);
+    expect(rechercher('a', donnees)).toEqual([]);
   });
 });

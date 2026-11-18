@@ -6,6 +6,9 @@
 .barre { max-width: var(--largeur); margin: 0 auto; padding: .7rem 1rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .logo { display: inline-flex; align-items: center; gap: .55rem; text-decoration: none; color: var(--c-texte); font-family: var(--police-titre); font-weight: 700; font-size: 1.3rem; }
 .compte { font-weight: 600; text-decoration: none; padding: .35rem .8rem; border: 1px solid var(--c-bord-fort); border-radius: 999px; color: var(--c-texte); max-width: 45vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.droite { display: flex; align-items: center; gap: .5rem; }
+.loupe { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--c-bord-fort); color: var(--c-texte); }
+.loupe:hover, .loupe[aria-current='page'] { border-color: var(--c-accent); color: var(--c-accent); }
 .compte[aria-current='page'], .compte:hover { border-color: var(--c-accent); color: var(--c-accent); }
 
 .menu { max-width: var(--largeur); margin: 0 auto; padding: 0 .5rem; overflow-x: auto; scrollbar-width: none; }

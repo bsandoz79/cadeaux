@@ -2,6 +2,9 @@
 
 ## [Non publié]
 
+### Ajouté
+- Recherche (loupe dans l'en-tête, page `/recherche`) : proches, cadeaux, occasions, cagnottes et envies, sans tenir compte des accents ni des majuscules ; plusieurs mots possibles (« noël maman »).
+
 ### Modifié (proches)
 - Une page par proche (`/proches/<id>`) : chiffres de l'année et de tout ce qui lui a été offert, « Un cadeau pour… » avec le choix de l'occasion, cadeaux prévus, cadeaux déjà offerts, son compte associé et sa liste d'envies, modification et retrait. La liste des proches ne garde que l'essentiel (lien de parenté, groupes, anniversaire, montant de l'année) et mène à la fiche ; depuis l'arbre, lien « Voir la fiche ».
 

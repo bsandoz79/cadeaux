@@ -19,6 +19,7 @@ export type Route =
   | { page: 'cagnotte'; id: number }
   | { page: 'publique'; code: string }
   | { page: 'compte' }
+  | { page: 'recherche' }
   | { page: 'confidentialite' }
   | { page: 'mentions' }
   | { page: 'motdepasse'; jeton: string }
@@ -44,6 +45,7 @@ export function lireRoute(chemin: string): Route {
   if ((m = /^\/cagnottes\/(\d+)$/.exec(c))) return { page: 'cagnotte', id: Number(m[1]) };
   if ((m = /^\/c\/([a-f0-9]{16})$/.exec(c))) return { page: 'publique', code: m[1] };
   if (c === '/compte') return { page: 'compte' };
+  if (c === '/recherche') return { page: 'recherche' };
   if (c === '/confidentialite') return { page: 'confidentialite' };
   if (c === '/mentions-legales') return { page: 'mentions' };
   if ((m = /^\/motdepasse\/([a-f0-9]{64})$/.exec(c))) return { page: 'motdepasse', jeton: m[1] };

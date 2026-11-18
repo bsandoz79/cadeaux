@@ -497,3 +497,18 @@ describe('connecter l’extension par le site', () => {
     expect(await screen.findByText(/n’est pas détectée/, {}, { timeout: 3000 })).toBeInTheDocument();
   });
 });
+
+describe('agenda', () => {
+  it('crée le lien privé et propose Google Agenda, l’iPhone et la copie', async () => {
+    preparer('/compte');
+    installerFausseApi(etat);
+    ouvrir();
+    await userEvent.setup().click(await screen.findByRole('button', { name: 'Créer mon lien d’agenda' }));
+    const url = `https://cadeaux.bsandoz.fr/api/agenda/${'d'.repeat(64)}.ics`;
+    const webcal = url.replace('https:', 'webcal:');
+    expect(await screen.findByRole('link', { name: 'Ajouter à Google Agenda' })).toHaveAttribute('href', `https://calendar.google.com/calendar/r?cid=${encodeURIComponent(webcal)}`);
+    expect(screen.getByRole('link', { name: 'Ajouter à l’iPhone ou au Mac' })).toHaveAttribute('href', webcal);
+    expect(screen.getByRole('textbox', { name: 'Lien de mon agenda' })).toHaveValue(url);
+    expect(await screen.findByRole('button', { name: 'Couper le lien' })).toBeInTheDocument();
+  });
+});

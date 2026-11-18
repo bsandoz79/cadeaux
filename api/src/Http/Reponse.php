@@ -12,7 +12,15 @@ final class Reponse
         public readonly mixed $donnees = null,
         /** Adresse de redirection (302), pour les allers-retours avec Google. */
         public readonly ?string $redirection = null,
+        /** Type d'un contenu qui n'est pas du JSON (agenda iCalendar). */
+        public readonly ?string $type = null,
     ) {
+    }
+
+    /** Contenu brut (agenda) : `$donnees` est le texte envoyé tel quel. */
+    public static function texte(string $contenu, string $type): self
+    {
+        return new self(200, $contenu, null, $type);
     }
 
     public static function redirection(string $adresse): self
@@ -42,6 +50,16 @@ final class Reponse
             header('Location: ' . $this->redirection);
             header('Cache-Control: no-store');
             header('Referrer-Policy: no-referrer');
+
+            return;
+        }
+        if ($this->type !== null) {
+            header('Content-Type: ' . $this->type);
+            // Relu par les agendas toutes les quelques heures ; jamais dans un moteur de recherche.
+            header('Cache-Control: private, max-age=3600');
+            header('X-Robots-Tag: noindex');
+            header('X-Content-Type-Options: nosniff');
+            echo (string) $this->donnees;
 
             return;
         }

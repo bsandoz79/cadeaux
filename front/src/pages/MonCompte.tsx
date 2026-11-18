@@ -68,6 +68,8 @@ export function MonCompte() {
 
       <ConnexionGoogleCompte />
 
+      <AgendaCompte />
+
       <section className="carte formulaire" aria-labelledby="titre-rappels">
         <h2 id="titre-rappels">Rappels par e-mail</h2>
         <label className={styles.coche}>
@@ -288,6 +290,69 @@ function ConnexionGoogleCompte() {
           <div><button className="btn btn--petit" disabled={relier.occupe}>Relier mon compte Google</button></div>
         </form>
       )}
+    </section>
+  );
+}
+
+/** Anniversaires, occasions et cagnottes dans Google Agenda, l'agenda de l'iPhone ou Outlook (lien privé à s'abonner). */
+function AgendaCompte() {
+  const d = useDonnees();
+  const [url, setUrl] = useState<string | null>(null);
+  const [copie, setCopie] = useState(false);
+  const [occupe, setOccupe] = useState(false);
+  const [erreur, setErreur] = useState<string | null>(null);
+  const agir = async (action: () => Promise<void>) => {
+    setOccupe(true);
+    setErreur(null);
+    try { await action(); } catch { setErreur('Ça n’a pas marché. Réessayez.'); } finally { setOccupe(false); }
+  };
+  const creer = () => agir(async () => {
+    if (d.compte?.agenda && !window.confirm('Créer un nouveau lien ? L’ancien ne marchera plus : il faudra ajouter le nouveau à votre agenda.')) return;
+    const r = await api<{ url: string }>('POST', '/moi/agenda');
+    setUrl(r.url);
+    setCopie(false);
+    await d.recharger();
+  });
+  const couper = () => agir(async () => {
+    if (!window.confirm('Couper le lien ? Votre agenda ne recevra plus les dates de Cadeaux.')) return;
+    await api('DELETE', '/moi/agenda');
+    setUrl(null);
+    await d.recharger();
+  });
+  const webcal = url?.replace(/^https:/, 'webcal:');
+  const copier = async () => {
+    if (!url) return;
+    try { await navigator.clipboard.writeText(url); setCopie(true); } catch { /* le champ reste sélectionnable */ }
+  };
+
+  return (
+    <section className="carte formulaire" aria-labelledby="titre-agenda">
+      <h2 id="titre-agenda">Dans mon agenda</h2>
+      <p>Les anniversaires de vos proches, vos occasions et la fin de vos cagnottes s’affichent dans votre agenda et se mettent à jour tout seuls.</p>
+      {url && webcal ? (
+        <>
+          <div className="actions">
+            <a className="btn btn--petit" href={`https://calendar.google.com/calendar/r?cid=${encodeURIComponent(webcal)}`} target="_blank" rel="noopener noreferrer">Ajouter à Google Agenda</a>
+            <a className="btn btn--petit btn--contour" href={webcal}>Ajouter à l’iPhone ou au Mac</a>
+          </div>
+          <div className="actions">
+            <input readOnly value={url} aria-label="Lien de mon agenda" onFocus={(e) => e.currentTarget.select()} style={{ flex: 1, minWidth: 0 }} />
+            <button type="button" className="btn btn--petit btn--contour" onClick={copier}>{copie ? 'Lien copié' : 'Copier le lien'}</button>
+          </div>
+          <p className={styles.discret}>Autre agenda (Outlook…) : ajoutez un agenda « à partir d’une URL » et collez ce lien. Gardez-le pour vous : il montre les prénoms et les dates.</p>
+        </>
+      ) : d.compte?.agenda ? (
+        <p className={styles.discret}>Votre lien d’agenda est actif. Il ne s’affiche qu’une fois : pour l’ajouter à un autre agenda, créez-en un nouveau.</p>
+      ) : (
+        <p className={styles.discret}>Le lien est privé : seule une personne qui l’a voit vos dates. Vous pourrez le couper à tout moment.</p>
+      )}
+      {erreur && <p className="erreur" role="alert">{erreur}</p>}
+      <div className="actions">
+        <button type="button" className={`btn btn--petit${d.compte?.agenda ? ' btn--contour' : ''}`} onClick={creer} disabled={occupe}>
+          {d.compte?.agenda ? 'Nouveau lien' : 'Créer mon lien d’agenda'}
+        </button>
+        {d.compte?.agenda && <button type="button" className="btn btn--petit btn--lien btn--danger" onClick={couper} disabled={occupe}>Couper le lien</button>}
+      </div>
     </section>
   );
 }

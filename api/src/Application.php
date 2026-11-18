@@ -51,7 +51,7 @@ final class Application
         private readonly Horloge $horloge = new Horloge(),
         ?Coffre $coffre = null,
         ?Courrier $courrier = null,
-        string $site = 'https://cadeaux.bsandoz.fr',
+        private readonly string $site = 'https://cadeaux.bsandoz.fr',
         ?Google $google = null,
     ) {
         $this->ribs = new Ribs($pdo, $horloge, $coffre ?? new Coffre(dirname(__DIR__) . '/var/cle-coffre'));
@@ -109,6 +109,11 @@ final class Application
 
             return new Reponse(500, ['message' => 'Erreur du serveur. Réessayez dans un instant.']);
         }
+    }
+
+    private function agenda(): Agenda
+    {
+        return new Agenda($this->pdo, $this->horloge, $this->site);
     }
 
     private function google(): ConnexionGoogle
@@ -200,6 +205,14 @@ final class Application
 
             return Reponse::ok($session);
         });
+        // Agenda à s'abonner (Google Agenda, iPhone, Outlook) : lien privé, coupable, renouvelable.
+        $r->ajouter('POST', '/moi/agenda', fn (Requete $q) => Reponse::ok(['url' => $this->agenda()->creerLien($this->compte($q))]));
+        $r->ajouter('DELETE', '/moi/agenda', function (Requete $q) {
+            $this->agenda()->couper($this->compte($q));
+
+            return Reponse::vide();
+        });
+        $r->ajouter('GET', '/agenda/{code}.ics', fn (Requete $q, string $code) => Reponse::texte($this->agenda()->ics($code), 'text/calendar; charset=utf-8'));
         $r->ajouter('POST', '/securite/bloquer', function (Requete $q) {
             $this->identite->bloquer((string) ($q->corps['jeton'] ?? ''));
 

@@ -7,7 +7,7 @@ import { vi } from 'vitest';
 type Element = { id: number } & Record<string, unknown>;
 
 export interface EtatFaux {
-  compte: { id: number; email: string; nom: string; rappels: boolean; emailConfirme: boolean; dateNaissance: string | null; google?: boolean; motDePasse?: boolean };
+  compte: { id: number; email: string; nom: string; rappels: boolean; emailConfirme: boolean; dateNaissance: string | null; google?: boolean; motDePasse?: boolean; agenda?: boolean };
   groupes: Element[];
   personnes: Element[];
   occasions: Element[];
@@ -52,6 +52,8 @@ export function installerFausseApi(etat: EtatFaux) {
 
     if (methode === 'POST' && (chemin === '/comptes' || chemin === '/connexion')) return json(chemin === '/comptes' ? 201 : 200, { jeton: 'a'.repeat(64), compte: etat.compte });
     if (chemin === '/google') return json(200, { actif: etat.google ?? false });
+    if (methode === 'POST' && chemin === '/moi/agenda') { etat.compte.agenda = true; return json(200, { url: `https://cadeaux.bsandoz.fr/api/agenda/${'d'.repeat(64)}.ics` }); }
+    if (methode === 'DELETE' && chemin === '/moi/agenda') { etat.compte.agenda = false; return json(204); }
     if (methode === 'POST' && chemin === '/moi/extension/code') return json(200, { code: 'e'.repeat(64) });
     if (methode === 'POST' && chemin === '/moi/google/relier') return json(200, { adresse: 'https://accounts.google.com/o/oauth2/v2/auth?state=x' });
     if (methode === 'POST' && chemin === '/moi/google/relier/fin') { etat.compte.google = true; return json(200, etat.compte); }

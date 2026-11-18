@@ -2,6 +2,9 @@
 
 ## [Non publié]
 
+### Ajouté (extension 0.3.0)
+- « Continuer avec Google » dans l'extension : ouvre cadeaux.bsandoz.fr/extension, où l'on se connecte (Google ou mot de passe) puis clique sur « Connecter l'extension » ; un code à usage unique (2 minutes) donne à l'extension sa propre connexion. Aucune nouvelle permission.
+
 ### Ajouté (Google dans « Mon compte »)
 - Section « Connexion avec Google » : relier son compte Google (même avec une autre adresse), le délier.
 - Compte créé avec Google : « Recevoir le lien » pour choisir un mot de passe (même chemin sûr que « Mot de passe oublié ») ; Google ne se délie qu'avec un mot de passe ; le changement d'adresse attend un mot de passe.

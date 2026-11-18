@@ -192,6 +192,14 @@ final class Application
 
             return Reponse::ok($this->comptes->compte($compte));
         });
+        // Extension Chrome connectée par le site (avec Google ou un mot de passe).
+        $r->ajouter('POST', '/moi/extension/code', fn (Requete $q) => Reponse::ok(['code' => (new ConnexionExtension($this->pdo, $this->horloge, $this->comptes))->code($this->compte($q))]));
+        $r->ajouter('POST', '/extension/session', function (Requete $q) {
+            $session = (new ConnexionExtension($this->pdo, $this->horloge, $this->comptes))->session((string) ($q->corps['code'] ?? ''));
+            $this->identite->nouvelleConnexion($session['compte']['id'], $q->entete('x-appareil'), (string) $q->entete('user-agent'));
+
+            return Reponse::ok($session);
+        });
         $r->ajouter('POST', '/securite/bloquer', function (Requete $q) {
             $this->identite->bloquer((string) ($q->corps['jeton'] ?? ''));
 

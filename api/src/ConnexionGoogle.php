@@ -18,8 +18,8 @@ final class ConnexionGoogle
 {
     private const AUTORISATION = 'https://accounts.google.com/o/oauth2/v2/auth';
     private const EMETTEURS = ['https://accounts.google.com', 'accounts.google.com'];
-    /** Pages où revenir après la connexion (liste d'envies, cagnotte, invitation) ; sinon l'accueil. */
-    private const RETOUR = '#^/((l|c)/[a-f0-9]{16}|rejoindre/[a-f0-9]{64})$#';
+    /** Pages où revenir après la connexion (liste d'envies, cagnotte, invitation, connexion de l'extension) ; sinon l'accueil. */
+    private const RETOUR = '#^/((l|c)/[a-f0-9]{16}|rejoindre/[a-f0-9]{64}|extension)$#';
     /** Départs vers Google par adresse IP et par quart d'heure. */
     private const DEPARTS_MAX = 20;
 

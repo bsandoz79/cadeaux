@@ -29,6 +29,7 @@ const Occasions = page(() => import('./pages/Occasions'), 'Occasions');
 const Proches = page(() => import('./pages/Proches'), 'Proches');
 const Recherche = page(() => import('./pages/Recherche'), 'Recherche');
 const FicheProche = page(() => import('./pages/FicheProche'), 'FicheProche');
+const ConnecterExtension = page(() => import('./pages/ConnecterExtension'), 'ConnecterExtension');
 const ConnexionGoogle = page(() => import('./pages/ConnexionGoogle'), 'ConnexionGoogle');
 const NouveauMotDePasse = page(() => import('./pages/LiensEmail'), 'NouveauMotDePasse');
 const ConfirmerEmail = page(() => import('./pages/LiensEmail'), 'ConfirmerEmail');
@@ -63,7 +64,7 @@ const MENU: { href: string; libelle: string; pages: Route['page'][] }[] = [
 const TITRES: Partial<Record<Route['page'], string>> = {
   occasions: 'Occasions', occasion: 'Occasion', proches: 'Proches', proche: 'Proche', recherche: 'Rechercher', idees: 'Idées de cadeaux', cagnottes: 'Cagnottes',
   cagnotte: 'Cagnotte', bilan: 'Bilan de l’année', compte: 'Mon compte', publique: 'Cadeau commun',
-  confidentialite: 'Politique de confidentialité', mentions: 'Mentions légales', motdepasse: 'Nouveau mot de passe', confirmer: 'Adresse e-mail', securite: 'Ce n’est pas vous ?', confirmerMdp: 'Nouveau mot de passe', rejoindre: 'Invitation', google: 'Connexion avec Google', envies: 'Ma liste d’envies', liste: 'Liste d’envies',
+  confidentialite: 'Politique de confidentialité', mentions: 'Mentions légales', motdepasse: 'Nouveau mot de passe', confirmer: 'Adresse e-mail', securite: 'Ce n’est pas vous ?', confirmerMdp: 'Nouveau mot de passe', rejoindre: 'Invitation', google: 'Connexion avec Google', extension: 'Connecter l’extension', envies: 'Ma liste d’envies', liste: 'Liste d’envies',
 };
 
 export function App() {
@@ -166,6 +167,7 @@ function Page({ route }: { route: Route }) {
     case 'cagnotte': return <CagnotteOrganisateur id={route.id} />;
     case 'bilan': return <Bilan />;
     case 'compte': return <MonCompte />;
+    case 'extension': return <ConnecterExtension />;
     case 'recherche': return <Recherche />;
     default: return (
       <div className="vide">

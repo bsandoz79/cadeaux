@@ -15,6 +15,7 @@ import { MesEnvies } from './pages/MesEnvies';
 import { Legal } from './pages/Legal';
 import { ConfirmerEmail, ConfirmerMotDePasse, NouveauMotDePasse } from './pages/LiensEmail';
 import { Securite } from './pages/Securite';
+import { Rejoindre } from './pages/Rejoindre';
 import { CONFIDENTIALITE, MENTIONS_LEGALES } from './donnees/legal';
 import { OccasionDetail } from './pages/OccasionDetail';
 import { Occasions } from './pages/Occasions';
@@ -33,7 +34,7 @@ const MENU: { href: string; libelle: string; pages: Route['page'][] }[] = [
 const TITRES: Partial<Record<Route['page'], string>> = {
   occasions: 'Occasions', occasion: 'Occasion', proches: 'Proches', idees: 'Idées de cadeaux', cagnottes: 'Cagnottes',
   cagnotte: 'Cagnotte', bilan: 'Bilan de l’année', compte: 'Mon compte', publique: 'Cadeau commun',
-  confidentialite: 'Politique de confidentialité', mentions: 'Mentions légales', motdepasse: 'Nouveau mot de passe', confirmer: 'Adresse e-mail', securite: 'Ce n’est pas vous ?', confirmerMdp: 'Nouveau mot de passe', envies: 'Ma liste d’envies', liste: 'Liste d’envies',
+  confidentialite: 'Politique de confidentialité', mentions: 'Mentions légales', motdepasse: 'Nouveau mot de passe', confirmer: 'Adresse e-mail', securite: 'Ce n’est pas vous ?', confirmerMdp: 'Nouveau mot de passe', rejoindre: 'Invitation', envies: 'Ma liste d’envies', liste: 'Liste d’envies',
 };
 
 export function App() {
@@ -93,6 +94,7 @@ export function App() {
           : route.page === 'confirmer' ? <ConfirmerEmail jeton={route.jeton} />
           : route.page === 'securite' ? <Securite jeton={route.jeton} />
           : route.page === 'confirmerMdp' ? <ConfirmerMotDePasse jeton={route.jeton} />
+          : route.page === 'rejoindre' ? <Rejoindre jeton={route.jeton} />
           : !pret ? <p className={styles.chargement}>Chargement…</p>
           : !connecte ? <Accueil />
           : <Page route={route} />}

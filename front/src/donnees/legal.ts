@@ -77,6 +77,12 @@ export const CONFIDENTIALITE: PageLegale = {
       ],
     },
     {
+      titre: 'Les proches associés',
+      paragraphes: [
+        'Un utilisateur peut associer la fiche qu’il a créée pour vous à votre propre compte, seulement si vous acceptez son invitation. Il voit alors votre liste d’envies (sans que vous sachiez qui réserve quoi), votre date d’anniversaire si vous l’avez indiquée, et peut vous inviter à ses cagnottes. Vous pouvez retirer l’association à tout moment dans « Mon compte ».',
+      ],
+    },
+    {
       titre: 'L’extension Chrome',
       paragraphes: [
         'L’extension lit la page ouverte (nom, prix, photo et adresse du produit) seulement quand vous cliquez sur son icône, et n’envoie rien tant que vous n’avez pas cliqué sur « Ajouter ».',

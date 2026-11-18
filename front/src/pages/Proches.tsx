@@ -7,6 +7,7 @@ import { useEnvoi } from '../components/formulaire';
 import { useDonnees } from '../donnees/contexte';
 import { useOccasionPour } from '../donnees/useOccasionPour';
 import { ArbreFamille } from '../components/ArbreFamille';
+import { AssociationProche } from '../components/Association';
 import { estGroupeFamille, LIENS, lien as lienDe } from '../calculs/famille';
 import { FormulaireCadeau } from '../components/FormulaireCadeau';
 import styles from './pages.module.css';
@@ -32,7 +33,8 @@ function FormulairePersonne({ personne, onFini, groupeParDefaut, lienParDefaut }
     <form className="formulaire" onSubmit={envoyer} noValidate>
       <div className="rangee">
         <Champ libelle="Prénom ou surnom" nom="nom" required defaultValue={personne?.nom} erreur={champs.nom} placeholder="Ex. Maman, Léa, Tonton Jo" />
-        <Champ libelle="Date de naissance" nom="dateNaissance" type="date" defaultValue={personne?.dateNaissance ?? ''} erreur={champs.dateNaissance} aide="Pour vous rappeler son anniversaire." />
+        <Champ libelle="Date de naissance" nom="dateNaissance" type="date" defaultValue={personne?.dateDuCompte ? '' : personne?.dateNaissance ?? ''} erreur={champs.dateNaissance}
+          aide={personne?.dateDuCompte ? `Laissez vide : celle de son compte est utilisée (${dateLisible(personne.dateNaissance!, true)}).` : 'Pour vous rappeler son anniversaire.'} />
       </div>
       {d.groupes.length > 0 && (
         <fieldset className={styles.groupesCases}>
@@ -203,6 +205,7 @@ export function Proches() {
                         <button type="button" className="btn btn--lien btn--petit" onClick={() => setEdition(p.id)}>Modifier</button>
                         <button type="button" className="btn btn--lien btn--petit btn--danger" onClick={() => supprimer(p)}>Retirer</button>
                       </div>
+                      <AssociationProche personne={p} />
                       {ajout === p.id && (
                         <div className="carte" style={{ marginTop: '.8rem' }}>
                           <FormulaireCadeau cadeau={{ personneId: p.id, statut: 'prevu' }} avecOccasion onFini={() => setAjout(null)} />

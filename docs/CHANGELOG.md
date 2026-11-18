@@ -2,6 +2,10 @@
 
 ## [Non publié]
 
+### Ajouté (association de comptes)
+- Associer la fiche d'un proche à son vrai compte, avec son accord : lien d'invitation (30 jours) envoyé par WhatsApp, Snap ou SMS ; la personne accepte ou refuse, et peut retirer l'association dans « Mon compte ».
+- Une fois associé : sa liste d'envies sur sa fiche, réservable en un clic (il ou elle ne voit jamais qui réserve) ; sa date de naissance (facultative, dans « Mon compte ») reprise par la fiche ; invitation directe aux cagnottes (« On vous invite » dans Cagnottes, e-mail).
+
 ### Ajouté (famille)
 - Arbre de famille : lien de parenté pour les membres d'un groupe « Famille » (Papa, Maman, Papi et Mamie de chaque côté, Tonton, Tata, Frère, Sœur, Cousin, Fils, Neveu, Parrain…), vue « Arbre » par génération (côté papa à gauche, côté maman à droite), places vides à compléter en un clic.
 - Un clic sur un membre propose l'occasion : son anniversaire, Noël, pour le plaisir, une réussite (promotion, diplôme…), la fête des mères ou des pères (parents, grands-parents), ou une autre ; l'occasion est créée ou retrouvée et le cadeau s'ajoute pour lui.

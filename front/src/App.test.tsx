@@ -185,6 +185,37 @@ describe('arbre de famille', () => {
   });
 });
 
+describe('association de comptes', () => {
+  it('inviter un proche : lien envoyé par WhatsApp avec un message', async () => {
+    etat.personnes = [{ id: 7, nom: 'Léa', dateNaissance: null, note: null, lien: null, groupeIds: [] }];
+    preparer('/proches');
+    installerFausseApi(etat);
+    ouvrir();
+    const u = userEvent.setup();
+    await u.click(await screen.findByRole('button', { name: 'Associer à son compte' }));
+    const whatsapp = await screen.findByRole('link', { name: 'Envoyer sur WhatsApp' });
+    expect(decodeURIComponent(whatsapp.getAttribute('href')!)).toContain(`Baptiste t’a ajouté(e) dans Cadeaux. Associe ton compte pour partager ta liste d’envies : http://localhost:3000/rejoindre/${'9'.repeat(64)}`);
+  });
+
+  it('accepter une invitation', async () => {
+    preparer(`/rejoindre/${'9'.repeat(64)}`);
+    const { appels } = installerFausseApi(etat);
+    ouvrir();
+    const u = userEvent.setup();
+    expect(await screen.findByText(/vous a ajouté\(e\) à ses proches \(sous le nom « Mon frère »\)/)).toBeInTheDocument();
+    await u.click(screen.getByRole('button', { name: 'Accepter' }));
+    expect(await screen.findByText(/C’est fait : Julie voit maintenant votre liste d’envies/)).toBeInTheDocument();
+    expect(appels.some((a) => a.chemin.endsWith('/accepter'))).toBe(true);
+  });
+
+  it('sans compte : invité à se connecter, avec retour sur l’invitation', async () => {
+    preparer(`/rejoindre/${'9'.repeat(64)}`, false);
+    installerFausseApi(etat);
+    ouvrir();
+    expect(await screen.findByRole('link', { name: 'Me connecter ou créer mon compte' })).toHaveAttribute('href', `/?retour=${encodeURIComponent(`/rejoindre/${'9'.repeat(64)}`)}`);
+  });
+});
+
 describe('occasion', () => {
   beforeEach(() => {
     etat.personnes = [{ id: 7, nom: 'Papa', dateNaissance: null, note: null, lien: null, groupeIds: [] }];

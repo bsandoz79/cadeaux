@@ -28,7 +28,7 @@ export function Accueil() {
     connecter(r.jeton, r.compte);
     // Venu d'une liste d'envies ou d'une cagnotte : on y retourne.
     const retour = new URLSearchParams(window.location.search).get('retour');
-    if (retour && /^\/(l|c)\/[a-f0-9]{16}$/.test(retour)) aller(retour);
+    if (retour && (/^\/(l|c)\/[a-f0-9]{16}$/.test(retour) || /^\/rejoindre\/[a-f0-9]{64}$/.test(retour))) aller(retour);
   });
 
   return (

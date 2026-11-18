@@ -10,7 +10,7 @@ final class ElementsTest extends ApiTestCase
     {
         $jeton = $this->inscrire();
         $maman = $this->appel('POST', '/personnes', ['nom' => 'Maman', 'dateNaissance' => '1970-03-12'], $jeton)->donnees;
-        self::assertSame(['id' => $maman['id'], 'nom' => 'Maman', 'dateNaissance' => '1970-03-12', 'note' => null, 'lien' => null, 'groupeIds' => []], $maman);
+        self::assertSame(['id' => $maman['id'], 'nom' => 'Maman', 'dateNaissance' => '1970-03-12', 'note' => null, 'lien' => null, 'groupeIds' => [], 'compteLie' => null], $maman);
 
         $noel = $this->appel('POST', '/occasions', ['type' => 'noel', 'titre' => 'Noël 2026', 'date' => '2026-12-25'], $jeton)->donnees;
         $cadeau = $this->appel('POST', '/cadeaux', [

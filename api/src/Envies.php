@@ -105,6 +105,73 @@ final class Envies
     }
 
     /**
+     * Liste d'envies d'un compte vue par un autre compte connecté (proche associé) ; ses propres réservations sont
+     * marquées « parMoi ».
+     *
+     * @return array<string, mixed>
+     */
+    public function listePour(int $proprietaire, int $moi): array
+    {
+        $nom = $this->pdo->prepare('SELECT nom FROM comptes WHERE id = ?');
+        $nom->execute([$proprietaire]);
+        $requete = $this->pdo->prepare(
+            'SELECT e.*, r.id AS reservation_id, r.nom AS reserve_par, r.cagnotte_code, r.compte_id AS reserve_compte FROM envies e
+             LEFT JOIN reservations r ON r.envie_id = e.id
+             WHERE e.compte_id = ? ORDER BY e.priorite DESC, e.id DESC',
+        );
+        $requete->execute([$proprietaire]);
+
+        return [
+            'proprietaire' => (string) $nom->fetchColumn(),
+            'envies' => array_map(static fn (array $e): array => [
+                'id' => (int) $e['id'],
+                'titre' => $e['titre'],
+                'lien' => $e['lien'],
+                'image' => $e['image'],
+                'prix' => $e['prix'] === null ? null : (int) $e['prix'],
+                'note' => $e['note'],
+                'priorite' => (bool) $e['priorite'],
+                'reservation' => $e['reservation_id'] === null ? null : [
+                    'id' => (int) $e['reservation_id'],
+                    'nom' => $e['reserve_par'],
+                    'cagnotte' => $e['cagnotte_code'],
+                    'parMoi' => $e['reserve_compte'] !== null && (int) $e['reserve_compte'] === $moi,
+                ],
+            ], $requete->fetchAll(\PDO::FETCH_ASSOC)),
+        ];
+    }
+
+    /** @return array{id: int, nom: string} */
+    public function reserverConnecte(int $proprietaire, int $envieId, int $moi, string $nom): array
+    {
+        $requete = $this->pdo->prepare('SELECT 1 FROM envies WHERE id = ? AND compte_id = ?');
+        $requete->execute([$envieId, $proprietaire]);
+        if ($requete->fetchColumn() === false) {
+            throw ErreurHttp::introuvable();
+        }
+        try {
+            $this->pdo->prepare('INSERT INTO reservations (envie_id, nom, cle, cree_le, compte_id) VALUES (?, ?, ?, ?, ?)')
+                ->execute([$envieId, $nom, hash('sha256', bin2hex(random_bytes(32))), $this->horloge->texte(), $moi]);
+        } catch (\PDOException $e) {
+            if ($e->getCode() === '23000') {
+                throw new ErreurHttp(409, 'Quelqu’un s’en occupe déjà.');
+            }
+            throw $e;
+        }
+
+        return ['id' => (int) $this->pdo->lastInsertId(), 'nom' => $nom];
+    }
+
+    public function annulerConnecte(int $proprietaire, int $envieId, int $moi): void
+    {
+        $requete = $this->pdo->prepare('DELETE FROM reservations WHERE envie_id = ? AND compte_id = ? AND envie_id IN (SELECT id FROM envies WHERE compte_id = ?)');
+        $requete->execute([$envieId, $moi, $proprietaire]);
+        if ($requete->rowCount() === 0) {
+            throw new ErreurHttp(403, 'Seule la personne qui a réservé peut annuler.');
+        }
+    }
+
+    /**
      * @param array<string, mixed> $donnees
      *
      * @return array{reservation: array{id: int, nom: string}, cle: string}

@@ -1,6 +1,6 @@
 /** Données échangées avec l'API. Montants en centimes, dates « AAAA-MM-JJ ». */
 
-export interface Compte { id: number; email: string; nom: string; rappels: boolean; emailConfirme: boolean }
+export interface Compte { id: number; email: string; nom: string; rappels: boolean; emailConfirme: boolean; dateNaissance: string | null }
 
 export interface Personne {
   id: number;
@@ -10,6 +10,10 @@ export interface Personne {
   /** Lien de parenté (arbre de famille), voir calculs/famille.ts. */
   lien: string | null;
   groupeIds: number[];
+  /** Fiche associée au vrai compte de la personne (avec son accord). */
+  compteLie?: { nom: string } | null;
+  /** La date de naissance vient de son compte (la fiche n'en a pas). */
+  dateDuCompte?: boolean;
 }
 
 /** Groupe de proches (Famille, Amis, Collègues…) ; un proche peut être dans plusieurs groupes. */

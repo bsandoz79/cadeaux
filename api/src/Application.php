@@ -13,6 +13,9 @@ use Cadeaux\Http\Routeur;
  * Les routes de l'API (toutes sous /api) :
  *   POST   /comptes, /connexion, /deconnexion · GET|PATCH|DELETE /moi (PATCH : prénom, rappels)
  *   POST   /email/confirmer, /email/renvoyer, /motdepasse/oubli, /motdepasse/nouveau, /moi/motdepasse, /motdepasse/confirmer, /moi/email
+ *   POST   /personnes/{id}/invitation · DELETE /personnes/{id}/association · GET /invitations/{jeton} · POST …/accepter|refuser
+ *   GET    /moi/associations · DELETE /moi/associations/{id} · GET /personnes/{id}/envies · POST|DELETE /personnes/{id}/envies/{eid}/reservation
+ *   POST   /cagnottes/{id}/invites · GET /moi/cagnottes-invite
  *   POST   /securite/bloquer (« Ce n'est pas moi », depuis un lien reçu par e-mail) · GET /moi/export (toutes les données du compte)
  *   GET|POST /personnes · PATCH|DELETE /personnes/{id}       (idem /groupes, /occasions, /cadeaux, /budgets, /cagnottes)
  *            un proche porte ses groupes : « groupeIds » (lu et écrit)
@@ -38,6 +41,7 @@ final class Application
     private readonly Ribs $ribs;
     private readonly Identite $identite;
     private readonly Groupes $groupes;
+    private readonly Associations $associations;
     /** @var array<string, Collection>|null */
     private ?array $collections = null;
 
@@ -54,6 +58,7 @@ final class Application
         $this->identite = new Identite($pdo, $horloge, $courrier ?? new CourrierPhp('Cadeaux <cadeaux@bsandoz.fr>'), $this->comptes, $site);
         $this->cagnottes = new Cagnottes($pdo, $horloge);
         $this->envies = new Envies($pdo, $horloge);
+        $this->associations = new Associations($pdo, $horloge, $courrier ?? new CourrierPhp('Cadeaux <cadeaux@bsandoz.fr>'), $this->comptes, $this->envies, $site);
         $this->routeur = new Routeur();
         $this->routes();
     }
@@ -255,6 +260,42 @@ final class Application
             return Reponse::vide();
         });
 
+        // Associer un proche à son vrai compte (avec son accord)
+        $r->ajouter('POST', '/personnes/{id}/invitation', fn (Requete $q, string $id) => Reponse::ok($this->associations->inviter($this->compte($q), (int) $id)));
+        $r->ajouter('DELETE', '/personnes/{id}/association', function (Requete $q, string $id) {
+            $this->associations->dissocier($this->compte($q), (int) $id);
+
+            return Reponse::vide();
+        });
+        $r->ajouter('GET', '/invitations/{jeton}', fn (Requete $q, string $jeton) => Reponse::ok($this->associations->voir($jeton)));
+        $r->ajouter('POST', '/invitations/{jeton}/accepter', function (Requete $q, string $jeton) {
+            $this->associations->accepter($jeton, $this->compte($q));
+
+            return Reponse::vide();
+        });
+        $r->ajouter('POST', '/invitations/{jeton}/refuser', function (Requete $q, string $jeton) {
+            $this->associations->refuser($jeton);
+
+            return Reponse::vide();
+        });
+        $r->ajouter('GET', '/moi/associations', fn (Requete $q) => Reponse::ok($this->associations->associesAMoi($this->compte($q))));
+        $r->ajouter('DELETE', '/moi/associations/{id}', function (Requete $q, string $id) {
+            $this->associations->retirerPourMoi($this->compte($q), (int) $id);
+
+            return Reponse::vide();
+        });
+        $r->ajouter('GET', '/personnes/{id}/envies', fn (Requete $q, string $id) => Reponse::ok($this->associations->enviesDuProche($this->compte($q), (int) $id)));
+        $r->ajouter('POST', '/personnes/{id}/envies/{eid}/reservation', fn (Requete $q, string $id, string $eid) => Reponse::cree(
+            $this->associations->reserverPourProche($this->compte($q), (int) $id, (int) $eid),
+        ));
+        $r->ajouter('DELETE', '/personnes/{id}/envies/{eid}/reservation', function (Requete $q, string $id, string $eid) {
+            $this->associations->annulerPourProche($this->compte($q), (int) $id, (int) $eid);
+
+            return Reponse::vide();
+        });
+        $r->ajouter('POST', '/cagnottes/{id}/invites', fn (Requete $q, string $id) => Reponse::ok(['envoyees' => $this->associations->inviterACagnotte($this->compte($q), (int) $id, $q->corps['personneIds'] ?? null)]));
+        $r->ajouter('GET', '/moi/cagnottes-invite', fn (Requete $q) => Reponse::ok($this->associations->mesInvitationsCagnottes($this->compte($q))));
+
         // Liste d'envies : lien de partage (propriétaire) et page partagée (sans compte)
         $r->ajouter('GET', '/liste', fn (Requete $q) => Reponse::ok($this->envies->lien($this->compte($q))));
         $r->ajouter('POST', '/liste', fn (Requete $q) => Reponse::ok($this->envies->partager($this->compte($q), $q->corps)));
@@ -319,7 +360,7 @@ final class Application
     {
         return match ($chemin) {
             'cagnottes' => $this->avecTotaux($element),
-            'personnes' => Groupes::avecGroupes($element, $this->groupes->membres($compte)),
+            'personnes' => Associations::avecCompteLie(Groupes::avecGroupes($element, $this->groupes->membres($compte)), $this->associations->comptesLies($compte)),
             default => $element,
         };
     }
@@ -353,15 +394,16 @@ final class Application
     private function export(int $compteId): array
     {
         $c = $this->collections();
-        $compte = $this->pdo->prepare('SELECT email, nom, cree_le, derniere_activite, rappels FROM comptes WHERE id = ?');
+        $compte = $this->pdo->prepare('SELECT email, nom, cree_le, derniere_activite, rappels, date_naissance FROM comptes WHERE id = ?');
         $compte->execute([$compteId]);
         $ligne = $compte->fetch(\PDO::FETCH_ASSOC) ?: throw ErreurHttp::introuvable();
 
         return [
             'exporteLe' => $this->horloge->texte(),
-            'compte' => ['email' => $ligne['email'], 'nom' => $ligne['nom'], 'creeLe' => $ligne['cree_le'], 'derniereActivite' => $ligne['derniere_activite'], 'rappels' => (bool) $ligne['rappels']],
+            'compte' => ['email' => $ligne['email'], 'nom' => $ligne['nom'], 'creeLe' => $ligne['cree_le'], 'derniereActivite' => $ligne['derniere_activite'], 'rappels' => (bool) $ligne['rappels'], 'dateNaissance' => $ligne['date_naissance']],
             'groupes' => $c['groupes']->lister($compteId),
-            'proches' => array_map(fn (array $p): array => Groupes::avecGroupes($p, $this->groupes->membres($compteId)), $c['personnes']->lister($compteId)),
+            'proches' => array_map(fn (array $p): array => $this->enrichir('personnes', $compteId, $p), $c['personnes']->lister($compteId)),
+            'associeA' => $this->associations->associesAMoi($compteId),
             'occasions' => $c['occasions']->lister($compteId),
             'cadeaux' => $c['cadeaux']->lister($compteId),
             'budgets' => $c['budgets']->lister($compteId),

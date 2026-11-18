@@ -7,7 +7,7 @@ import { vi } from 'vitest';
 type Element = { id: number } & Record<string, unknown>;
 
 export interface EtatFaux {
-  compte: { id: number; email: string; nom: string; rappels: boolean; emailConfirme: boolean };
+  compte: { id: number; email: string; nom: string; rappels: boolean; emailConfirme: boolean; dateNaissance: string | null };
   groupes: Element[];
   personnes: Element[];
   occasions: Element[];
@@ -21,7 +21,7 @@ export interface EtatFaux {
 
 export function etatVide(): EtatFaux {
   return {
-    compte: { id: 1, email: 'baptiste@example.com', nom: 'Baptiste', rappels: true, emailConfirme: true },
+    compte: { id: 1, email: 'baptiste@example.com', nom: 'Baptiste', rappels: true, emailConfirme: true, dateNaissance: null },
     groupes: [], personnes: [], occasions: [], cadeaux: [], budgets: [], envies: [], cagnottes: [], participations: {}, listes: {},
   };
 }
@@ -56,6 +56,10 @@ export function installerFausseApi(etat: EtatFaux) {
     if (chemin === '/email/renvoyer') return json(204);
     if (chemin === '/securite/bloquer') return json(200, { message: 'Votre compte est bloqué. Un e-mail vient de partir pour choisir un nouveau mot de passe.' });
     if (chemin === '/liste') return json(200, { code: null, message: null });
+    if (chemin === '/moi/associations' || chemin === '/moi/cagnottes-invite') return json(200, []);
+    if ((m = /^\/personnes\/(\d+)\/invitation$/.exec(chemin))) return json(200, { url: `http://localhost:3000/rejoindre/${'9'.repeat(64)}` });
+    if ((m = /^\/invitations\/([a-f0-9]{64})$/.exec(chemin))) return json(200, { inviteur: 'Julie', nom: 'Mon frère' });
+    if ((m = /^\/invitations\/([a-f0-9]{64})\/accepter$/.exec(chemin))) return json(204);
 
     for (const nom of COLLECTIONS) {
       if (chemin === `/${nom}` && methode === 'GET') return json(200, etat[nom]);

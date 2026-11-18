@@ -156,11 +156,11 @@ final class Comptes
     /** @return array<string, mixed> */
     public function compte(int $id): array
     {
-        $requete = $this->pdo->prepare('SELECT id, email, nom, rappels, email_confirme FROM comptes WHERE id = ?');
+        $requete = $this->pdo->prepare('SELECT id, email, nom, rappels, email_confirme, date_naissance FROM comptes WHERE id = ?');
         $requete->execute([$id]);
         $ligne = $requete->fetch(\PDO::FETCH_ASSOC) ?: throw ErreurHttp::introuvable();
 
-        return ['id' => (int) $ligne['id'], 'email' => $ligne['email'], 'nom' => $ligne['nom'], 'rappels' => (bool) $ligne['rappels'], 'emailConfirme' => (bool) $ligne['email_confirme']];
+        return ['id' => (int) $ligne['id'], 'email' => $ligne['email'], 'nom' => $ligne['nom'], 'rappels' => (bool) $ligne['rappels'], 'emailConfirme' => (bool) $ligne['email_confirme'], 'dateNaissance' => $ligne['date_naissance']];
     }
 
     /**
@@ -179,6 +179,16 @@ final class Comptes
             }
             $this->pdo->prepare('UPDATE comptes SET nom = ? WHERE id = ?')->execute([$nom, $id]);
         }
+        if (array_key_exists('dateNaissance', $donnees)) {
+            $date = $donnees['dateNaissance'];
+            if ($date !== null && $date !== '') {
+                $d = \DateTimeImmutable::createFromFormat('!Y-m-d', (string) $date);
+                if ($d === false || $d->format('Y-m-d') !== $date) {
+                    throw ErreurHttp::invalide(['dateNaissance' => 'Date invalide.']);
+                }
+            }
+            $this->pdo->prepare('UPDATE comptes SET date_naissance = ? WHERE id = ?')->execute([$date ?: null, $id]);
+        }
         if (array_key_exists('rappels', $donnees)) {
             $this->pdo->prepare('UPDATE comptes SET rappels = ? WHERE id = ?')->execute([$donnees['rappels'] ? 1 : 0, $id]);
         }
@@ -189,8 +199,10 @@ final class Comptes
     /** Supprime le compte et tout ce qui lui appartient. */
     public function supprimer(int $id): void
     {
-        foreach (['reservations' => 'envie_id IN (SELECT id FROM envies WHERE compte_id = ?)', 'envies' => 'compte_id = ?', 'listes' => 'compte_id = ?', 'rappels_envoyes' => 'compte_id = ?', 'liens' => 'compte_id = ?', 'changements_email' => 'compte_id = ?', 'appareils' => 'compte_id = ?', 'participations' => 'cagnotte_id IN (SELECT id FROM cagnottes WHERE compte_id = ?)', 'cagnottes' => 'compte_id = ?', 'cadeaux' => 'compte_id = ?', 'budgets' => 'compte_id = ?', 'occasions' => 'compte_id = ?', 'personnes_groupes' => 'personne_id IN (SELECT id FROM personnes WHERE compte_id = ?)', 'groupes' => 'compte_id = ?', 'personnes' => 'compte_id = ?', 'jetons' => 'compte_id = ?', 'comptes' => 'id = ?'] as $table => $condition) {
-            $this->pdo->prepare("DELETE FROM $table WHERE $condition")->execute([$id]);
+        // Ce que d'autres ont lié à ce compte : associations retirées, ses réservations et invitations effacées.
+        $this->pdo->prepare('UPDATE personnes SET compte_lie_id = NULL WHERE compte_lie_id = ?')->execute([$id]);
+        foreach (['reservations' => 'envie_id IN (SELECT id FROM envies WHERE compte_id = ?) OR compte_id = ?', 'invitations' => 'compte_id = ? OR personne_id IN (SELECT id FROM personnes WHERE compte_id = ?)', 'cagnottes_invites' => 'compte_id = ? OR cagnotte_id IN (SELECT id FROM cagnottes WHERE compte_id = ?)', 'envies' => 'compte_id = ?', 'listes' => 'compte_id = ?', 'rappels_envoyes' => 'compte_id = ?', 'liens' => 'compte_id = ?', 'changements_email' => 'compte_id = ?', 'appareils' => 'compte_id = ?', 'participations' => 'cagnotte_id IN (SELECT id FROM cagnottes WHERE compte_id = ?)', 'cagnottes' => 'compte_id = ?', 'cadeaux' => 'compte_id = ?', 'budgets' => 'compte_id = ?', 'occasions' => 'compte_id = ?', 'personnes_groupes' => 'personne_id IN (SELECT id FROM personnes WHERE compte_id = ?)', 'groupes' => 'compte_id = ?', 'personnes' => 'compte_id = ?', 'jetons' => 'compte_id = ?', 'comptes' => 'id = ?'] as $table => $condition) {
+            $this->pdo->prepare("DELETE FROM $table WHERE $condition")->execute(array_fill(0, substr_count($condition, '?'), $id));
         }
     }
 

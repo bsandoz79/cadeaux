@@ -155,6 +155,12 @@ $('ajout').addEventListener('submit', async (e) => {
   }
 });
 
+// Google (ou tout compte) : connexion sur le site, qui transmet un code à usage unique à l'extension.
+$('par-le-site').addEventListener('click', () => {
+  chrome.tabs.create({ url: 'https://cadeaux.bsandoz.fr/extension' });
+  window.close();
+});
+
 $('deconnexion').addEventListener('click', async () => {
   await api('POST', '/deconnexion').catch(() => {});
   await chrome.storage.local.remove('jeton');

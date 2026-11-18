@@ -87,6 +87,7 @@ export const CONFIDENTIALITE: PageLegale = {
       titre: 'L’extension Chrome',
       paragraphes: [
         'L’extension lit la page ouverte (nom, prix, photo et adresse du produit) seulement quand vous cliquez sur son icône, et n’envoie rien tant que vous n’avez pas cliqué sur « Ajouter ».',
+        'Pour la connecter avec Google, l’extension ouvre cadeaux.bsandoz.fr/extension : sur le site, un petit script de l’extension attend seulement le code de connexion que vous lui donnez en cliquant sur « Connecter l’extension » ; il ne lit rien d’autre.',
         'Si vous activez l’aide après achat sur Amazon (option désactivée au départ, avec l’autorisation de Chrome), l’extension retient dans votre navigateur les 10 derniers produits regardés sur amazon.fr, 7 jours au plus, pour vous les proposer après une commande. Ils ne sont envoyés que si vous cliquez sur « Noter le cadeau ». Désactiver l’option les efface.',
       ],
     },

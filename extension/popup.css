@@ -29,3 +29,9 @@ fieldset.pour legend { font-weight: 600; font-size: .88rem; padding: 0; margin-b
 label.radio { display: flex; gap: .45rem; align-items: center; font-weight: 400; cursor: pointer; }
 label.radio input { width: auto; }
 #reglages { margin-top: 1rem; padding-top: .8rem; border-top: 1px solid var(--bord); display: grid; gap: .4rem; }
+
+/* « Continuer avec Google » : bouton blanc, puis séparateur « ou » avant le formulaire. */
+.btn--google { background: #fff; color: #1f1f1f; border: 1px solid #c9c9c9; }
+.btn--google:hover { background: #f5f5f5; }
+.ou { display: flex; align-items: center; gap: .6rem; color: #6b6b6b; font-size: .85rem; margin: .2rem 0; }
+.ou::before, .ou::after { content: ''; flex: 1; border-top: 1px solid #ddd; }

@@ -52,6 +52,7 @@ export function installerFausseApi(etat: EtatFaux) {
 
     if (methode === 'POST' && (chemin === '/comptes' || chemin === '/connexion')) return json(chemin === '/comptes' ? 201 : 200, { jeton: 'a'.repeat(64), compte: etat.compte });
     if (chemin === '/google') return json(200, { actif: etat.google ?? false });
+    if (methode === 'POST' && chemin === '/moi/extension/code') return json(200, { code: 'e'.repeat(64) });
     if (methode === 'POST' && chemin === '/moi/google/relier') return json(200, { adresse: 'https://accounts.google.com/o/oauth2/v2/auth?state=x' });
     if (methode === 'POST' && chemin === '/moi/google/relier/fin') { etat.compte.google = true; return json(200, etat.compte); }
     if (methode === 'POST' && chemin === '/moi/google/delier') { etat.compte.google = false; return json(200, etat.compte); }

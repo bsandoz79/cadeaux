@@ -38,6 +38,7 @@
 | `https://cadeaux.bsandoz.fr/*` | Appeler l'API. |
 | `https://www.amazon.fr/*` (**facultative**) | Demandée seulement quand l'utilisateur active « Après mes achats sur Amazon, me demander… ». Retirée quand il la désactive (ou clique « Ne plus me demander »). Le script `amazon.js` n'est ajouté qu'après cet accord. |
 | Service de fond (`fond.js`) | Fait les appels à l'API pour l'encadré d'Amazon (une page ne peut pas l'appeler) ; n'accepte que les messages de l'extension elle-même et seulement 5 routes (`GET /personnes`, `GET /occasions`, `POST /cadeaux`, `PATCH /cadeaux/{id}`, `POST /cagnottes`). |
+| Script sur le site (`site.js`, cadeaux.bsandoz.fr seulement) | Connexion de l'extension par le site (Google ou mot de passe) : répond à la page qu'il est là et transmet le code à usage unique (64 caractères hexadécimaux, 2 min) donné après le clic sur « Connecter l'extension ». Messages acceptés seulement de la page elle-même (même fenêtre, origine du site) ; le service de fond n'accepte ce code que d'un expéditeur dont l'origine est le site, et l'échange contre une connexion propre à l'extension (e-mail « Nouvelle connexion »). |
 | Ressources accessibles (`produit.js`, `amazon-logique.js`) | Chargées par le script d'Amazon ; ne contiennent ni donnée ni secret. Leur présence révèle à amazon.fr que l'extension est installée. |
 
 L'encadré d'Amazon vit dans un Shadow DOM fermé : la page ne peut pas le lire, et tout texte venant d'Amazon y est échappé avant affichage.

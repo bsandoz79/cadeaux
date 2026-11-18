@@ -459,3 +459,41 @@ describe('connexion avec Google', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Connexion avec Google annulée.');
   });
 });
+
+describe('connecter l’extension par le site', () => {
+  /** Simule le script de l'extension (extension/site.js) présent sur la page. */
+  function fauxScriptExtension(reponse: 'ok' | 'erreur' = 'ok') {
+    const recus: string[] = [];
+    // jsdom ne renseigne ni l'origine ni la source de postMessage : réponses envoyées comme le ferait le navigateur.
+    const repondre = (type: string) => setTimeout(() => window.dispatchEvent(new MessageEvent('message', { data: { type }, origin: window.location.origin, source: window })));
+    const ecouter = (e: MessageEvent) => {
+      if (e.data?.type === 'cadeaux-extension-ping') repondre('cadeaux-extension-presente');
+      if (e.data?.type === 'cadeaux-extension-code') {
+        recus.push(e.data.code);
+        repondre(`cadeaux-extension-${reponse}`);
+      }
+    };
+    window.addEventListener('message', ecouter);
+    return { recus, retirer: () => window.removeEventListener('message', ecouter) };
+  }
+
+  it('donne le code à usage unique à l’extension et confirme', async () => {
+    preparer('/extension');
+    installerFausseApi(etat);
+    const script = fauxScriptExtension();
+    ouvrir();
+    const bouton = await screen.findByRole('button', { name: 'Connecter l’extension' });
+    await vi.waitFor(() => expect(bouton).toBeEnabled());
+    await userEvent.setup().click(bouton);
+    expect(await screen.findByRole('status')).toHaveTextContent('L’extension est connectée');
+    expect(script.recus).toEqual(['e'.repeat(64)]);
+    script.retirer();
+  });
+
+  it('sans extension dans le navigateur, le dit et propose de l’installer', async () => {
+    preparer('/extension');
+    installerFausseApi(etat);
+    ouvrir();
+    expect(await screen.findByText(/n’est pas détectée/, {}, { timeout: 3000 })).toBeInTheDocument();
+  });
+});

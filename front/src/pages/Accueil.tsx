@@ -54,7 +54,7 @@ export function Accueil() {
           <button type="button" role="tab" aria-selected={mode !== 'inscription'} onClick={() => setMode('connexion')}>Se connecter</button>
         </div>
         <h2 id="titre-connexion" className="sr-only">{mode === 'inscription' ? 'Créer un compte' : 'Se connecter'}</h2>
-        {mode !== 'oubli' && <BoutonGoogle retour={new URLSearchParams(window.location.search).get('retour')} />}
+        {mode !== 'oubli' && <BoutonGoogle retour={new URLSearchParams(window.location.search).get('retour') ?? (window.location.pathname === '/extension' ? '/extension' : null)} />}
         {mode === 'oubli' ? (
           <form className="formulaire" onSubmit={oubli.envoyer} noValidate>
             <p>Indiquez votre adresse : vous recevrez un lien pour choisir un nouveau mot de passe.</p>

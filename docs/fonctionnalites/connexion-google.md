@@ -34,10 +34,14 @@ sequenceDiagram
 - **Délier** (`POST /moi/google/delier`) : seulement si un mot de passe existe (`comptes.mot_de_passe_defini`), sinon 409.
 - **Compte créé avec Google** (`mot_de_passe_defini = 0`) : « Recevoir le lien » envoie le lien de « Mot de passe oublié » à l'adresse du compte ; le mot de passe choisi par ce lien rend `mot_de_passe_defini = 1`. Le changement d'adresse, qui demande le mot de passe, attend ce choix. Comptes reliés avant ce réglage : considérés avec mot de passe.
 
+## Dans l'extension Chrome
+La fenêtre de l'extension ne peut pas afficher la page de Google : « Continuer avec Google » ouvre `https://cadeaux.bsandoz.fr/extension`. On s'y connecte (Google ou mot de passe, retour sur `/extension`), puis « Connecter l'extension » demande `POST /moi/extension/code` (code à usage unique, 2 min, `ConnexionExtension.php`). La page le donne par `postMessage` au script de l'extension sur le site (`extension/site.js`), qui le passe au service de fond (`fond.js`, expéditeur vérifié : origine du site) ; celui-ci l'échange par `POST /extension/session` contre la connexion de l'extension. Sans extension détectée, la page propose de l'installer.
+
 ## Réglages
 `config.local.php` : `'google' => ['id' => …, 'secret' => …]`, écrit au déploiement depuis les secrets `GOOGLE_CLIENT_ID` et `GOOGLE_CLIENT_SECRET`. Sans eux, `GET /google` répond `actif: false` et le bouton est caché. Création du client : `docs/mise-en-ligne.md`.
 
 ## Fichiers
+- Extension : `site.js` (script sur le site), `fond.js` (`code-site`), bouton dans `popup.html` ; page `pages/ConnecterExtension.tsx` ; API `src/ConnexionExtension.php`, tests `ExtensionTest.php`.
 - API : `src/ConnexionGoogle.php`, `src/Google.php`, `src/GoogleHttp.php`, routes dans `src/Application.php`, schéma v15 (`comptes.google_sub`, `google_etats`), ménage des départs expirés.
 - Site : `components/BoutonGoogle.tsx`, `pages/ConnexionGoogle.tsx`, route `/connexion/google`.
 

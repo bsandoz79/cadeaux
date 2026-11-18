@@ -20,19 +20,20 @@ import { CONFIDENTIALITE, MENTIONS_LEGALES } from './donnees/legal';
 import { OccasionDetail } from './pages/OccasionDetail';
 import { Occasions } from './pages/Occasions';
 import { Proches } from './pages/Proches';
+import { FicheProche } from './pages/FicheProche';
 import { TableauDeBord } from './pages/TableauDeBord';
 
 const MENU: { href: string; libelle: string; pages: Route['page'][] }[] = [
   { href: '/', libelle: 'Accueil', pages: ['accueil'] },
   { href: '/occasions', libelle: 'Occasions', pages: ['occasions', 'occasion'] },
-  { href: '/proches', libelle: 'Proches', pages: ['proches'] },
+  { href: '/proches', libelle: 'Proches', pages: ['proches', 'proche'] },
   { href: '/idees', libelle: 'Idées', pages: ['idees', 'envies'] },
   { href: '/cagnottes', libelle: 'Cagnottes', pages: ['cagnottes', 'cagnotte'] },
   { href: '/bilan', libelle: 'Bilan', pages: ['bilan'] },
 ];
 
 const TITRES: Partial<Record<Route['page'], string>> = {
-  occasions: 'Occasions', occasion: 'Occasion', proches: 'Proches', idees: 'Idées de cadeaux', cagnottes: 'Cagnottes',
+  occasions: 'Occasions', occasion: 'Occasion', proches: 'Proches', proche: 'Proche', idees: 'Idées de cadeaux', cagnottes: 'Cagnottes',
   cagnotte: 'Cagnotte', bilan: 'Bilan de l’année', compte: 'Mon compte', publique: 'Cadeau commun',
   confidentialite: 'Politique de confidentialité', mentions: 'Mentions légales', motdepasse: 'Nouveau mot de passe', confirmer: 'Adresse e-mail', securite: 'Ce n’est pas vous ?', confirmerMdp: 'Nouveau mot de passe', rejoindre: 'Invitation', envies: 'Ma liste d’envies', liste: 'Liste d’envies',
 };
@@ -117,6 +118,7 @@ function Page({ route }: { route: Route }) {
     case 'occasions': return <Occasions />;
     case 'occasion': return <OccasionDetail id={route.id} />;
     case 'proches': return <Proches />;
+    case 'proche': return <FicheProche id={route.id} />;
     case 'idees': return <Idees />;
     case 'envies': return <MesEnvies />;
     case 'cagnottes': return <Cagnottes />;

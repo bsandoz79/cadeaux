@@ -2,6 +2,9 @@
 
 ## [Non publié]
 
+### Modifié (proches)
+- Une page par proche (`/proches/<id>`) : chiffres de l'année et de tout ce qui lui a été offert, « Un cadeau pour… » avec le choix de l'occasion, cadeaux prévus, cadeaux déjà offerts, son compte associé et sa liste d'envies, modification et retrait. La liste des proches ne garde que l'essentiel (lien de parenté, groupes, anniversaire, montant de l'année) et mène à la fiche ; depuis l'arbre, lien « Voir la fiche ».
+
 ### Ajouté
 - Dates de la fête des mères (dernier dimanche de mai, premier de juin si c'est la Pentecôte) et de la fête des pères (troisième dimanche de juin) calculées : proposées à la création d'une occasion et dans l'arbre de famille.
 

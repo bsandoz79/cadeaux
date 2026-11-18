@@ -2,6 +2,11 @@
 
 ## [Non publié]
 
+### Ajouté (famille)
+- Arbre de famille : lien de parenté pour les membres d'un groupe « Famille » (Papa, Maman, Papi et Mamie de chaque côté, Tonton, Tata, Frère, Sœur, Cousin, Fils, Neveu, Parrain…), vue « Arbre » par génération (côté papa à gauche, côté maman à droite), places vides à compléter en un clic.
+- Un clic sur un membre propose l'occasion : son anniversaire, Noël, pour le plaisir, une réussite (promotion, diplôme…), la fête des mères ou des pères (parents, grands-parents), ou une autre ; l'occasion est créée ou retrouvée et le cadeau s'ajoute pour lui.
+- Nouveaux types d'occasion : « Pour le plaisir » et « Réussite (promotion, diplôme…) ».
+
 ### Ajouté (groupes)
 - Groupes de proches (Famille, Amis, Collègues…) : un proche peut être dans plusieurs groupes. Proches filtrés par groupe, gestion des groupes (créer, renommer, supprimer), bilan de l'année par groupe.
 

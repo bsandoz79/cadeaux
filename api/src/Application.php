@@ -26,7 +26,9 @@ use Cadeaux\Http\Routeur;
  */
 final class Application
 {
-    public const TYPES_OCCASION = ['anniversaire', 'noel', 'fete-des-meres', 'fete-des-peres', 'mariage', 'naissance', 'saint-valentin', 'autre'];
+    public const TYPES_OCCASION = ['anniversaire', 'noel', 'fete-des-meres', 'fete-des-peres', 'mariage', 'naissance', 'saint-valentin', 'plaisir', 'reussite', 'autre'];
+    /** Liens de parenté (arbre de famille) : même liste que front/src/calculs/famille.ts. */
+    public const LIENS = ['grand-pere-paternel', 'grand-mere-paternelle', 'grand-pere-maternel', 'grand-mere-maternelle', 'oncle-paternel', 'tante-paternelle', 'pere', 'mere', 'oncle-maternel', 'tante-maternelle', 'parrain', 'marraine', 'beau-pere', 'belle-mere', 'cousin-paternel', 'cousine-paternelle', 'frere', 'soeur', 'conjoint', 'cousin-maternel', 'cousine-maternelle', 'beau-frere', 'belle-soeur', 'fils', 'fille', 'neveu', 'niece', 'filleul', 'filleule', 'petit-fils', 'petite-fille', 'autre-famille'];
     public const STATUTS_CADEAU = ['idee', 'prevu', 'achete', 'offert'];
 
     private readonly Routeur $routeur;
@@ -405,6 +407,7 @@ final class Application
                 'nom' => ['colonne' => 'nom', 'type' => 'texte', 'requis' => true, 'max' => 80],
                 'dateNaissance' => ['colonne' => 'date_naissance', 'type' => 'date'],
                 'note' => ['colonne' => 'note', 'type' => 'texte', 'max' => 500],
+                'lien' => ['colonne' => 'lien', 'type' => 'choix', 'choix' => self::LIENS],
             ], 'nom'),
             'occasions' => new Collection($pdo, 'occasions', [
                 'type' => ['colonne' => 'type', 'type' => 'choix', 'choix' => self::TYPES_OCCASION, 'requis' => true],

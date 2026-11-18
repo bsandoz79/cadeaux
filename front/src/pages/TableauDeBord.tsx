@@ -5,7 +5,7 @@ import { euros } from '../calculs/argent';
 import { aujourdhui, bilanAnnee, dateLisible, delai, prochainsAnniversaires } from '../calculs/bilan';
 import { Chiffre, Jauge, Lien } from '../components/commun';
 import { useDonnees } from '../donnees/contexte';
-import { usePreparerAnniversaire } from '../donnees/usePreparerAnniversaire';
+import { useOccasionPour } from '../donnees/useOccasionPour';
 import styles from './pages.module.css';
 
 /** Accueil du compte : budget de l'année, anniversaires et occasions à venir, cagnottes en cours. */
@@ -17,7 +17,7 @@ export function TableauDeBord() {
   const anniversaires = prochainsAnniversaires(d.personnes, jour);
   const aVenir = d.occasions.filter((o) => o.date >= jour).sort((a, b) => a.date.localeCompare(b.date)).slice(0, 5);
   const cagnottes = d.cagnottes.filter((c) => !c.close);
-  const { preparer, enCours: prepare } = usePreparerAnniversaire();
+  const { preparer, enCours: prepare } = useOccasionPour();
 
   return (
     <div className={styles.pile}>

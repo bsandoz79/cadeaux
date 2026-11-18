@@ -2,14 +2,16 @@ import { useState } from 'react';
 import type { Groupe, Personne } from '../api/types';
 import { euros } from '../calculs/argent';
 import { aujourdhui, bilanAnnee, dateLisible } from '../calculs/bilan';
-import { Champ, Depliable, EnTete } from '../components/commun';
+import { Champ, Choix, Depliable, EnTete } from '../components/commun';
 import { useEnvoi } from '../components/formulaire';
 import { useDonnees } from '../donnees/contexte';
-import { usePreparerAnniversaire } from '../donnees/usePreparerAnniversaire';
+import { useOccasionPour } from '../donnees/useOccasionPour';
+import { ArbreFamille } from '../components/ArbreFamille';
+import { estGroupeFamille, LIENS, lien as lienDe } from '../calculs/famille';
 import { FormulaireCadeau } from '../components/FormulaireCadeau';
 import styles from './pages.module.css';
 
-function FormulairePersonne({ personne, onFini, groupeParDefaut }: { personne?: Personne; onFini: () => void; groupeParDefaut?: number }) {
+function FormulairePersonne({ personne, onFini, groupeParDefaut, lienParDefaut }: { personne?: Personne; onFini: () => void; groupeParDefaut?: number; lienParDefaut?: string }) {
   const d = useDonnees();
   const { envoyer, occupe, erreur, champs } = useEnvoi(async (f) => {
     const donnees = {
@@ -17,12 +19,15 @@ function FormulairePersonne({ personne, onFini, groupeParDefaut }: { personne?: 
       dateNaissance: String(f.get('dateNaissance') ?? '') || null,
       note: String(f.get('note') ?? '') || null,
       groupeIds: f.getAll('groupes').map(Number),
+      lien: famille ? String(f.get('lien') ?? '') || null : null,
     };
     if (personne) await d.modifier('personnes', personne.id, donnees);
     else await d.ajouter('personnes', donnees);
     onFini();
   });
-  const coches = personne?.groupeIds ?? (groupeParDefaut ? [groupeParDefaut] : []);
+  const [coches, setCoches] = useState<number[]>(personne?.groupeIds ?? (groupeParDefaut ? [groupeParDefaut] : []));
+  // Lien de parenté proposé quand un groupe « Famille » est coché (ou déjà renseigné).
+  const famille = Boolean(personne?.lien || lienParDefaut) || d.groupes.some((g) => coches.includes(g.id) && estGroupeFamille(g.nom));
   return (
     <form className="formulaire" onSubmit={envoyer} noValidate>
       <div className="rangee">
@@ -34,11 +39,18 @@ function FormulairePersonne({ personne, onFini, groupeParDefaut }: { personne?: 
           <legend>Groupes</legend>
           {d.groupes.map((g) => (
             <label key={g.id} className={styles.coche}>
-              <input type="checkbox" name="groupes" value={g.id} defaultChecked={coches.includes(g.id)} /> {g.nom}
+              <input type="checkbox" name="groupes" value={g.id} checked={coches.includes(g.id)}
+                onChange={(e) => setCoches((c) => (e.target.checked ? [...c, g.id] : c.filter((x) => x !== g.id)))} /> {g.nom}
             </label>
           ))}
           {champs.groupeIds && <small className="erreur">{champs.groupeIds}</small>}
         </fieldset>
+      )}
+      {famille && (
+        <Choix libelle="Lien de parenté" nom="lien" defaultValue={personne?.lien ?? lienParDefaut ?? ''} erreur={champs.lien}>
+          <option value="">Pas précisé</option>
+          {LIENS.map((l) => <option key={l.valeur} value={l.valeur}>{l.libelle}</option>)}
+        </Choix>
       )}
       <Champ libelle="Note" nom="note" defaultValue={personne?.note ?? ''} erreur={champs.note} placeholder="Tailles, goûts, ce qu’il ou elle a déjà…" />
       {erreur && <p className="erreur" role="alert">{erreur}</p>}
@@ -107,7 +119,10 @@ export function Proches() {
   const [edition, setEdition] = useState<number | null>(null);
   const [ajout, setAjout] = useState<number | null>(null);
   const [filtre, setFiltre] = useState<number | 'tous' | 'sans'>('tous');
-  const { preparer, enCours } = usePreparerAnniversaire();
+  const { preparer, enCours } = useOccasionPour();
+  const [vue, setVue] = useState<'liste' | 'arbre'>('liste');
+  const [nouveauLien, setNouveauLien] = useState<string | null>(null);
+  const groupeFamille = d.groupes.find((g) => estGroupeFamille(g.nom));
   const annee = Number(aujourdhui().slice(0, 4));
   const parPersonne = new Map(bilanAnnee(annee, d).parPersonne.map((l) => [l.cle, l]));
   const filtrees = d.personnes.filter((p) => filtre === 'tous' || (filtre === 'sans' ? p.groupeIds.length === 0 : p.groupeIds.includes(filtre)));
@@ -120,11 +135,34 @@ export function Proches() {
   return (
     <div className={styles.pile}>
       <EnTete titre="Proches" sousTitre={`Ceux à qui vous offrez des cadeaux, et ce qu’ils représentent en ${annee}.`} />
-      <Depliable key={String(filtre)} bouton="Ajouter un proche">
-        {(fermer) => <FormulairePersonne onFini={fermer} groupeParDefaut={typeof filtre === 'number' ? filtre : undefined} />}
-      </Depliable>
+      <div className={styles.ongletsPage} role="group" aria-label="Affichage">
+        <button type="button" aria-pressed={vue === 'liste'} onClick={() => setVue('liste')}>Liste</button>
+        <button type="button" aria-pressed={vue === 'arbre'} onClick={() => setVue('arbre')}>Arbre de famille</button>
+      </div>
 
-      {d.groupes.length > 0 && (
+      {nouveauLien ? (
+        <div className="carte">
+          <h2 style={{ marginBottom: '.8rem' }}>Ajouter : {lienDe(nouveauLien)?.libelle}</h2>
+          <FormulairePersonne lienParDefaut={nouveauLien} groupeParDefaut={groupeFamille?.id} onFini={() => setNouveauLien(null)} />
+        </div>
+      ) : (
+        <Depliable key={String(filtre)} bouton="Ajouter un proche">
+          {(fermer) => <FormulairePersonne onFini={fermer} groupeParDefaut={typeof filtre === 'number' ? filtre : undefined} />}
+        </Depliable>
+      )}
+
+      {vue === 'arbre' && (
+        <section className="carte" aria-label="Arbre de famille">
+          <ArbreFamille onAjouter={async (l) => {
+            // Le groupe « Famille » est créé au premier membre ajouté depuis l'arbre.
+            if (!groupeFamille) await d.ajouter('groupes', { nom: 'Famille' });
+            setNouveauLien(l);
+            window.scrollTo?.({ top: 0, behavior: 'smooth' });
+          }} />
+        </section>
+      )}
+
+      {vue === 'liste' && d.groupes.length > 0 && (
         <div className={styles.annees} role="group" aria-label="Afficher">
           <button type="button" aria-pressed={filtre === 'tous'} onClick={() => setFiltre('tous')}>Tous</button>
           {d.groupes.map((g) => (
@@ -134,7 +172,7 @@ export function Proches() {
         </div>
       )}
 
-      {d.personnes.length === 0 ? (
+      {vue === 'arbre' ? null : d.personnes.length === 0 ? (
         <p className="vide">Ajoutez les personnes à qui vous faites des cadeaux : famille, amis, collègues.</p>
       ) : filtrees.length === 0 ? (
         <p className="vide">Personne dans ce groupe pour l’instant.</p>
@@ -150,6 +188,7 @@ export function Proches() {
                   <>
                     <div>
                       <strong>{p.nom}</strong>
+                      {lienDe(p.lien) && <span className={styles.discret}> · {lienDe(p.lien)!.libelle}</span>}
                       {p.groupeIds.length > 0 && <span className={styles.discret}> · {p.groupeIds.map((id) => nomsGroupes.get(id)).filter(Boolean).join(', ')}</span>}
                       <div className={styles.discret}>
                         {p.dateNaissance ? `Anniversaire le ${dateLisible(p.dateNaissance, true)}` : 'Pas de date d’anniversaire'}

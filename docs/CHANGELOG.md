@@ -2,6 +2,9 @@
 
 ## [Non publié]
 
+### Tests
+- Parcours dans un vrai navigateur (Playwright), sur téléphone et sur ordinateur, à chaque envoi avant la mise en ligne : famille et Noël jusqu'au bilan, cagnotte (part d'un ami, aperçu du lien, « Je complète »), liste d'envies (réservation cachée au propriétaire), association de comptes depuis une invitation, pages publiques. Un parcours qui échoue bloque la mise en ligne. En local : `npm run e2e` après `npm run build`.
+
 ### Performances
 - Pages chargées à la demande : le premier chargement passe de 361 à 243 Ko (106 à 77 Ko compressés), chaque autre page se télécharge quand on l'ouvre (3 à 9 Ko).
 - Appli installée : les fichiers sont nettoyés seulement à l'arrivée d'une nouvelle version, pour garder hors ligne les pages déjà ouvertes.

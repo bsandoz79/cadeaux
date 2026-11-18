@@ -45,6 +45,16 @@ jobs:
       - name: Extension Chrome – archive à télécharger depuis le site
         run: cd extension && zip -qr ../front/dist/extension-cadeaux.zip . -x "*.d.ts"
 
+      - name: Parcours dans un vrai navigateur (téléphone et ordinateur)
+        working-directory: front
+        env:
+          CI: 'true'
+        run: |
+          npx playwright install --with-deps chromium
+          npx playwright test
+          # La base de test et sa configuration ne partent jamais en ligne.
+          rm -rf ../api/var ../api/config.local.php
+
       - name: API – dépendances de production et configuration
         working-directory: api
         env:

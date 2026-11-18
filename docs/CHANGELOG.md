@@ -2,6 +2,9 @@
 
 ## [Non publié]
 
+### Ajouté (agenda)
+- « Dans mon agenda » (Mon compte) : lien privé à ajouter à Google Agenda, l'iPhone, le Mac ou Outlook. Anniversaires des proches chaque année (ceux des comptes associés aussi), occasions, fin des cagnottes ouvertes ; mis à jour tout seul. Lien à changer ou couper à tout moment.
+
 ### Ajouté (extension 0.3.0)
 - « Continuer avec Google » dans l'extension : ouvre cadeaux.bsandoz.fr/extension, où l'on se connecte (Google ou mot de passe) puis clique sur « Connecter l'extension » ; un code à usage unique (2 minutes) donne à l'extension sa propre connexion. Aucune nouvelle permission.
 

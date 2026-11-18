@@ -12,7 +12,7 @@ namespace Cadeaux;
 final class Schema
 {
     /** À augmenter à chaque changement des tables. */
-    public const VERSION = 16;
+    public const VERSION = 17;
 
     public static function installer(\PDO $pdo): void
     {
@@ -36,7 +36,8 @@ final class Schema
                 securite_le VARCHAR(19) NULL,
                 date_naissance VARCHAR(10) NULL,
                 google_sub VARCHAR(64) NULL UNIQUE,
-                mot_de_passe_defini INT NOT NULL DEFAULT 1
+                mot_de_passe_defini INT NOT NULL DEFAULT 1,
+                agenda_empreinte CHAR(64) NULL
             )",
             "invitations (
                 id $id,
@@ -263,6 +264,8 @@ final class Schema
             // v16 : compte créé avec Google sans mot de passe choisi ; relier Google depuis « Mon compte ».
             ['comptes', 'mot_de_passe_defini', 'INT NOT NULL DEFAULT 1'],
             ['google_etats', 'compte_id', $mysql ? 'INT UNSIGNED NULL' : 'INTEGER NULL'],
+            // v17 : lien privé d'agenda (empreinte du code).
+            ['comptes', 'agenda_empreinte', 'CHAR(64) NULL'],
         ];
         foreach ($ajouts as [$table, $colonne, $type]) {
             if (!self::colonneExiste($pdo, $table, $colonne, $mysql)) {

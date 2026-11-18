@@ -7,7 +7,7 @@ import { vi } from 'vitest';
 type Element = { id: number } & Record<string, unknown>;
 
 export interface EtatFaux {
-  compte: { id: number; email: string; nom: string; rappels: boolean; emailConfirme: boolean; dateNaissance: string | null };
+  compte: { id: number; email: string; nom: string; rappels: boolean; emailConfirme: boolean; dateNaissance: string | null; google?: boolean; motDePasse?: boolean };
   groupes: Element[];
   personnes: Element[];
   occasions: Element[];
@@ -52,6 +52,10 @@ export function installerFausseApi(etat: EtatFaux) {
 
     if (methode === 'POST' && (chemin === '/comptes' || chemin === '/connexion')) return json(chemin === '/comptes' ? 201 : 200, { jeton: 'a'.repeat(64), compte: etat.compte });
     if (chemin === '/google') return json(200, { actif: etat.google ?? false });
+    if (methode === 'POST' && chemin === '/moi/google/relier') return json(200, { adresse: 'https://accounts.google.com/o/oauth2/v2/auth?state=x' });
+    if (methode === 'POST' && chemin === '/moi/google/relier/fin') { etat.compte.google = true; return json(200, etat.compte); }
+    if (methode === 'POST' && chemin === '/moi/google/delier') { etat.compte.google = false; return json(200, etat.compte); }
+    if (methode === 'POST' && chemin === '/motdepasse/oubli') return json(200, { message: 'Si un compte existe avec cette adresse, un e-mail vient de partir.' });
     if (methode === 'POST' && chemin === '/google/session') {
       const c = corps as { code?: string; preuve?: string };
       return c.code && c.preuve ? json(200, { jeton: 'a'.repeat(64), compte: etat.compte, retour: null, nouveau: false }) : json(403, { message: 'Cette connexion a été commencée dans un autre navigateur. Recommencez ici.' });

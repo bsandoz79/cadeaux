@@ -120,7 +120,7 @@ final class Identite
         self::verifierMotDePasse($motDePasse, 'motDePasse');
         $l = $this->utiliserLien($lien, ['motdepasse']);
         $id = (int) $l['compte_id'];
-        $this->pdo->prepare('UPDATE comptes SET mot_de_passe = ?, email_confirme = 1, bloque = 0, securite_le = ? WHERE id = ?')
+        $this->pdo->prepare('UPDATE comptes SET mot_de_passe = ?, email_confirme = 1, bloque = 0, securite_le = ?, mot_de_passe_defini = 1 WHERE id = ?')
             ->execute([password_hash($motDePasse, PASSWORD_DEFAULT), $this->horloge->texte(), $id]);
         $this->pdo->prepare('DELETE FROM jetons WHERE compte_id = ?')->execute([$id]);
 

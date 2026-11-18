@@ -2,6 +2,10 @@
 
 ## [Non publié]
 
+### Ajouté (Google dans « Mon compte »)
+- Section « Connexion avec Google » : relier son compte Google (même avec une autre adresse), le délier.
+- Compte créé avec Google : « Recevoir le lien » pour choisir un mot de passe (même chemin sûr que « Mot de passe oublié ») ; Google ne se délie qu'avec un mot de passe ; le changement d'adresse attend un mot de passe.
+
 ### Modifié (connexion avec Google)
 - « Continuer avec Google » aussi sur une invitation à associer son compte et sur « On se cotise » d'une liste d'envies : retour direct sur la page après la connexion.
 

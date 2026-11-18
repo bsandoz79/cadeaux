@@ -19,6 +19,7 @@
 | Erreurs | Message générique au navigateur, détail dans le journal du serveur | `Application.php` |
 | Fichiers du serveur | `.htaccess` de l'API : code, dépendances, tests et configuration inaccessibles ; listes de dossiers coupées | `api/.htaccess` |
 | Tâche planifiée | `bin/menage.php` refuse de s'exécuter hors ligne de commande, dossier `bin` inaccessible par le web ; e-mails sans en-tête injectable | `bin/menage.php`, `CourrierPhp.php` |
+| Sauvegardes | Copie de la base chaque nuit avant le ménage, dans un dossier hors du site (droits 700, fichiers 600), 14 jours gardés ; fichier écrit sous un nom provisoire puis renommé une fois complet. Restauration seulement en ligne de commande, dans une base vide, copie complète vérifiée (sinon rien n'est écrit), noms de tables et de colonnes contrôlés | `Sauvegarde.php`, `bin/restaurer.php` |
 | Secrets | `config.local.php` jamais versionné, écrit au déploiement depuis les secrets GitHub | `.github/workflows/deploy.yml` |
 | En-têtes | `nosniff`, `Referrer-Policy`, `X-Frame-Options: DENY`, `Permissions-Policy`, `Cache-Control: no-store` sur l'API, HTTPS imposé | `front/public/.htaccess`, `Http/Reponse.php` |
 | Appli installée | `sw.js` ne garde que les fichiers du site (pages et `/assets/`), jamais les réponses de l'API ni les données ; servi sans cache pour que chaque mise à jour soit prise | `front/public/sw.js` |

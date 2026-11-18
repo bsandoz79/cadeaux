@@ -220,6 +220,22 @@ describe('association de comptes', () => {
   });
 });
 
+describe('bien démarrer', () => {
+  it('nouveau compte : trois étapes, cochées au fur et à mesure, et masquables', async () => {
+    etat.personnes = [{ id: 7, nom: 'Maman', dateNaissance: null, note: null, lien: 'mere', groupeIds: [] }];
+    preparer('/');
+    installerFausseApi(etat);
+    ouvrir();
+    const u = userEvent.setup();
+    expect(await screen.findByRole('heading', { name: 'Bien démarrer' })).toBeInTheDocument();
+    expect(screen.getByText('1 sur 3')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Créer une occasion' })).toHaveAttribute('href', '/occasions');
+    expect(screen.queryByRole('link', { name: 'Ajouter mes proches' })).not.toBeInTheDocument();
+    await u.click(screen.getByRole('button', { name: 'Masquer' }));
+    expect(screen.queryByRole('heading', { name: 'Bien démarrer' })).not.toBeInTheDocument();
+  });
+});
+
 describe('occasion', () => {
   beforeEach(() => {
     etat.personnes = [{ id: 7, nom: 'Papa', dateNaissance: null, note: null, lien: null, groupeIds: [] }];

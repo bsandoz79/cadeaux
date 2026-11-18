@@ -3,6 +3,9 @@
 ## [Non publié]
 
 ### Ajouté
+- « Bien démarrer » sur l'accueil d'un nouveau compte : ajouter sa famille, sa date de naissance, sa première occasion ; les étapes se cochent seules et l'encadré peut être masqué.
+
+### Ajouté
 - Recherche (loupe dans l'en-tête, page `/recherche`) : proches, cadeaux, occasions, cagnottes et envies, sans tenir compte des accents ni des majuscules ; plusieurs mots possibles (« noël maman »).
 
 ### Modifié (proches)

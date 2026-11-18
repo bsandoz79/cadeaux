@@ -5,6 +5,7 @@ import { euros } from '../calculs/argent';
 import { aujourdhui, bilanAnnee, dateLisible, delai, prochainsAnniversaires } from '../calculs/bilan';
 import { Chiffre, Jauge, Lien } from '../components/commun';
 import { useDonnees } from '../donnees/contexte';
+import { BienDemarrer } from '../components/BienDemarrer';
 import { useOccasionPour } from '../donnees/useOccasionPour';
 import styles from './pages.module.css';
 
@@ -22,6 +23,7 @@ export function TableauDeBord() {
   return (
     <div className={styles.pile}>
       {d.compte && !d.compte.emailConfirme && <BandeauConfirmation email={d.compte.email} />}
+      <BienDemarrer />
       <header>
         <h1>Bonjour {d.compte?.nom}</h1>
         <p className={styles.chapo}>Vos cadeaux de {annee}, en un coup d’œil.</p>
